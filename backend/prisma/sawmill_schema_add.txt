@@ -1,0 +1,55 @@
+﻿model SawmillBundle {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  bundleNumber   String           @unique
+  parentBundleId String?          @db.ObjectId
+  parentBundle   SawmillBundle?   @relation("RepackedFrom", fields: [parentBundleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  childBundles   SawmillBundle[]  @relation("RepackedFrom")
+  status         String           @default("ACTIVE") // ACTIVE, REPACKED, SHIPPED
+  outputItems    SawmillOutputItem[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model SawmillProductionRun {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  productionNo   String           @unique
+  productionDate DateTime
+  shift          String
+  operatorId     String           @db.ObjectId
+  operator       Employee         @relation(fields: [operatorId], references: [id])
+  workCenterId   String           @db.ObjectId
+  workCenter     WorkCenter       @relation(fields: [workCenterId], references: [id])
+  status         String           @default("DRAFT") // DRAFT, POSTED, CANCELLED
+  notes          String?
+  consumptions   SawmillProductionConsumption[]
+  outputItems    SawmillOutputItem[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model SawmillProductionConsumption {
+  id               String               @id @default(auto()) @map("_id") @db.ObjectId
+  inputLogId       String               @db.ObjectId
+  inputLog         InputLog             @relation(fields: [inputLogId], references: [id])
+  productionRunId  String               @db.ObjectId
+  productionRun    SawmillProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)
+  consumedM3       Float
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+}
+
+model SawmillOutputItem {
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  productionRunId    String               @db.ObjectId
+  productionRun      SawmillProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)
+  bundleId           String               @db.ObjectId
+  bundle             SawmillBundle        @relation(fields: [bundleId], references: [id])
+  timberVariantId    String               @db.ObjectId
+  timberVariant      TimberVariant        @relation(fields: [timberVariantId], references: [id])
+  partai             String
+  quantityPcs        Int
+  volumeM3           Float
+  remarks            String?
+  stockMovementId    String?              // Ledger IN
+  reversalMovementId String?              // Ledger OUT (if cancelled)
+}

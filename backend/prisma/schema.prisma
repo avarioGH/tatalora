@@ -1,0 +1,3985 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Company {
+  timberPartais TimberPartai[]
+  id            String         @id @default(uuid()) @db.Uuid
+  tenant_id     String?        @db.Uuid
+  tenant        Tenant?        @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name          String
+  logo          String?
+  address       String?
+  phone         String?
+  email         String?
+  tax_number    String?
+  timezone      String         @default("Asia/Jakarta")
+  currency      String         @default("IDR")
+
+  // Relations
+  settings        CompanySetting?
+  roles           Role[]
+  users           User[]
+  warehouses      Warehouse[]
+  categories      Category[]
+  units           Unit[]
+  brands          Brand[]
+  products        Product[]
+  disposals       InventoryDisposal[]
+  assetCategories AssetCategory[]
+  assets          AssetMaster[]
+  transactions    InventoryTransaction[]
+  stockInTallies  StockInTally[]
+
+  // Phase 5 Finance
+  cash_accounts        CashAccount[]
+  shifts               Shift[]
+  finance_categories   FinanceCategory[]
+  finance_transactions FinanceTransaction[]
+  petty_cashes         PettyCash[]
+  budgets              Budget[]
+  reconciliations      Reconciliation[]
+
+  // Phase 6 Accounting
+  account_types       AccountType[]
+  chart_of_accounts   ChartOfAccount[]
+  journal_entries     JournalEntry[]
+  fiscal_years        FiscalYear[]
+  accounting_periods  AccountingPeriod[]
+  journal_adjustments JournalAdjustment[]
+  journal_reversals   JournalReversal[]
+
+  // Phase 7 BI
+  dashboard_layouts DashboardLayout[]
+  dashboard_widgets DashboardWidget[]
+  business_insights BusinessInsight[]
+
+  // Phase 8 Reporting & Document
+  report_schedules   ReportSchedule[]
+  report_export_logs ReportExportLog[]
+  documents          DocumentMaster[]
+
+  // Phase 9 Automation
+  workflows         WorkflowMaster[]
+  approval_requests ApprovalRequest[]
+  inbox_messages    InternalInbox[]
+  user_tasks        UserTask[]
+  notif_templates   NotificationTemplate[]
+  automation_logs   AutomationLog[]
+
+  // Phase 2 CRM
+  customers    Customer[]
+  sales_orders SalesOrder[]
+  vouchers     Voucher[]
+
+  // Phase 4 HR
+  departments Department[]
+  employees   Employee[]
+
+  // Phase 10 AI
+  ai_chats                 AiChatHistory[]
+  pos_shifts               PosShift[]
+  marketplace_integrations MarketplaceIntegration[]
+
+  created_at              DateTime                 @default(now())
+  updated_at              DateTime                 @updatedAt
+  deleted_at              DateTime?
+  Quotation               Quotation[]
+  DeliveryOrder           DeliveryOrder[]
+  Invoice                 Invoice[]
+  Payment                 Payment[]
+  PurchaseOrder           PurchaseOrder[]
+  GoodsReceipt            GoodsReceipt[]
+  LeaveRequest            LeaveRequest[]
+  Payroll                 Payroll[]
+  Lead                    Lead[]
+  Opportunity             Opportunity[]
+  CrmActivity             CrmActivity[]
+  EcommerceCart           EcommerceCart[]
+  InventoryCostLayer      InventoryCostLayer[]
+  CostLayerConsumption    CostLayerConsumption[]
+  timberSpecies           TimberSpecies[]
+  timberGrades            TimberGrade[]
+  timberSources           TimberSource[]
+  vehicles                Vehicle[]
+  drivers                 Driver[]
+  productionProcesses     ProductionProcess[]
+  timberPurchases         TimberPurchase[]
+  timberShipments         TimberShipment[]
+  timberStockOpnames      TimberStockOpname[]
+  timberStockReservations TimberStockReservation[]
+  timberVariants          TimberVariant[]
+
+  exportShipments     ExportShipment[]
+  StockTransformation StockTransformation[]
+  Netting             Netting[]
+  PurchaseReturn      PurchaseReturn[]
+  SalesReturn         SalesReturn[]
+}
+
+model CompanySetting {
+  id                   String  @id @default(uuid()) @db.Uuid
+  company_id           String  @unique @db.Uuid
+  company              Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  currency             String  @default("IDR")
+  timezone             String  @default("Asia/Jakarta")
+  language             String  @default("id")
+  tax_percentage       Float   @default(11.0)
+  logo                 String?
+  invoice_prefix       String  @default("INV-")
+  barcode_prefix       String  @default("BRC-")
+  default_warehouse_id String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Role {
+  id          String   @id @default(uuid()) @db.Uuid
+  company_id  String?  @db.Uuid
+  company     Company? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name        String
+  description String?
+  is_system   Boolean  @default(false)
+  is_active   Boolean  @default(true)
+
+  permissions RolePermission[]
+  users       User[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, name])
+}
+
+model Permission {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique
+  description String?
+
+  roles RolePermission[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model RolePermission {
+  id            String     @id @default(uuid()) @db.Uuid
+  role_id       String     @db.Uuid
+  role          Role       @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  permission_id String     @db.Uuid
+  permission    Permission @relation(fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+
+  @@unique([role_id, permission_id])
+}
+
+model User {
+  id                 String    @id @default(uuid()) @db.Uuid
+  company_id         String?   @db.Uuid
+  company            Company?  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  role_id            String?   @db.Uuid
+  role               Role?     @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  username           String    @unique
+  name               String
+  email              String?   @unique
+  phone              String?
+  password           String
+  avatar             String?
+  status             Boolean   @default(true)
+  last_login         DateTime?
+  accessible_modules String[]  @default([])
+
+  created_transactions  InventoryTransaction[] @relation("CreatedTransactions")
+  approved_transactions InventoryTransaction[] @relation("ApprovedTransactions")
+  stock_movements       StockMovement[]
+
+  // EAM Relations
+  user_assets               AssetMaster[]     @relation("UserAssets")
+  performed_asset_histories AssetHistory[]    @relation("PerformedAssetHistories")
+  created_asset_locations   AssetLocation[]   @relation("CreatedAssetLocations")
+  assigned_assets           AssetAssignment[] @relation("AssignedAssets")
+  borrowed_assets           AssetBorrowing[]  @relation("BorrowedAssets")
+  approved_asset_borrowings AssetBorrowing[]  @relation("ApprovedAssetBorrowings")
+  created_maintenance_logs  MaintenanceLog[]  @relation("CreatedMaintenanceLogs")
+  assigned_work_orders      WorkOrder[]       @relation("AssignedWorkOrders")
+  created_work_orders       WorkOrder[]       @relation("CreatedWorkOrders")
+  uploaded_asset_documents  AssetDocument[]   @relation("UploadedAssetDocuments")
+
+  // Finance Relations
+  created_finance_tx       FinanceTransaction[] @relation("CreatedFinanceTx")
+  approved_finance_tx      FinanceTransaction[] @relation("ApprovedFinanceTx")
+  uploaded_finance_docs    FinanceDocument[]    @relation("UploadedFinanceDocs")
+  petty_cash_accounts      PettyCash[]          @relation("PettyCashEmployee")
+  approved_reconciliations Reconciliation[]     @relation("ApprovedReconciliations")
+
+  // Accounting Relations
+  created_journals     JournalEntry[]      @relation("CreatedJournals")
+  approved_journals    JournalEntry[]      @relation("ApprovedJournals")
+  closed_fiscal_years  FiscalYear[]        @relation("ClosedFiscalYears")
+  created_adjustments  JournalAdjustment[] @relation("CreatedAdjustments")
+  approved_adjustments JournalAdjustment[] @relation("ApprovedAdjustments")
+  created_reversals    JournalReversal[]   @relation("CreatedReversals")
+
+  // BI Relations
+  dashboard_layouts DashboardLayout[] @relation("DashboardLayouts")
+  dashboard_widgets DashboardWidget[] @relation("DashboardWidgets")
+
+  // Phase 8 Relations
+  scheduled_reports      ReportSchedule[]    @relation("ScheduledReports")
+  export_logs            ReportExportLog[]   @relation("ExportLogs")
+  uploaded_documents     DocumentMaster[]    @relation("UploadedDocuments")
+  uploaded_document_vers DocumentVersion[]   @relation("UploadedDocumentVersions")
+  created_share_links    DocumentShareLink[] @relation("CreatedShareLinks")
+
+  // Phase 9 Relations
+  pending_approvals ApprovalRequest[] @relation("PendingApprovals")
+  approval_history  ApprovalLog[]     @relation("ApprovalHistory")
+  inbox_messages    InternalInbox[]   @relation("UserInbox")
+  tasks             UserTask[]        @relation("UserTasks")
+  // Phase 10 AI
+  ai_chats          AiChatHistory[]   @relation("UserAiChats")
+
+  // POS
+  pos_shifts PosShift[] @relation("UserPosShifts")
+
+  created_disposals  InventoryDisposal[]   @relation("DisposalCreator")
+  approved_disposals InventoryDisposal[]   @relation("DisposalApprover")
+  // RBAC Warehouse Access
+  warehouse_accesses UserWarehouseAccess[]
+
+  created_at          DateTime              @default(now())
+  updated_at          DateTime              @updatedAt
+  deleted_at          DateTime?
+  StockTransformation StockTransformation[]
+}
+
+model Warehouse {
+  rawLogs               RawLog[]
+  trimmedLogs           TrimmedLog[]
+  inputLogs             InputLog[]
+  manufacturing_orders  ManufacturingOrder[]
+  material_reservations MaterialReservation[]
+  timberDeliveryItems   TimberDeliveryNoteItem[]
+  id                    String                   @id @default(uuid()) @db.Uuid
+  company_id            String                   @db.Uuid
+  company               Company                  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code                  String
+  name                  String
+  address               String?
+  pic                   String?
+  phone                 String?
+  description           String?
+  status                Boolean                  @default(true)
+
+  transactions_as_origin InventoryTransaction[] @relation("TransactionWarehouse")
+  transactions_as_target InventoryTransaction[] @relation("TransactionTargetWarehouse")
+  stock_movements        StockMovement[]
+  stockInTallies         StockInTally[]
+  warehouse_stocks       WarehouseStock[]
+  sawnOutputs            SawnTimberOutput[]
+  timberStocks           TimberStock[]
+  transfersFrom          StockTransfer[]        @relation("TransferFromLocation")
+  transfersTo            StockTransfer[]        @relation("TransferToLocation")
+  adjustments            StockAdjustment[]
+  finance_transactions   FinanceTransaction[]
+  customers              Customer[]
+  employees              Employee[]
+  pos_shifts             PosShift[]
+
+  disposals     InventoryDisposal[]
+  user_accesses UserWarehouseAccess[]
+
+  created_at                 DateTime                    @default(now())
+  updated_at                 DateTime                    @updatedAt
+  deleted_at                 DateTime?
+  PurchaseOrder              PurchaseOrder[]
+  GoodsReceipt               GoodsReceipt[]
+  InventoryCostLayer         InventoryCostLayer[]
+  locations                  Location[]
+  productionOutputs          ProductionProcessOutput[]
+  timberPurchases            TimberPurchase[]
+  timberShipments            TimberShipment[]
+  timberStockOpnames         TimberStockOpname[]
+  timberStockReservations    TimberStockReservation[]
+  fulfillmentSalesOrderItems TimberSalesOrderItem[]
+  StockTransformationInput   StockTransformationInput[]
+  StockTransformationOutput  StockTransformationOutput[]
+  PurchaseReturn             PurchaseReturn[]
+  SalesReturn                SalesReturn[]
+  Invoice                    Invoice[]
+
+  @@unique([company_id, code])
+}
+
+model UserWarehouseAccess {
+  id           String    @id @default(uuid()) @db.Uuid
+  user_id      String    @db.Uuid
+  user         User      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id String    @db.Uuid
+  warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at   DateTime  @default(now())
+
+  @@unique([user_id, warehouse_id])
+}
+
+model Category {
+  id         String     @id @default(uuid()) @db.Uuid
+  company_id String     @db.Uuid
+  company    Company    @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parent_id  String?    @db.Uuid
+  parent     Category?  @relation("CategoryHierarchy", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children   Category[] @relation("CategoryHierarchy")
+  name       String
+
+  products Product[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+}
+
+model Unit {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name       String
+
+  products Product[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+}
+
+model Brand {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name       String
+
+  products Product[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+}
+
+model Product {
+  timberVariants            TimberVariant[]
+  disposalItems             InventoryDisposalItem[]
+  purchase_request_items    PurchaseRequestItem[]
+  boms                      Bom[]
+  bom_items                 BomItem[]
+  manufacturing_orders      ManufacturingOrder[]
+  manufacturing_order_items ManufacturingOrderItem[]
+  quality_control_points    QualityControlPoint[]
+  material_reservations     MaterialReservation[]
+  stockInTallyItems         StockInTallyItem[]
+  id                        String                   @id @default(uuid()) @db.Uuid
+  company_id                String                   @db.Uuid
+  company                   Company                  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  category_id               String?                  @db.Uuid
+  category                  Category?                @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  brand_id                  String?                  @db.Uuid
+  brand                     Brand?                   @relation(fields: [brand_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  unit_id                   String                   @db.Uuid
+  unit                      Unit                     @relation(fields: [unit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_id               String?                  @db.Uuid
+  supplier                  Customer?                @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  code           String
+  barcode        String?
+  name           String
+  description    String?
+  purchase_price Float
+  selling_price  Float
+  minimum_stock  Int     @default(0)
+  weight         Float?
+  length         Float?
+  width          Float?
+  height         Float?
+  image          String?
+  status         Boolean @default(true)
+
+  // Ecommerce Fields
+  is_published         Boolean @default(false)
+  ecommerce_slug       String?
+  seo_title            String?
+  seo_description      String?
+  ecommerce_sort_order Int     @default(0)
+
+  images               ProductImage[]
+  documents            ProductDocument[]
+  transaction_items    InventoryTransactionItem[]
+  stock_movements      StockMovement[]
+  warehouse_stocks     WarehouseStock[]
+  sales_order_items    SalesOrderItem[]
+  ecommerce_cart_items EcommerceCartItem[]
+
+  created_at                DateTime                    @default(now())
+  updated_at                DateTime                    @updatedAt
+  deleted_at                DateTime?
+  QuotationItem             QuotationItem[]
+  DeliveryOrderItem         DeliveryOrderItem[]
+  InvoiceItem               InvoiceItem[]
+  PurchaseOrderItem         PurchaseOrderItem[]
+  GoodsReceiptItem          GoodsReceiptItem[]
+  InventoryCostLayer        InventoryCostLayer[]
+  quality_checks            QualityCheck[]
+  StockTransformationInput  StockTransformationInput[]
+  StockTransformationOutput StockTransformationOutput[]
+  PurchaseReturnItem        PurchaseReturnItem[]
+  SalesReturnItem           SalesReturnItem[]
+
+  @@unique([company_id, code])
+  @@unique([company_id, barcode])
+}
+
+model ProductImage {
+  id         String  @id @default(uuid()) @db.Uuid
+  product_id String  @db.Uuid
+  product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  image_url  String
+  is_primary Boolean @default(false)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model ProductDocument {
+  id            String  @id @default(uuid()) @db.Uuid
+  product_id    String  @db.Uuid
+  product       Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  document_url  String
+  document_type String
+  title         String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+// =======================
+// ENTERPRISE ASSET MANAGEMENT (PHASE 4)
+// =======================
+
+model AssetCategory {
+  id         String          @id @default(uuid()) @db.Uuid
+  company_id String          @db.Uuid
+  company    Company         @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parent_id  String?         @db.Uuid
+  parent     AssetCategory?  @relation("AssetCategoryHierarchy", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children   AssetCategory[] @relation("AssetCategoryHierarchy")
+
+  name        String
+  code        String?
+  description String?
+  icon        String?
+  color       String?
+  status      Boolean @default(true)
+
+  assets AssetMaster[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+}
+
+model AssetMaster {
+  id           String        @id @default(uuid()) @db.Uuid
+  company_id   String        @db.Uuid
+  company      Company       @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  category_id  String        @db.Uuid
+  category     AssetCategory @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id String?       @db.Uuid
+
+  assigned_user_id String? @db.Uuid
+  assigned_user    User?   @relation("UserAssets", fields: [assigned_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  asset_code    String
+  asset_name    String
+  brand         String?
+  model         String?
+  serial_number String?
+  barcode       String? @unique
+  qr_code       String? @unique
+
+  purchase_date  DateTime?
+  purchase_price Float     @default(0)
+  supplier_id    String?   @db.Uuid
+
+  current_value       Float   @default(0)
+  useful_life         Int? // In months
+  depreciation_method String? // Straight Line, Declining Balance
+
+  location  String?
+  status    String // ACTIVE, BORROWED, MAINTENANCE, BROKEN, DISPOSED, SOLD, LOST
+  condition String // EXCELLENT, GOOD, FAIR, DAMAGED, BROKEN
+
+  warranty_until DateTime?
+  notes          String?
+  cost_source    String? // MANUAL, LATEST_PURCHASE, CONFIGURED_DEFAULT
+  image          String?
+  manual_file    String?
+  invoice_file   String?
+
+  is_capitalized                      Boolean               @default(false)
+  capitalization_date                 DateTime?
+  residual_value                      Float                 @default(0)
+  accumulated_depreciation            Float                 @default(0)
+  asset_account_id                    String?
+  accumulated_depreciation_account_id String?
+  depreciation_expense_account_id     String?
+  disposal_date                       DateTime?
+  disposal_proceeds                   Float                 @default(0)
+  asset_depreciations                 AssetDepreciation[]
+  histories                           AssetHistory[]
+  locations                           AssetLocation[]
+  assignments                         AssetAssignment[]
+  borrowings                          AssetBorrowing[]
+  maintenances                        MaintenanceLog[]
+  schedules                           MaintenanceSchedule[]
+  documents                           AssetDocument[]
+  depreciations                       DepreciationLog[]
+  work_orders                         WorkOrder[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, asset_code])
+}
+
+model AssetHistory {
+  id           String      @id @default(uuid()) @db.Uuid
+  asset_id     String      @db.Uuid
+  asset        AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  action       String
+  before_data  Json?
+  after_data   Json?
+  performed_by String      @db.Uuid
+  user         User        @relation("PerformedAssetHistories", fields: [performed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  performed_at DateTime @default(now())
+}
+
+model AssetLocation {
+  id            String      @id @default(uuid()) @db.Uuid
+  asset_id      String      @db.Uuid
+  asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  from_location String?
+  to_location   String
+  from_user     String?
+  to_user       String?
+  notes         String?
+
+  created_by String   @db.Uuid
+  user       User     @relation("CreatedAssetLocations", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  moved_at   DateTime @default(now())
+}
+
+model AssetAssignment {
+  id       String      @id @default(uuid()) @db.Uuid
+  asset_id String      @db.Uuid
+  asset    AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_id  String      @db.Uuid
+  user     User        @relation("AssignedAssets", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  assigned_at DateTime  @default(now())
+  returned_at DateTime?
+  status      String // ACTIVE, RETURNED
+  notes       String?
+}
+
+model AssetBorrowing {
+  id         String      @id @default(uuid()) @db.Uuid
+  asset_id   String      @db.Uuid
+  asset      AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  borrower   String      @db.Uuid
+  user       User        @relation("BorrowedAssets", fields: [borrower], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  department String?
+
+  borrow_date        DateTime
+  return_date        DateTime
+  actual_return_date DateTime?
+
+  status      String // PENDING, BORROWED, RETURNED, OVERDUE, CANCELLED
+  approved_by String? @db.Uuid
+  approver    User?   @relation("ApprovedAssetBorrowings", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  notes       String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model MaintenanceLog {
+  id               String      @id @default(uuid()) @db.Uuid
+  asset_id         String      @db.Uuid
+  asset            AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  maintenance_type String // Preventive, Corrective, Emergency, Calibration, Inspection
+  vendor           String?
+  cost             Float       @default(0)
+  description      String?
+
+  before_photo String?
+  after_photo  String?
+  invoice      String?
+
+  service_date      DateTime
+  next_service_date DateTime?
+  technician        String?
+  status            String // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
+
+  created_by String @db.Uuid
+  user       User   @relation("CreatedMaintenanceLogs", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model MaintenanceSchedule {
+  id             String      @id @default(uuid()) @db.Uuid
+  asset_id       String      @db.Uuid
+  asset          AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  interval_type  String // DAYS, MONTHS, YEARS, USAGE_HOURS, KM
+  interval_value Int
+
+  last_schedule DateTime?
+  next_schedule DateTime
+  status        String // ACTIVE, PAUSED
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model WorkOrder {
+  id               String      @id @default(uuid()) @db.Uuid
+  asset_id         String      @db.Uuid
+  asset            AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  wo_number        String      @unique
+  title            String
+  description      String?
+  maintenance_type String
+  priority         String // LOW, MEDIUM, HIGH, CRITICAL
+
+  assigned_to String? @db.Uuid
+  technician  User?   @relation("AssignedWorkOrders", fields: [assigned_to], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  estimated_hours Float?
+  actual_hours    Float?
+  cost            Float  @default(0)
+
+  status String // OPEN, IN_PROGRESS, ON_HOLD, COMPLETED, CANCELLED
+
+  started_at   DateTime?
+  completed_at DateTime?
+
+  created_by String @db.Uuid
+  user       User   @relation("CreatedWorkOrders", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  company_id String? @db.Uuid
+}
+
+model AssetDocument {
+  id            String      @id @default(uuid()) @db.Uuid
+  asset_id      String      @db.Uuid
+  asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  document_type String // Manual, Invoice, Warranty, Certificate, Photo, License, Other
+  file_name     String
+  file_url      String
+
+  uploaded_by String @db.Uuid
+  user        User   @relation("UploadedAssetDocuments", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  uploaded_at DateTime @default(now())
+}
+
+model DepreciationLog {
+  id            String      @id @default(uuid()) @db.Uuid
+  asset_id      String      @db.Uuid
+  asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  period        String // e.g. "2026-07"
+  opening_value Float
+  depreciation  Float
+  closing_value Float
+
+  created_at DateTime @default(now())
+}
+
+model Netting {
+  id             String   @id @default(uuid()) @db.Uuid
+  company_id     String   @db.Uuid
+  company        Company  @relation(fields: [company_id], references: [id])
+  partner_id     String   @db.Uuid
+  partner        Customer @relation(fields: [partner_id], references: [id])
+  netting_number String
+  date           DateTime
+  amount         Float
+  notes          String?
+  status         String   @default("COMPLETED") // COMPLETED, REVERSED
+  created_by     String?  @db.Uuid
+
+  allocations NettingAllocation[]
+  created_at  DateTime            @default(now())
+  updated_at  DateTime            @updatedAt
+
+  @@unique([company_id, netting_number])
+}
+
+model NettingAllocation {
+  id         String  @id @default(uuid()) @db.Uuid
+  netting_id String  @db.Uuid
+  netting    Netting @relation(fields: [netting_id], references: [id], onDelete: Cascade)
+  invoice_id String  @db.Uuid
+  invoice    Invoice @relation(fields: [invoice_id], references: [id], onDelete: NoAction)
+  type       String // "AR" or "AP"
+  amount     Float
+
+  created_at DateTime @default(now())
+}
+
+model AuditLog {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String? @db.Uuid
+  user_id    String? @db.Uuid
+  ip_address String?
+  browser    String?
+  device     String?
+
+  action    String
+  entity    String
+  entity_id String?
+
+  before_data Json?
+  after_data  Json?
+
+  created_at DateTime @default(now())
+}
+
+// =======================
+// INVENTORY & STOCK LEDGER (PHASE 3)
+// =======================
+
+model InventoryTransaction {
+  id                  String     @id @default(uuid()) @db.Uuid
+  company_id          String     @db.Uuid
+  company             Company    @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  transaction_no      String
+  transaction_type    String // IN, OUT, TRANSFER, ADJUSTMENT, OPNAME, RETURN
+  warehouse_id        String     @db.Uuid
+  warehouse           Warehouse  @relation("TransactionWarehouse", fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  target_warehouse_id String?    @db.Uuid
+  target_warehouse    Warehouse? @relation("TransactionTargetWarehouse", fields: [target_warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reference_type      String?
+  reference_id        String?
+  status              String // Draft, Pending, Approved, Rejected, Cancelled
+  transaction_date    DateTime
+  notes               String?
+
+  created_by    String    @db.Uuid
+  user_created  User      @relation("CreatedTransactions", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approved_by   String?   @db.Uuid
+  user_approved User?     @relation("ApprovedTransactions", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approved_at   DateTime?
+
+  items InventoryTransactionItem[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, transaction_no])
+}
+
+model InventoryTransactionItem {
+  id             String               @id @default(uuid()) @db.Uuid
+  transaction_id String               @db.Uuid
+  transaction    InventoryTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id     String               @db.Uuid
+  product        Product              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  qty            Float
+  unit           String?           @default("Pcs")
+  description    String?
+  discount       Float             @default(0)
+  tax            Float             @default(0)
+  system_qty     Float?
+  counted_qty    Float?
+  difference     Float?
+  unit_cost      Float                @default(0)
+  subtotal       Float
+  batch_number   String?
+  expired_date   DateTime?
+  notes          String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model StockMovement {
+  id           String    @id @default(uuid()) @db.Uuid
+  company_id   String    @db.Uuid
+  warehouse_id String    @db.Uuid
+  warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id   String    @db.Uuid
+  product      Product   @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  transaction_type String // IN, OUT, TRANSFER, ADJUSTMENT, OPNAME, RETURN
+  transaction_id   String? @db.Uuid
+  movement_type    String // IN, OUT, TRANSFER_IN, TRANSFER_OUT, ADJUSTMENT_PLUS, ADJUSTMENT_MINUS, OPNAME, RETURN
+
+  qty_in        Float @default(0)
+  qty_out       Float @default(0)
+  balance_after Float @default(0)
+
+  unit_cost  Float @default(0)
+  total_cost Float @default(0)
+
+  batch_number     String?
+  expired_date     DateTime?
+  reference_number String?
+  remarks          String?
+
+  created_by String @db.Uuid
+  user       User   @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at           DateTime               @default(now())
+  InventoryCostLayer   InventoryCostLayer[]
+  CostLayerConsumption CostLayerConsumption[]
+}
+
+model WarehouseStock {
+  id           String    @id @default(uuid()) @db.Uuid
+  company_id   String    @db.Uuid
+  warehouse_id String    @db.Uuid
+  warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id   String    @db.Uuid
+  product      Product   @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  current_stock   Float @default(0)
+  reserved_stock  Float @default(0)
+  available_stock Float @default(0)
+
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, warehouse_id, product_id])
+}
+
+// =======================
+// FINANCE MANAGEMENT (PHASE 5)
+// =======================
+
+model CashAccount {
+  id                  String          @id @default(uuid()) @db.Uuid
+  company_id          String          @db.Uuid
+  company             Company         @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code                String
+  name                String
+  account_type        String // Cash, Bank, Petty Cash, Digital Wallet
+  chart_of_account_id String?         @db.Uuid
+  chart_of_account    ChartOfAccount? @relation(fields: [chart_of_account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  currency            String          @default("IDR")
+
+  opening_balance Float   @default(0)
+  current_balance Float   @default(0)
+  status          Boolean @default(true)
+
+  transactions    FinanceTransaction[]
+  reconciliations Reconciliation[]
+  petty_cashes    PettyCash[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, code])
+}
+
+model FinanceCategory {
+  id         String            @id @default(uuid()) @db.Uuid
+  company_id String            @db.Uuid
+  company    Company           @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parent_id  String?           @db.Uuid
+  parent     FinanceCategory?  @relation("FinanceCatHierarchy", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children   FinanceCategory[] @relation("FinanceCatHierarchy")
+  name       String
+  type       String // Income, Expense, Transfer, Adjustment
+  color      String?
+  icon       String?
+  status     Boolean           @default(true)
+
+  items       FinanceTransactionItem[]
+  budgets     Budget[]
+  ExpenseItem ExpenseItem[]
+}
+
+model FinanceTransaction {
+  id               String      @id @default(uuid()) @db.Uuid
+  company_id       String      @db.Uuid
+  company          Company     @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id     String?     @db.Uuid
+  warehouse        Warehouse?  @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  transaction_no   String
+  transaction_type String // Cash In, Cash Out, Transfer, Expense, Income, Adjustment
+  cash_account_id  String      @db.Uuid
+  cash_account     CashAccount @relation(fields: [cash_account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  reference_type   String?
+  reference_id     String?
+  transaction_date DateTime
+  status           String // Draft, Pending, Approved, Rejected, Cancelled, Reversed
+  description      String?
+  total_amount     Float    @default(0)
+
+  created_by    String    @db.Uuid
+  user_created  User      @relation("CreatedFinanceTx", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approved_by   String?   @db.Uuid
+  user_approved User?     @relation("ApprovedFinanceTx", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approved_at   DateTime?
+
+  items     FinanceTransactionItem[]
+  documents FinanceDocument[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, transaction_no])
+}
+
+model FinanceTransactionItem {
+  id             String             @id @default(uuid()) @db.Uuid
+  transaction_id String             @db.Uuid
+  transaction    FinanceTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  category_id    String             @db.Uuid
+  category       FinanceCategory    @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  amount         Float
+  tax            Float              @default(0)
+  description    String?
+}
+
+model FinanceDocument {
+  id             String             @id @default(uuid()) @db.Uuid
+  transaction_id String             @db.Uuid
+  transaction    FinanceTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  document_type  String
+  file_url       String
+
+  uploaded_by String   @db.Uuid
+  user        User     @relation("UploadedFinanceDocs", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  uploaded_at DateTime @default(now())
+}
+
+model PettyCash {
+  id              String      @id @default(uuid()) @db.Uuid
+  company_id      String      @db.Uuid
+  company         Company     @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cash_account_id String      @db.Uuid
+  cash_account    CashAccount @relation(fields: [cash_account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  employee_id     String      @db.Uuid
+  employee        User        @relation("PettyCashEmployee", fields: [employee_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  opening_balance Float
+  current_balance Float
+  status          String // ACTIVE, CLOSED
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Budget {
+  id            String          @id @default(uuid()) @db.Uuid
+  company_id    String          @db.Uuid
+  company       Company         @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  category_id   String          @db.Uuid
+  category      FinanceCategory @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  department_id String?         @db.Uuid
+  period        String // e.g. "2026-07"
+
+  budget_amount    Float
+  used_amount      Float  @default(0)
+  remaining_amount Float
+  status           String // ACTIVE, EXHAUSTED
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Reconciliation {
+  id              String      @id @default(uuid()) @db.Uuid
+  company_id      String      @db.Uuid
+  company         Company     @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  cash_account_id String      @db.Uuid
+  cash_account    CashAccount @relation(fields: [cash_account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  period          String // e.g. "2026-07"
+
+  system_balance   Float
+  physical_balance Float
+  difference       Float
+
+  approved_by String? @db.Uuid
+  approver    User?   @relation("ApprovedReconciliations", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  status      String // PENDING, APPROVED, ADJUSTED
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+// =======================
+// ACCOUNTING & GENERAL LEDGER (PHASE 6)
+// =======================
+
+model AccountType {
+  id             String  @id @default(uuid()) @db.Uuid
+  company_id     String  @db.Uuid
+  company        Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code           String
+  name           String
+  normal_balance String // Debit, Credit
+  description    String?
+
+  accounts ChartOfAccount[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, code])
+}
+
+model ChartOfAccount {
+  id              String           @id @default(uuid()) @db.Uuid
+  company_id      String           @db.Uuid
+  company         Company          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parent_id       String?          @db.Uuid
+  parent          ChartOfAccount?  @relation("CoA_Hierarchy", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children        ChartOfAccount[] @relation("CoA_Hierarchy")
+  account_type_id String           @db.Uuid
+  account_type    AccountType      @relation(fields: [account_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  account_code       String
+  account_name       String
+  currency           String  @default("IDR")
+  allow_manual_entry Boolean @default(true)
+  is_header          Boolean @default(false)
+  status             Boolean @default(true)
+
+  journal_items JournalEntryItem[]
+
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+  deleted_at  DateTime?
+  CashAccount CashAccount[]
+
+  @@unique([company_id, account_code])
+}
+
+model JournalEntry {
+  id              String   @id @default(uuid()) @db.Uuid
+  company_id      String   @db.Uuid
+  company         Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  journal_no      String
+  reference_type  String // INVENTORY, ASSET, FINANCE, MANUAL
+  reference_id    String?
+  idempotency_key String?  @unique
+  journal_date    DateTime
+  description     String?
+  status          String // Draft, Pending, Approved, Posted, Closed
+
+  created_by    String    @db.Uuid
+  user_created  User      @relation("CreatedJournals", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approved_by   String?   @db.Uuid
+  user_approved User?     @relation("ApprovedJournals", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approved_at   DateTime?
+
+  items          JournalEntryItem[]
+  adjustments    JournalAdjustment[]
+  reversals_orig JournalReversal[]   @relation("OriginalJournal")
+  reversals_rev  JournalReversal[]   @relation("ReverseJournal")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, journal_no])
+}
+
+model JournalEntryItem {
+  id               String         @id @default(uuid()) @db.Uuid
+  journal_entry_id String         @db.Uuid
+  journal_entry    JournalEntry   @relation(fields: [journal_entry_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  account_id       String         @db.Uuid
+  account          ChartOfAccount @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  debit       Float   @default(0)
+  credit      Float   @default(0)
+  description String?
+}
+
+model FiscalYear {
+  id         String   @id @default(uuid()) @db.Uuid
+  company_id String   @db.Uuid
+  company    Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  year       Int
+  start_date DateTime
+  end_date   DateTime
+  status     String // OPEN, CLOSED
+
+  closed_at DateTime?
+  closed_by String?   @db.Uuid
+  closer    User?     @relation("ClosedFiscalYears", fields: [closed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+
+  @@unique([company_id, year])
+}
+
+model AccountingPeriod {
+  id         String   @id @default(uuid()) @db.Uuid
+  company_id String   @db.Uuid
+  company    Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  month      Int
+  year       Int
+  start_date DateTime
+  end_date   DateTime
+  status     String // OPEN, CLOSED
+
+  created_at DateTime @default(now())
+
+  @@unique([company_id, month, year])
+}
+
+model JournalAdjustment {
+  id               String       @id @default(uuid()) @db.Uuid
+  company_id       String       @db.Uuid
+  company          Company      @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  journal_entry_id String       @db.Uuid
+  journal_entry    JournalEntry @relation(fields: [journal_entry_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reason           String
+
+  created_by  String  @db.Uuid
+  creator     User    @relation("CreatedAdjustments", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approved_by String? @db.Uuid
+  approver    User?   @relation("ApprovedAdjustments", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+}
+
+model JournalReversal {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  original_journal_id String       @db.Uuid
+  original_journal    JournalEntry @relation("OriginalJournal", fields: [original_journal_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reverse_journal_id  String       @db.Uuid
+  reverse_journal     JournalEntry @relation("ReverseJournal", fields: [reverse_journal_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  reason     String
+  created_by String @db.Uuid
+  creator    User   @relation("CreatedReversals", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+}
+
+// =======================
+// DASHBOARD & BUSINESS INTELLIGENCE (PHASE 7)
+// =======================
+
+model DashboardLayout {
+  id          String  @id @default(uuid()) @db.Uuid
+  company_id  String  @db.Uuid
+  company     Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_id     String  @db.Uuid
+  user        User    @relation("DashboardLayouts", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name        String // "Manager Layout", "Finance Default"
+  is_default  Boolean @default(false)
+  layout_data Json // JSON array of widget coordinates and sizes
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([user_id, name])
+}
+
+model DashboardWidget {
+  id          String  @id @default(uuid()) @db.Uuid
+  company_id  String  @db.Uuid
+  company     Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  widget_type String // e.g. "LineChart", "PieChart", "KPICard"
+  data_source String // e.g. "api/analytics/net-profit"
+  title       String
+  config      Json? // Optional filter configs saved by user
+
+  user_id String @db.Uuid
+  user    User   @relation("DashboardWidgets", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model BusinessInsight {
+  id           String  @id @default(uuid()) @db.Uuid
+  company_id   String  @db.Uuid
+  company      Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  insight_type String // "Warning", "Recommendation", "Achievement"
+  title        String
+  description  String
+  module       String // "Inventory", "Asset", "Finance", "Accounting"
+  priority     String // "LOW", "MEDIUM", "HIGH"
+  status       String // "UNREAD", "READ", "RESOLVED"
+
+  created_at DateTime @default(now())
+}
+
+// =======================
+// REPORTING & DOCUMENT CENTER (PHASE 8)
+// =======================
+
+model ReportSchedule {
+  id          String  @id @default(uuid()) @db.Uuid
+  company_id  String  @db.Uuid
+  company     Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name        String
+  report_type String // "Inventory", "Finance", "Accounting"
+  cron_expr   String // e.g. "0 8 * * *"
+  recipients  String // comma separated emails
+  status      Boolean @default(true)
+  created_by  String  @db.Uuid
+  user        User    @relation("ScheduledReports", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model ReportExportLog {
+  id           String  @id @default(uuid()) @db.Uuid
+  company_id   String  @db.Uuid
+  company      Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  report_type  String
+  format       String // "PDF", "EXCEL", "CSV"
+  status       String // "PENDING", "PROCESSING", "COMPLETED", "FAILED"
+  file_url     String?
+  error_msg    String?
+  requested_by String  @db.Uuid
+  user         User    @relation("ExportLogs", fields: [requested_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  started_at   DateTime  @default(now())
+  completed_at DateTime?
+}
+
+model DocumentMaster {
+  id          String  @id @default(uuid()) @db.Uuid
+  company_id  String  @db.Uuid
+  company     Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  document_no String  @unique
+  title       String
+  category    String // "Invoice", "Purchase Order", "Contract"
+  tags        String? // comma separated, e.g. "Urgent,Finance"
+  status      String // "ACTIVE", "ARCHIVED"
+
+  uploaded_by String @db.Uuid
+  user        User   @relation("UploadedDocuments", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  versions DocumentVersion[]
+  shares   DocumentShareLink[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, document_no])
+}
+
+model DocumentVersion {
+  id                 String         @id @default(uuid()) @db.Uuid
+  document_master_id String         @db.Uuid
+  document_master    DocumentMaster @relation(fields: [document_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  version_number     Int
+  file_url           String
+  file_size          Int // in bytes
+  mime_type          String
+  uploaded_by        String         @db.Uuid
+  user               User           @relation("UploadedDocumentVersions", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  created_at DateTime @default(now())
+}
+
+model DocumentShareLink {
+  id                 String         @id @default(uuid()) @db.Uuid
+  document_master_id String         @db.Uuid
+  document_master    DocumentMaster @relation(fields: [document_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  token              String         @unique
+  password_hash      String?
+  expired_at         DateTime
+
+  created_by String   @db.Uuid
+  user       User     @relation("CreatedShareLinks", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  created_at DateTime @default(now())
+}
+
+// =======================
+// WORKFLOW AUTOMATION PLATFORM (PHASE 9)
+// =======================
+
+model WorkflowMaster {
+  id            String  @id @default(uuid()) @db.Uuid
+  company_id    String  @db.Uuid
+  company       Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name          String
+  description   String?
+  module        String // "Inventory", "Finance", "Asset"
+  trigger_event String // e.g. "InventoryTransaction.Created"
+  status        Boolean @default(true)
+  version       Int     @default(1)
+
+  nodes WorkflowNode[]
+  edges WorkflowEdge[]
+  logs  AutomationLog[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model WorkflowNode {
+  id                 String         @id @default(uuid()) @db.Uuid
+  workflow_master_id String         @db.Uuid
+  workflow_master    WorkflowMaster @relation(fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  node_type          String // "Start", "Condition", "Approval", "Notification", "Task", "End"
+  node_name          String
+  config             Json // Rules, Emails, Roles, Conditions (AND/OR/>/<)
+  ui_position        Json // {x: 100, y: 200} for Visual Editor
+
+  created_at DateTime @default(now())
+}
+
+model WorkflowEdge {
+  id                 String         @id @default(uuid()) @db.Uuid
+  workflow_master_id String         @db.Uuid
+  workflow_master    WorkflowMaster @relation(fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  source_node_id     String
+  target_node_id     String
+  condition_label    String? // e.g. "True", "False", "Approved", "Rejected"
+
+  created_at DateTime @default(now())
+}
+
+model ApprovalRequest {
+  id           String  @id @default(uuid()) @db.Uuid
+  company_id   String  @db.Uuid
+  company      Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  module       String // "Finance", "Inventory"
+  reference_id String // ID dari transaksi
+  title        String
+  description  String?
+  status       String // "PENDING", "APPROVED", "REJECTED", "ESCALATED"
+
+  current_step  Int     @default(1)
+  assigned_role String? // Jika approval berdasarkan role
+  assigned_user String? @db.Uuid // Jika approval spesifik ke user
+  assignee      User?   @relation("PendingApprovals", fields: [assigned_user], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  logs ApprovalLog[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model ApprovalLog {
+  id                  String          @id @default(uuid()) @db.Uuid
+  approval_request_id String          @db.Uuid
+  approval_request    ApprovalRequest @relation(fields: [approval_request_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  action              String // "APPROVED", "REJECTED", "ESCALATED"
+  notes               String?
+
+  acted_by String   @db.Uuid
+  actor    User     @relation("ApprovalHistory", fields: [acted_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  acted_at DateTime @default(now())
+}
+
+model InternalInbox {
+  id           String  @id @default(uuid()) @db.Uuid
+  company_id   String  @db.Uuid
+  company      Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_id      String  @db.Uuid
+  user         User    @relation("UserInbox", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  message_type String // "Approval", "Task", "Notification", "Reminder", "Announcement"
+  title        String
+  content      String
+  reference_id String?
+  is_read      Boolean @default(false)
+
+  created_at DateTime @default(now())
+}
+
+model UserTask {
+  id           String    @id @default(uuid()) @db.Uuid
+  company_id   String    @db.Uuid
+  company      Company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  assigned_to  String    @db.Uuid
+  assignee     User      @relation("UserTasks", fields: [assigned_to], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  title        String
+  description  String?
+  due_date     DateTime?
+  status       String // "TODO", "IN_PROGRESS", "DONE", "OVERDUE"
+  priority     String // "LOW", "MEDIUM", "HIGH"
+  reference_id String? // ID dari modul terkait
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model NotificationTemplate {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name       String
+  channel    String // "EMAIL", "WHATSAPP", "IN_APP", "SLACK", "WEBHOOK"
+  subject    String?
+  body       String // Support variables {{user}}, {{amount}}
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, name, channel])
+}
+
+model CommunicationLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  company_id      String   @db.Uuid
+  entity_type     String // "INVOICE", "QUOTATION", "ORDER", etc.
+  entity_id       String   @db.Uuid
+  document_no     String
+  channel         String // "WHATSAPP", "EMAIL", "WHATSAPP_MANUAL"
+  recipient       String
+  recipient_name  String?
+  subject         String?
+  message_body    String
+  status          String // "DRAFT", "QUEUED", "SUBMITTED", "SENT", "DELIVERED", "FAILED"
+  provider_id     String? // Message/Transmission ID from WhatsApp Cloud or Email Provider
+  error_message   String?
+  idempotency_key String?
+  reminder_stage  String? // "BEFORE_DUE", "DUE_TODAY", "OVERDUE"
+  created_by      String? // User ID who triggered sending
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([company_id, entity_type, entity_id])
+  @@index([company_id, idempotency_key])
+}
+
+model CommunicationSetting {
+  id                 String  @id @default(uuid()) @db.Uuid
+  company_id         String  @unique @db.Uuid
+  // WhatsApp Meta Cloud API configuration
+  wa_enabled         Boolean @default(false)
+  wa_phone_number_id String?
+  wa_business_id     String?
+  wa_sender_phone    String?
+  wa_access_token    String? // Encrypted via IntegrationCredential or stored securely
+  // Email configuration (SMTP / Provider)
+  email_enabled      Boolean @default(false)
+  email_provider     String  @default("SMTP") // "SMTP", "RESEND", "SENDGRID"
+  email_sender_name  String? @default("TATALORA ERP")
+  email_sender_addr  String?
+  email_reply_to     String?
+  email_smtp_host    String?
+  email_smtp_port    Int?    @default(587)
+  email_smtp_user    String?
+  email_smtp_pass    String? // Encrypted
+  email_smtp_secure  Boolean @default(false)
+
+  // Automated Invoice Reminder Configuration
+  reminder_enabled     Boolean   @default(false)
+  reminder_channels    String?   @default("WHATSAPP,EMAIL")
+  reminder_days_before Int?      @default(3)
+  reminder_on_due_date Boolean   @default(true)
+  reminder_days_after  Int?      @default(3)
+  reminder_time        String?   @default("09:00")
+  reminder_last_run    DateTime?
+  reminder_last_status String? // "SUCCESS", "PARTIAL", "FAILED"
+  reminder_last_count  Int?      @default(0)
+  reminder_last_error  String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model AutomationLog {
+  id                 String          @id @default(uuid()) @db.Uuid
+  company_id         String          @db.Uuid
+  company            Company         @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  workflow_master_id String?         @db.Uuid
+  workflow_master    WorkflowMaster? @relation(fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  event_name         String
+  status             String // "SUCCESS", "FAILED", "RETRIED"
+  error_msg          String?
+  duration_ms        Int             @default(0)
+
+  created_at DateTime @default(now())
+}
+
+// =======================
+// PLATFORM SERVICES & SAAS (PHASE 10)
+// =======================
+
+model Tenant {
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String
+  domain String? @unique // e.g. "client1.erp.com"
+  status String // "ACTIVE", "SUSPENDED", "CANCELLED"
+
+  companies    Company[]
+  subscription TenantSubscription?
+  api_tokens   ApiToken[]
+  plugins      InstalledPlugin[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model SubscriptionPlan {
+  id            String @id @default(uuid()) @db.Uuid
+  name          String // "Starter", "Professional", "Enterprise"
+  price_monthly Float
+  price_yearly  Float
+
+  max_users        Int
+  max_warehouses   Int
+  max_assets       Int
+  storage_limit_mb Int
+  api_limit_day    Int
+  ai_credits_mo    Int
+
+  subscriptions TenantSubscription[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model TenantSubscription {
+  id        String           @id @default(uuid()) @db.Uuid
+  tenant_id String           @unique @db.Uuid
+  tenant    Tenant           @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plan_id   String           @db.Uuid
+  plan      SubscriptionPlan @relation(fields: [plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  billing_cycle String // "MONTHLY", "YEARLY"
+  status        String // "TRIAL", "ACTIVE", "EXPIRED", "CANCELLED"
+  start_date    DateTime
+  end_date      DateTime
+
+  invoices BillingInvoice[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model BillingInvoice {
+  id                  String             @id @default(uuid()) @db.Uuid
+  subscription_id     String             @db.Uuid
+  subscription        TenantSubscription @relation(fields: [subscription_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoice_no          String             @unique
+  amount              Float
+  status              String // "UNPAID", "PAID", "FAILED"
+  due_date            DateTime
+  paid_at             DateTime?
+  payment_method      String?
+  payment_gateway_ref String?
+
+  created_at DateTime @default(now())
+}
+
+model ApiToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenant_id  String    @db.Uuid
+  tenant     Tenant    @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name       String
+  token_hash String    @unique
+  scopes     String // e.g. "read:inventory, write:finance"
+  last_used  DateTime?
+
+  created_at DateTime @default(now())
+}
+
+model InstalledPlugin {
+  id        String @id @default(uuid()) @db.Uuid
+  tenant_id String @db.Uuid
+  tenant    Tenant @relation(fields: [tenant_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plugin_id String // Ref to Marketplace Global DB
+  status    String // "ACTIVE", "INACTIVE"
+  config    Json?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([tenant_id, plugin_id])
+}
+
+// =======================
+// CRM & SALES ORDERS (PHASE 2)
+// =======================
+
+model Customer {
+  roles        String[]   @default(["CUSTOMER"])
+  id           String     @id @default(uuid()) @db.Uuid
+  company_id   String     @db.Uuid
+  company      Company    @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id String?    @db.Uuid
+  warehouse    Warehouse? @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code         String
+  name         String
+  phone        String?
+  email        String?
+  address      String?
+  point        Int        @default(0)
+  level        String     @default("Bronze") // Bronze, Silver, Gold, Platinum
+  status       Boolean    @default(true)
+
+  company_name     String?
+  payments         Payment[]
+  billing_address  String?
+  delivery_address String?
+  tax_id           String?
+
+  orders               SalesOrder[]
+  quotations           Quotation[]
+  invoices_as_customer Invoice[]          @relation("InvoiceCustomer")
+  invoices_as_supplier Invoice[]          @relation("InvoiceSupplier")
+  timberSalesOrders    TimberSalesOrder[]
+
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @updatedAt
+  deleted_at      DateTime?
+  Opportunity     Opportunity[]
+  CrmActivity     CrmActivity[]
+  timberShipments TimberShipment[]
+  Product         Product[]
+  PurchaseOrder   PurchaseOrder[]
+  GoodsReceipt    GoodsReceipt[]
+  SupplierProduct SupplierProduct[]
+  Netting         Netting[]
+  PurchaseReturn  PurchaseReturn[]
+  SalesReturn     SalesReturn[]
+
+  @@unique([company_id, code])
+}
+
+model Voucher {
+  id             String   @id @default(uuid()) @db.Uuid
+  company_id     String   @db.Uuid
+  company        Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code           String
+  name           String
+  discount_type  String // PERCENTAGE, NOMINAL
+  discount_value Float
+  min_purchase   Float?
+  max_discount   Float?
+  quota          Int      @default(0)
+  used_count     Int      @default(0)
+  valid_from     DateTime
+  valid_until    DateTime
+  status         Boolean  @default(true) // Active or Inactive
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, code])
+}
+
+model SalesOrder {
+  id             String    @id @default(uuid()) @db.Uuid
+  company_id     String    @db.Uuid
+  company        Company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customer_id    String?   @db.Uuid
+  customer       Customer? @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_number   String
+  order_date     DateTime
+  status         String // DRAFT, PENDING, COMPLETED, CANCELLED
+  total_amount   Float
+  notes          String?
+  pos_shift_id   String?   @db.Uuid
+  warehouse_id   String?   @db.Uuid
+  pos_shift      PosShift? @relation(fields: [pos_shift_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  payment_method String? // Cash, QRIS, Debit, Credit, Transfer, Split
+  payment_status String? // UNPAID, PARTIAL, PAID
+
+  allocations PaymentAllocation[]
+
+  channel              String?       @default("B2B") // POS, B2B, ECOMMERCE
+  ecommerce_session_id String? // Idempotency key for checkout
+  salesReturns         SalesReturn[]
+
+  quotation_id     String?    @db.Uuid
+  quotation        Quotation? @relation(fields: [quotation_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  billing_address  String?
+  delivery_address String?
+  delivery_status  String? // PENDING, PARTIAL, DELIVERED
+  invoice_status   String? // PENDING, PARTIAL, INVOICED
+  email            String?
+  payment_terms    String?   @default("net30")
+  due_date         DateTime?
+  tag              String?
+  client_ref       String?
+  currency         String    @default("IDR")
+  message          String?
+  memo             String?
+  subtotal         Float     @default(0)
+  discount_percent Float     @default(0)
+  discount_amount  Float     @default(0)
+  tax              Float     @default(0)
+
+  items      SalesOrderItem[]
+  deliveries DeliveryOrder[]
+  invoices   Invoice[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, order_number])
+  @@unique([company_id, ecommerce_session_id])
+}
+
+model SalesOrderItem {
+  id             String            @id @default(uuid()) @db.Uuid
+  sales_order_id String            @db.Uuid
+  sales_order    SalesOrder        @relation(fields: [sales_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id     String            @db.Uuid
+  product        Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  qty            Float
+  system_qty     Float?
+  counted_qty    Float?
+  difference     Int?
+  unit_price     Float
+  subtotal       Float
+  returned_qty   Float             @default(0)
+  salesReturns   SalesReturnItem[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model PosShift {
+  id           String    @id @default(uuid()) @db.Uuid
+  company_id   String    @db.Uuid
+  company      Company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id String    @db.Uuid
+  warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_id      String    @db.Uuid
+  user         User      @relation("UserPosShifts", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  start_time    DateTime  @default(now())
+  end_time      DateTime?
+  starting_cash Float
+  ending_cash   Float?
+  status        String // OPEN, CLOSED
+
+  sales SalesOrder[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model AiChatHistory {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_id    String  @db.Uuid
+  user       User    @relation("UserAiChats", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  prompt     String
+  response   String
+  module     String?
+
+  created_at DateTime @default(now())
+}
+
+// =======================
+// HR & PAYROLL (PHASE 4)
+// =======================
+
+model Department {
+  id          String  @id @default(uuid()) @db.Uuid
+  company_id  String  @db.Uuid
+  company     Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  name        String
+  description String?
+
+  employees Employee[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, name])
+}
+
+model Employee {
+  sawmillProductionRuns SawmillProductionRun[]
+  id                    String                 @id @default(uuid()) @db.Uuid
+  company_id            String                 @db.Uuid
+  company               Company                @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id          String?                @db.Uuid
+  warehouse             Warehouse?             @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  department_id         String?                @db.Uuid
+  department            Department?            @relation(fields: [department_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  employee_code String
+  first_name    String
+  last_name     String?
+  email         String?
+  phone         String?
+  position      String?
+  join_date     DateTime?
+  status        String // ACTIVE, RESIGNED, TERMINATED
+
+  basic_salary     Float   @default(0)
+  bank_name        String?
+  default_shift_id String? @db.Uuid
+  account_number   String?
+
+  fingerprint_right_thumb String?
+  fingerprint_left_thumb  String?
+
+  attendances Attendance[]
+  payrolls    Payroll[]
+
+  expense_claims ExpenseClaim[]
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  LeaveRequest   LeaveRequest[]
+  shift          Shift?         @relation(fields: [default_shift_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([company_id, employee_code])
+}
+
+model Attendance {
+  id          String    @id @default(uuid()) @db.Uuid
+  company_id  String?   @db.Uuid
+  employee_id String    @db.Uuid
+  employee    Employee  @relation(fields: [employee_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  date        DateTime
+  status      String // PRESENT, ABSENT, LEAVE, SICK, LATE
+  check_in    DateTime?
+  check_out   DateTime?
+  notes       String?
+
+  shift_id         String? @db.Uuid
+  shift            Shift?  @relation(fields: [shift_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  late_minutes     Int     @default(0)
+  overtime_minutes Int     @default(0)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Payroll {
+  company_id  String?  @db.Uuid
+  company     Company? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id          String   @id @default(uuid()) @db.Uuid
+  employee_id String   @db.Uuid
+  employee    Employee @relation(fields: [employee_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  period      String // e.g. "2026-07"
+
+  basic_salary    Float @default(0)
+  total_allowance Float @default(0)
+  total_deduction Float @default(0)
+  net_salary      Float @default(0)
+
+  status    String // DRAFT, APPROVED, PAID
+  paid_date DateTime?
+
+  items PayrollItem[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model PayrollItem {
+  id         String  @id @default(uuid()) @db.Uuid
+  payroll_id String  @db.Uuid
+  payroll    Payroll @relation(fields: [payroll_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  type       String // ALLOWANCE, DEDUCTION
+  name       String
+  amount     Float
+
+  created_at DateTime @default(now())
+}
+
+model MarketplaceIntegration {
+  id            String    @id @default(uuid()) @db.Uuid
+  company_id    String    @db.Uuid
+  company       Company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  platform      String // e.g., 'SHOPEE', 'TOKOPEDIA'
+  partner_id    String?
+  partner_key   String?
+  shop_id       String?
+  access_token  String?
+  refresh_token String?
+  token_expiry  DateTime?
+  status        String    @default("INACTIVE") // INACTIVE, ACTIVE, EXPIRED
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, platform])
+}
+
+// =======================
+// B2B SALES (PHASE 3)
+// =======================
+
+model Quotation {
+  id               String    @id @default(uuid()) @db.Uuid
+  company_id       String    @db.Uuid
+  company          Company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customer_id      String    @db.Uuid
+  customer         Customer  @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  quotation_number String
+  quotation_date   DateTime
+  expiration_date  DateTime?
+  status           String // DRAFT, SENT, CONFIRMED, CANCELLED
+  total_amount     Float
+  notes            String?
+  billing_address  String?
+  delivery_address String?
+  payment_terms    String?   @default("net30")
+  email            String?
+  tag              String?
+  client_ref       String?
+  currency         String    @default("IDR")
+  message          String?
+  memo             String?
+  subtotal         Float     @default(0)
+  discount_percent Float     @default(0)
+  discount_amount  Float     @default(0)
+  tax              Float     @default(0)
+
+  items        QuotationItem[]
+  sales_orders SalesOrder[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, quotation_number])
+}
+
+model QuotationItem {
+  id           String    @id @default(uuid()) @db.Uuid
+  quotation_id String    @db.Uuid
+  quotation    Quotation @relation(fields: [quotation_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id   String    @db.Uuid
+  product      Product   @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  qty          Float
+  unit         String?   @default("Pcs")
+  description  String?
+  unit_price   Float
+  discount     Float     @default(0)
+  tax          Float     @default(0)
+  subtotal     Float
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model DeliveryOrder {
+  idempotency_key  String?
+  id               String     @id @default(uuid()) @db.Uuid
+  company_id       String     @db.Uuid
+  company          Company    @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sales_order_id   String     @db.Uuid
+  sales_order      SalesOrder @relation(fields: [sales_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  delivery_number  String
+  delivery_date    DateTime
+  status           String // WAITING, READY, DELIVERED, CANCELLED
+  driver_name      String?
+  vehicle_plate    String?
+  container_number String?
+  notes            String?
+
+  items DeliveryOrderItem[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, idempotency_key])
+  @@unique([company_id, delivery_number])
+}
+
+model DeliveryOrderItem {
+  id                String        @id @default(uuid()) @db.Uuid
+  delivery_order_id String        @db.Uuid
+  delivery_order    DeliveryOrder @relation(fields: [delivery_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id        String        @db.Uuid
+  product           Product       @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ordered_qty       Float
+  delivered_qty     Float
+  remaining_qty     Float
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Invoice {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  type       String  @default("AR") // "AR" (Accounts Receivable) or "AP" (Accounts Payable)
+
+  sales_order_id String?     @db.Uuid
+  sales_order    SalesOrder? @relation(fields: [sales_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customer_id    String?     @db.Uuid
+  customer       Customer?   @relation("InvoiceCustomer", fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  purchase_order_id String?        @db.Uuid
+  purchase_order    PurchaseOrder? @relation(fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_id       String?        @db.Uuid
+  supplier          Customer?      @relation("InvoiceSupplier", fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  invoice_number String
+  invoice_date   DateTime
+  due_date       DateTime?
+  status         String // DRAFT, POSTED, PARTIALLY PAID, PAID, CANCELLED
+
+  email           String?
+  billing_address String?
+  payment_terms   String?    @default("net30")
+  warehouse_id    String?    @db.Uuid
+  warehouse       Warehouse? @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tag             String?
+  client_ref      String?
+  message         String?
+  memo            String?
+  currency        String     @default("IDR")
+
+  subtotal         Float
+  discount_percent Float @default(0)
+  discount_amount  Float @default(0)
+  tax              Float
+  total            Float
+  paid_amount      Float @default(0)
+  remaining_amount Float
+
+  items    InvoiceItem[]
+  payments Payment[]
+
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
+  deleted_at        DateTime?
+  PaymentAllocation PaymentAllocation[]
+  NettingAllocation NettingAllocation[]
+
+  @@unique([company_id, invoice_number])
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid()) @db.Uuid
+  invoice_id  String  @db.Uuid
+  invoice     Invoice @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id  String  @db.Uuid
+  product     Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  description String?
+  qty         Float
+  unit_price  Float
+  discount    Float   @default(0)
+  tax         Float   @default(0)
+  subtotal    Float
+}
+
+model Payment {
+  id             String    @id @default(uuid()) @db.Uuid
+  company_id     String    @db.Uuid
+  company        Company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customer_id    String?   @db.Uuid
+  customer       Customer? @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoice_id     String?   @db.Uuid
+  invoice        Invoice?  @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  payment_number String
+  payment_date   DateTime
+  amount         Float
+  payment_method String // CASH, BANK_TRANSFER, etc.
+  reference      String?
+  notes          String?
+
+  created_by String? @db.Uuid
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  allocations PaymentAllocation[]
+
+  @@unique([company_id, payment_number])
+}
+
+model PaymentAllocation {
+  id             String      @id @default(uuid()) @db.Uuid
+  payment_id     String      @db.Uuid
+  payment        Payment     @relation(fields: [payment_id], references: [id], onDelete: Cascade)
+  sales_order_id String?     @db.Uuid
+  sales_order    SalesOrder? @relation(fields: [sales_order_id], references: [id], onDelete: NoAction)
+  invoice_id     String?     @db.Uuid
+  invoice        Invoice?    @relation(fields: [invoice_id], references: [id], onDelete: NoAction)
+  amount         Float
+
+  created_at DateTime @default(now())
+}
+
+model PurchaseOrder {
+  id               String           @id @default(uuid()) @db.Uuid
+  company_id       String           @db.Uuid
+  company          Company          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_id      String           @db.Uuid
+  supplier         Customer         @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order_number     String
+  order_date       DateTime
+  expected_receipt DateTime?
+  status           String // DRAFT, CONFIRMED, CANCELLED
+  purchaseReturns  PurchaseReturn[]
+  receipt_status   String           @default("PENDING") // PENDING, PARTIAL, RECEIVED
+  bill_status      String           @default("PENDING") // PENDING, BILLED
+  payment_status   String           @default("UNPAID") // UNPAID, PARTIAL, PAID
+
+  warehouse_id String?    @db.Uuid
+  warehouse    Warehouse? @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  total_amount  Float
+  notes         String?
+  payment_terms String?
+
+  items    PurchaseOrderItem[]
+  receipts GoodsReceipt[]
+  invoices Invoice[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, order_number])
+}
+
+model PurchaseOrderItem {
+  id                String               @id @default(uuid()) @db.Uuid
+  purchase_order_id String               @db.Uuid
+  purchase_order    PurchaseOrder        @relation(fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id        String               @db.Uuid
+  product           Product              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  qty               Float
+  received_qty      Float                @default(0)
+  billed_qty        Float                @default(0)
+  returned_qty      Float                @default(0)
+  purchaseReturns   PurchaseReturnItem[]
+  unit_price        Float
+  discount          Float                @default(0)
+  tax               Float                @default(0)
+  subtotal          Float
+}
+
+model GoodsReceipt {
+  id                String        @id @default(uuid()) @db.Uuid
+  company_id        String        @db.Uuid
+  company           Company       @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchase_order_id String        @db.Uuid
+  purchase_order    PurchaseOrder @relation(fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_id       String        @db.Uuid
+  supplier          Customer      @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id      String        @db.Uuid
+  warehouse         Warehouse     @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  receipt_number    String
+  receipt_date      DateTime
+  status            String // DRAFT, VALIDATED
+
+  items GoodsReceiptItem[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  @@unique([company_id, receipt_number])
+}
+
+model GoodsReceiptItem {
+  id               String       @id @default(uuid()) @db.Uuid
+  goods_receipt_id String       @db.Uuid
+  goods_receipt    GoodsReceipt @relation(fields: [goods_receipt_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id       String       @db.Uuid
+  product          Product      @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  qty              Float
+}
+
+model LeaveRequest {
+  id          String   @id @default(uuid()) @db.Uuid
+  company_id  String   @db.Uuid
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  employee_id String   @db.Uuid
+  employee    Employee @relation(fields: [employee_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  leave_type String
+  start_date DateTime
+  end_date   DateTime
+  reason     String?
+  status     String   @default("DRAFT")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Lead {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  lead_code      String
+  name           String
+  company_name   String?
+  email          String?
+  phone          String?
+  source         String // WEBSITE, WHATSAPP, REFERRAL, SOCIAL_MEDIA, EVENT, MANUAL, OTHER
+  assigned_user  String? // Could be User ID, keeping it string for simplicity
+  status         String // NEW, CONTACTED, QUALIFIED, UNQUALIFIED, CONVERTED, LOST
+  expected_value Float   @default(0)
+  notes          String?
+
+  opportunities Opportunity[]
+  activities    CrmActivity[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Opportunity {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  title       String
+  customer_id String?   @db.Uuid
+  customer    Customer? @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  lead_id     String?   @db.Uuid
+  lead        Lead?     @relation(fields: [lead_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  expected_value      Float     @default(0)
+  probability         Float     @default(0) // 0-100
+  expected_close_date DateTime?
+  assigned_user       String?
+  stage               String // NEW, QUALIFICATION, PROPOSITION, NEGOTIATION, WON, LOST
+  notes               String?
+
+  activities CrmActivity[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model CrmActivity {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  assigned_user  String?
+  lead_id        String?      @db.Uuid
+  lead           Lead?        @relation(fields: [lead_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  opportunity_id String?      @db.Uuid
+  opportunity    Opportunity? @relation(fields: [opportunity_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customer_id    String?      @db.Uuid
+  customer       Customer?    @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  type         String // CALL, EMAIL, MEETING, FOLLOW_UP, NOTE, TASK
+  title        String
+  description  String?
+  due_date     DateTime?
+  status       String // TODO, IN_PROGRESS, DONE, CANCELLED
+  completed_at DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model DocumentSequence {
+  id         String @id @default(uuid()) @db.Uuid
+  company_id String @db.Uuid
+  type       String // 'INVOICE', 'QUOTATION', 'SALES_ORDER', 'PURCHASE_ORDER', 'VENDOR_BILL', 'PAYMENT'
+  prefix     String // 'INV/2026/'
+  last_value Int    @default(0)
+
+  @@unique([company_id, type, prefix])
+}
+
+model EcommerceCart {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  session_id String
+
+  items EcommerceCartItem[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, session_id])
+}
+
+model EcommerceCartItem {
+  id         String        @id @default(uuid()) @db.Uuid
+  cart_id    String        @db.Uuid
+  cart       EcommerceCart @relation(fields: [cart_id], references: [id], onDelete: Cascade)
+  product_id String        @db.Uuid
+  product    Product       @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  quantity   Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Integration {
+  id         String @id @default(uuid()) @db.Uuid
+  company_id String @db.Uuid
+  provider   String
+  status     String
+  config     Json?
+}
+
+model ExternalReference {
+  id          String @id @default(uuid()) @db.Uuid
+  company_id  String @db.Uuid
+  provider    String
+  entity_type String
+  entity_id   String @db.Uuid
+  external_id String
+}
+
+model IntegrationWebhookEvent {
+  id             String   @id @default(uuid()) @db.Uuid
+  company_id     String   @db.Uuid
+  integration_id String   @db.Uuid
+  provider       String
+  reference      String
+  status         String
+  payload        Json?
+  error_message  String?
+  retry_count    Int      @default(0)
+  created_at     DateTime @default(now())
+}
+
+model IntegrationIdempotency {
+  id              String   @id @default(uuid()) @db.Uuid
+  company_id      String   @db.Uuid
+  integration_id  String   @db.Uuid
+  idempotency_key String
+  operation       String
+  status          String
+  response        Json?
+  created_at      DateTime @default(now())
+
+  @@unique([company_id, integration_id, idempotency_key])
+}
+
+model InventoryCostLayer {
+  id                 String                 @id @default(uuid()) @db.Uuid
+  company_id         String                 @db.Uuid
+  product_id         String                 @db.Uuid
+  warehouse_id       String                 @db.Uuid
+  quantity           Float
+  unit_cost          Float
+  remaining_quantity Float
+  source_movement_id String                 @db.Uuid
+  lot_id             String?
+  created_at         DateTime               @default(now())
+  updated_at         DateTime               @updatedAt
+  company            Company                @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product            Product                @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse          Warehouse              @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  source_movement    StockMovement          @relation(fields: [source_movement_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  consumptions       CostLayerConsumption[]
+}
+
+model CostLayerConsumption {
+  id                String             @id @default(uuid()) @db.Uuid
+  company_id        String             @db.Uuid
+  layer_id          String             @db.Uuid
+  stock_movement_id String             @db.Uuid
+  quantity          Float
+  unit_cost         Float
+  total_cost        Float
+  created_at        DateTime           @default(now())
+  company           Company            @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  layer             InventoryCostLayer @relation(fields: [layer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  stock_movement    StockMovement      @relation(fields: [stock_movement_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model CheckoutIdempotency {
+  id                   String @id @default(uuid()) @db.Uuid
+  company_id           String @db.Uuid
+  ecommerce_session_id String
+  sales_order_id       String @db.Uuid
+
+  @@unique([company_id, ecommerce_session_id])
+}
+
+model Bom {
+  id                   String               @id @default(uuid()) @db.Uuid
+  company_id           String               @db.Uuid
+  product_id           String               @db.Uuid
+  product              Product              @relation(fields: [product_id], references: [id])
+  code                 String
+  name                 String
+  quantity             Float
+  unit_id              String               @db.Uuid
+  status               String
+  items                BomItem[]
+  manufacturing_orders ManufacturingOrder[]
+  created_at           DateTime             @default(now())
+  updated_at           DateTime             @updatedAt
+  routing              BomRouting?
+}
+
+model BomItem {
+  id         String  @id @default(uuid()) @db.Uuid
+  bom_id     String  @db.Uuid
+  bom        Bom     @relation(fields: [bom_id], references: [id])
+  product_id String  @db.Uuid
+  product    Product @relation(fields: [product_id], references: [id])
+  quantity   Float
+  unit_id    String  @db.Uuid
+}
+
+model ManufacturingOrder {
+  id                    String                   @id @default(uuid()) @db.Uuid
+  company_id            String                   @db.Uuid
+  order_number          String
+  product_id            String                   @db.Uuid
+  product               Product                  @relation(fields: [product_id], references: [id])
+  bom_id                String                   @db.Uuid
+  bom                   Bom                      @relation(fields: [bom_id], references: [id])
+  warehouse_id          String                   @db.Uuid
+  warehouse             Warehouse                @relation(fields: [warehouse_id], references: [id])
+  planned_quantity      Float
+  produced_quantity     Float                    @default(0)
+  actual_start_date     DateTime?
+  actual_end_date       DateTime?
+  unit_id               String                   @db.Uuid
+  status                String
+  reservation_status    String?
+  items                 ManufacturingOrderItem[]
+  material_reservations MaterialReservation[]
+  work_orders           ManufacturingWorkOrder[]
+  quality_checks        QualityCheck[]
+  created_at            DateTime                 @default(now())
+  updated_at            DateTime                 @updatedAt
+}
+
+model ManufacturingOrderItem {
+  id                     String             @id @default(uuid()) @db.Uuid
+  manufacturing_order_id String             @db.Uuid
+  manufacturing_order    ManufacturingOrder @relation(fields: [manufacturing_order_id], references: [id])
+  product_id             String             @db.Uuid
+  product                Product            @relation(fields: [product_id], references: [id])
+  required_quantity      Float
+  consumed_quantity      Float              @default(0)
+  unit_id                String             @db.Uuid
+}
+
+model WorkCenter {
+  sawmillProductionRuns  SawmillProductionRun[]
+  id                     String                   @id @default(uuid()) @db.Uuid
+  company_id             String                   @db.Uuid
+  code                   String
+  name                   String
+  capacity_per_hour      Float?
+  cost_per_hour          Float?
+  status                 String
+  work_orders            ManufacturingWorkOrder[]
+  capacity_hours_per_day Float?
+  efficiency_percentage  Float?
+  shift_start_time       String?
+  shift_end_time         String?
+  is_active              Boolean                  @default(true)
+}
+
+model ManufacturingWorkOrder {
+  id                          String             @id @default(uuid()) @db.Uuid
+  company_id                  String             @db.Uuid
+  manufacturing_order_id      String             @db.Uuid
+  manufacturing_order         ManufacturingOrder @relation(fields: [manufacturing_order_id], references: [id])
+  work_center_id              String             @db.Uuid
+  work_center                 WorkCenter         @relation(fields: [work_center_id], references: [id])
+  operation_name              String
+  planned_start               DateTime?
+  planned_end                 DateTime?
+  status                      String
+  released_at                 DateTime?
+  manufacturing_order_item_id String?            @db.Uuid
+  created_at                  DateTime           @default(now())
+  updated_at                  DateTime           @updatedAt
+  quality_checks              QualityCheck[]
+}
+
+model QualityControlPoint {
+  id             String   @id @default(uuid()) @db.Uuid
+  company_id     String   @db.Uuid
+  product_id     String   @db.Uuid
+  product        Product  @relation(fields: [product_id], references: [id])
+  operation_name String
+  check_type     String
+  criteria       String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+}
+
+model QualityCheck {
+  id                     String               @id @default(uuid()) @db.Uuid
+  company_id             String               @db.Uuid
+  manufacturing_order_id String?              @db.Uuid
+  manufacturing_order    ManufacturingOrder?  @relation(fields: [manufacturing_order_id], references: [id])
+  control_point_id       String?              @db.Uuid
+  status                 String
+  inspector_id           String?              @db.Uuid
+  notes                  String?
+  created_at             DateTime             @default(now())
+  updated_at             DateTime             @updatedAt
+  dispositions           QualityDisposition[]
+
+  product_id    String?                 @db.Uuid
+  product       Product?                @relation(fields: [product_id], references: [id])
+  work_order_id String?                 @db.Uuid
+  work_order    ManufacturingWorkOrder? @relation(fields: [work_order_id], references: [id])
+}
+
+model MaterialReservation {
+  id                          String             @id @default(uuid()) @db.Uuid
+  company_id                  String             @db.Uuid
+  manufacturing_order_id      String             @db.Uuid
+  manufacturing_order         ManufacturingOrder @relation(fields: [manufacturing_order_id], references: [id])
+  product_id                  String             @db.Uuid
+  product                     Product            @relation(fields: [product_id], references: [id])
+  warehouse_id                String             @db.Uuid
+  warehouse                   Warehouse          @relation(fields: [warehouse_id], references: [id])
+  reserved_quantity           Float
+  consumed_quantity           Float              @default(0)
+  status                      String
+  released_at                 DateTime?
+  manufacturing_order_item_id String?            @db.Uuid
+  created_at                  DateTime           @default(now())
+  updated_at                  DateTime           @updatedAt
+}
+
+model BomRouting {
+  id         String         @id @default(uuid()) @db.Uuid
+  bom_id     String         @unique @db.Uuid
+  bom        Bom            @relation(fields: [bom_id], references: [id])
+  operations BomOperation[]
+}
+
+model BomOperation {
+  id               String     @id @default(uuid()) @db.Uuid
+  routing_id       String     @db.Uuid
+  routing          BomRouting @relation(fields: [routing_id], references: [id])
+  work_center_id   String?    @db.Uuid
+  sequence         Int
+  operation_name   String
+  setup_minutes    Float      @default(0)
+  standard_minutes Float      @default(0)
+}
+
+model QualityDisposition {
+  id               String       @id @default(uuid()) @db.Uuid
+  company_id       String       @db.Uuid
+  quality_check_id String       @db.Uuid
+  quality_check    QualityCheck @relation(fields: [quality_check_id], references: [id])
+  type             String
+  quantity         Float
+  reason           String?
+  defect_code      String?
+  severity         String?
+  user_id          String?      @db.Uuid
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+}
+
+model ExpenseClaim {
+  id                  String    @id @default(uuid()) @db.Uuid
+  company_id          String    @db.Uuid
+  employee_id         String    @db.Uuid
+  claim_number        String
+  claim_date          DateTime
+  title               String
+  description         String?
+  status              String
+  total_amount        Float     @default(0)
+  remaining_amount    Float     @default(0)
+  created_by          String
+  submitted_at        DateTime?
+  approved_at         DateTime?
+  approved_by         String?
+  posted_at           DateTime?
+  finance_reviewed_by String?
+
+  items ExpenseItem[]
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  Employee   Employee? @relation(fields: [employeeId], references: [id])
+  employeeId String?   @db.Uuid
+}
+
+model ExpenseItem {
+  id               String          @id @default(uuid()) @db.Uuid
+  expense_claim_id String          @db.Uuid
+  expense_claim    ExpenseClaim    @relation(fields: [expense_claim_id], references: [id], onDelete: Cascade)
+  category_id      String          @db.Uuid
+  category         FinanceCategory @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  description      String?
+  amount           Float
+  expense_date     DateTime
+  reference        String?
+}
+
+model PurchaseRequest {
+  id             String    @id @default(uuid()) @db.Uuid
+  company_id     String    @db.Uuid
+  request_number String
+  required_date  DateTime?
+  source         String
+  status         String
+  reason         String?
+  warehouse_id   String?   @db.Uuid
+
+  items PurchaseRequestItem[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model PurchaseRequestItem {
+  id                  String          @id @default(uuid()) @db.Uuid
+  purchase_request_id String          @db.Uuid
+  purchase_request    PurchaseRequest @relation(fields: [purchase_request_id], references: [id], onDelete: Cascade)
+  product_id          String          @db.Uuid
+  product             Product         @relation(fields: [product_id], references: [id])
+  qty                 Float
+  unit                String?
+  notes               String?
+}
+
+model SupplierProduct {
+  id                String   @id @default(uuid()) @db.Uuid
+  company_id        String   @db.Uuid
+  supplier_id       String   @db.Uuid
+  supplier          Customer @relation(fields: [supplier_id], references: [id], onDelete: Cascade)
+  product_id        String   @db.Uuid
+  unit_price        Float
+  minimum_order_qty Float    @default(1)
+  lead_time_days    Int      @default(0)
+  supplier_sku      String?
+  active            Boolean  @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model AssetDepreciation {
+  id                       String      @id @default(uuid()) @db.Uuid
+  company_id               String      @db.Uuid
+  asset_id                 String      @db.Uuid
+  asset                    AssetMaster @relation(fields: [asset_id], references: [id], onDelete: Cascade)
+  period                   String
+  depreciation_date        DateTime
+  amount                   Float
+  opening_book_value       Float
+  closing_book_value       Float
+  accumulated_depreciation Float
+  status                   String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, asset_id, period])
+}
+
+// --------------------------------------------------
+// TIMBER INVENTORY: RAW LOG
+// --------------------------------------------------
+model RawLog {
+  partaiId          String?        @db.Uuid
+  partai            TimberPartai?  @relation(fields: [partaiId], references: [id])
+  purchaseLogItemId String?        @db.Uuid
+  id                String         @id @default(uuid()) @db.Uuid
+  logNumber         String // No Log
+  sequence          Int? // Urut
+  code              String? // Kode
+  species           String // Jenis Kayu
+  speciesId         String?        @db.Uuid
+  timberSpecies     TimberSpecies? @relation(fields: [speciesId], references: [id])
+  sourceId          String?        @db.Uuid
+  timberSource      TimberSource?  @relation(fields: [sourceId], references: [id])
+  quantity          Int            @default(1)
+  originalLength    Float // Pjng (meters)
+
+  diameter1       Float // D1 (cm)
+  diameter2       Float // D2 (cm)
+  diameter3       Float // D3 (cm)
+  diameter4       Float // D4 (cm)
+  averageDiameter Float // ????????
+  roundedDiameter Float // ????????2
+
+  grossVolume    Float // Brutto (m3)
+  gerowong       Float? // Gerowong diameter (cm)
+  hollowVolume   Float? // Vol Gerowong (m3)
+  trimmingLength Float? // Trimming (m)
+  trimmingVolume Float? // Vol Tr (m3)
+  netVolume      Float // Netto (m3)
+
+  barcode       String?  @unique
+  diameterClass String?
+  batch         String? // Partai
+  supplierRef   String?
+  receivingDate DateTime @default(now())
+
+  locationId String?    @db.Uuid
+  location   Warehouse? @relation(fields: [locationId], references: [id])
+  status     String     @default("AVAILABLE") // AVAILABLE, RESERVED, IN_TRIMMING, TRIMMED, CONSUMED, CANCELLED
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trimmedLogs   TrimmedLog[]
+  inputLogId    String?        @db.Uuid
+  inputLog      InputLog?      @relation(fields: [inputLogId], references: [id])
+  inputLogItems InputLogItem[]
+}
+
+// --------------------------------------------------
+// TIMBER INVENTORY: TRIMMED LOG
+// --------------------------------------------------
+model TrimmedLog {
+  partaiId   String?       @db.Uuid
+  partai     TimberPartai? @relation(fields: [partaiId], references: [id])
+  id         String        @id @default(uuid()) @db.Uuid
+  trimNumber String // e.g. 199A
+  rawLogId   String        @db.Uuid
+  rawLog     RawLog        @relation(fields: [rawLogId], references: [id])
+
+  species         String
+  speciesId       String?        @db.Uuid
+  timberSpecies   TimberSpecies? @relation(fields: [speciesId], references: [id])
+  sourceId        String?        @db.Uuid
+  timberSource    TimberSource?  @relation(fields: [sourceId], references: [id])
+  length          Float
+  diameter1       Float
+  diameter2       Float
+  diameter3       Float
+  diameter4       Float
+  averageDiameter Float
+  roundedDiameter Float
+
+  grossVolume    Float
+  gerowong       Float?
+  hollowVolume   Float?
+  trimmingLength Float?
+  trimmingVolume Float?
+  netVolume      Float
+
+  barcode    String?    @unique
+  locationId String?    @db.Uuid
+  location   Warehouse? @relation(fields: [locationId], references: [id])
+  status     String     @default("AVAILABLE") // AVAILABLE, RESERVED, ASSIGNED_TO_INPUT, IN_PROCESS, CONSUMED, CANCELLED
+
+  inputLogId    String?        @db.Uuid
+  inputLog      InputLog?      @relation(fields: [inputLogId], references: [id])
+  inputLogItems InputLogItem[]
+
+  notes     String?
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --------------------------------------------------
+// TIMBER INVENTORY: INPUT LOG / WIP
+// --------------------------------------------------
+model InputLog {
+  partaiId            String?                        @db.Uuid
+  partai              TimberPartai?                  @relation(fields: [partaiId], references: [id])
+  sawmillConsumptions SawmillProductionConsumption[]
+  id                  String                         @id @default(uuid()) @db.Uuid
+  inputNumber         String                         @unique
+  date                DateTime                       @default(now())
+  shift               String?
+  operatorName        String?
+  machine             String?
+  bundleRef           String?
+  batch               String?
+  species             String
+  speciesId           String?                        @db.Uuid
+  timberSpecies       TimberSpecies?                 @relation(fields: [speciesId], references: [id])
+  sourceId            String?                        @db.Uuid
+  timberSource        TimberSource?                  @relation(fields: [sourceId], references: [id])
+  totalQty            Int
+  totalLength         Float?
+  totalGross          Float?
+  totalGerowong       Float?
+  totalTrimming       Float?
+  totalVolume         Float
+
+  locationId String?    @db.Uuid
+  location   Warehouse? @relation(fields: [locationId], references: [id])
+  status     String     @default("AVAILABLE")
+  notes      String?
+
+  items       InputLogItem[]
+  sawnOutputs SawnTimberOutput[]
+  trimmedLogs TrimmedLog[]
+  rawLogs     RawLog[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+// --------------------------------------------------
+// TIMBER INVENTORY: FINISHED TIMBER VARIANT
+// --------------------------------------------------
+model TimberVariant {
+  sawmillOutputItems SawmillOutputItem[]
+  id                 String                   @id @default(uuid()) @db.Uuid
+  company_id         String                   @db.Uuid
+  company            Company                  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  productId          String                   @db.Uuid
+  product            Product                  @relation(fields: [productId], references: [id])
+  grade              String
+  thickness          Int // mm
+  width              Int // mm
+  length             Int // mm
+  species            String
+  speciesId          String?                  @db.Uuid
+  timberSpecies      TimberSpecies?           @relation(fields: [speciesId], references: [id])
+  gradeId            String?                  @db.Uuid
+  timberGrade        TimberGrade?             @relation(fields: [gradeId], references: [id])
+  sku                String                   @unique
+  barcode            String?                  @unique
+  volumePerPiece     Float // Calculated as T*W*L/1B
+  sawnOutputItems    SawnTimberOutputItem[]
+  timberStocks       TimberStock[]
+  transferItems      StockTransferItem[]
+  adjustmentItems    StockAdjustmentItem[]
+  salesOrderItems    TimberSalesOrderItem[]
+  deliveryItems      TimberDeliveryNoteItem[]
+
+  isActive                Boolean                   @default(true)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  productionInputs        ProductionProcessInput[]
+  productionOutputs       ProductionProcessOutput[]
+  timberPurchaseItems     TimberPurchaseItem[]
+  timberShipmentItems     TimberShipmentItem[]
+  timberStockOpnameItems  TimberStockOpnameItem[]
+  timberStockReservations TimberStockReservation[]
+
+  @@unique([company_id, sku])
+}
+
+model InputLogItem {
+  id           String      @id @default(uuid()) @db.Uuid
+  inputLogId   String      @db.Uuid
+  inputLog     InputLog    @relation(fields: [inputLogId], references: [id])
+  trimmedLogId String?     @db.Uuid
+  trimmedLog   TrimmedLog? @relation(fields: [trimmedLogId], references: [id])
+  rawLogId     String?     @db.Uuid
+  rawLog       RawLog?     @relation(fields: [rawLogId], references: [id])
+  quantity     Int         @default(1)
+  volume       Float
+  createdAt    DateTime    @default(now())
+}
+
+// ==================================================
+// PHASE 5: SAWN TIMBER OUTPUT & STOCK
+// ==================================================
+
+model SawnTimberOutput {
+  partaiId       String?       @db.Uuid
+  partai         TimberPartai? @relation(fields: [partaiId], references: [id])
+  id             String        @id @default(uuid()) @db.Uuid
+  bundleNumber   String
+  outputDate     DateTime      @default(now())
+  shift          String?
+  operatorName   String?
+  machine        String?
+  locationId     String        @db.Uuid
+  location       Warehouse     @relation(fields: [locationId], references: [id])
+  inputLogId     String        @db.Uuid
+  inputLog       InputLog      @relation(fields: [inputLogId], references: [id])
+  batch          String? // Partai
+  notes          String?
+  status         String        @default("DRAFT") // DRAFT, POSTED, CANCELLED
+  consumedVolume Float         @default(0)
+
+  items SawnTimberOutputItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SawnTimberOutputItem {
+  id       String           @id @default(uuid()) @db.Uuid
+  outputId String           @db.Uuid
+  output   SawnTimberOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)
+
+  timberVariantId String        @db.Uuid
+  timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])
+
+  grade       String?
+  productType String? @default("BALOK") // BALOK, RENG, AFKIR_BS, AIR_DRY, FJL, LAINNYA
+  quantityPcs Int
+  thicknessMm Int
+  widthMm     Int
+  lengthMm    Int
+  volumeM3    Float
+  notes       String?
+}
+
+model TimberStockReservation {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  locationId String    @db.Uuid
+  location   Warehouse @relation(fields: [locationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  timberVariantId String        @db.Uuid
+  timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  reservedPcs Int   @default(0)
+  reservedM3  Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([company_id, locationId, timberVariantId])
+}
+
+model TimberStock {
+  id              String        @id @default(uuid()) @db.Uuid
+  locationId      String        @db.Uuid
+  location        Warehouse     @relation(fields: [locationId], references: [id])
+  subLocationId   String?       @db.Uuid
+  subLocation     Location?     @relation(fields: [subLocationId], references: [id])
+  timberVariantId String        @db.Uuid
+  timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])
+
+  openingPcs      Int   @default(0)
+  stockInPcs      Int   @default(0)
+  stockOutPcs     Int   @default(0)
+  adjustmentPcs   Int   @default(0)
+  currentPcs      Int   @default(0)
+  currentVolumeM3 Float @default(0)
+
+  movements TimberStockMovement[]
+
+  updatedAt DateTime @updatedAt
+
+  batch            String                   @default("UNKNOWN")
+  productionInputs ProductionProcessInput[]
+
+  @@unique([locationId, timberVariantId, batch])
+}
+
+model TimberStockMovement {
+  id            String      @id @default(uuid()) @db.Uuid
+  timberStockId String      @db.Uuid
+  timberStock   TimberStock @relation(fields: [timberStockId], references: [id])
+
+  type          String // IN, OUT, ADJ
+  referenceType String // PRODUCTION_OUTPUT, TRANSFER_IN, TRANSFER_OUT, ADJUSTMENT_IN, ADJUSTMENT_OUT, etc.
+  referenceId   String // e.g. SawnTimberOutput.id
+
+  batch String @default("UNKNOWN")
+
+  quantityPcs Int
+  volumeM3    Float
+
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([timberStockId, date])
+  @@index([referenceType, referenceId])
+}
+
+// ==================================================
+// PHASE 6: LEDGER, TRANSFERS & ADJUSTMENTS
+// ==================================================
+
+model StockTransfer {
+  id             String    @id @default(uuid()) @db.Uuid
+  transferNumber String    @unique
+  transferDate   DateTime  @default(now())
+  fromLocationId String    @db.Uuid
+  fromLocation   Warehouse @relation("TransferFromLocation", fields: [fromLocationId], references: [id])
+  toLocationId   String    @db.Uuid
+  toLocation     Warehouse @relation("TransferToLocation", fields: [toLocationId], references: [id])
+  status         String    @default("DRAFT") // DRAFT, POSTED, CANCELLED
+  notes          String?
+
+  items StockTransferItem[]
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StockTransferItem {
+  id         String        @id @default(uuid()) @db.Uuid
+  transferId String        @db.Uuid
+  transfer   StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  timberVariantId String        @db.Uuid
+  timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])
+
+  batch String @default("UNKNOWN")
+
+  quantityPcs Int
+  volumeM3    Float
+  notes       String?
+}
+
+model StockAdjustment {
+  id               String    @id @default(uuid()) @db.Uuid
+  adjustmentNumber String    @unique
+  adjustmentDate   DateTime  @default(now())
+  locationId       String    @db.Uuid
+  location         Warehouse @relation(fields: [locationId], references: [id])
+  status           String    @default("DRAFT") // DRAFT, POSTED, CANCELLED
+  reason           String?
+  notes            String?
+
+  items StockAdjustmentItem[]
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StockAdjustmentItem {
+  id           String          @id @default(uuid()) @db.Uuid
+  adjustmentId String          @db.Uuid
+  adjustment   StockAdjustment @relation(fields: [adjustmentId], references: [id], onDelete: Cascade)
+
+  timberVariantId String        @db.Uuid
+  timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])
+
+  batch String @default("UNKNOWN")
+
+  systemPcs     Int
+  physicalPcs   Int
+  differencePcs Int
+  differenceM3  Float
+  notes         String?
+}
+
+// ==================================================
+// PHASE 7: IMPORT SESSION
+// ==================================================
+
+model ImportSession {
+  id            String  @id @default(uuid()) @db.Uuid
+  fileName      String
+  fileType      String?
+  importType    String // RAW_LOG, TRIMMING_LOG, INPUT_LOG, SAWN_TIMBER_OUTPUT, STOCK_OPENING_BALANCE
+  status        String  @default("UPLOADED") // UPLOADED, VALIDATING, READY, IMPORTING, COMPLETED, COMPLETED_WITH_ERRORS, FAILED, CANCELLED
+  selectedSheet String?
+
+  totalRows     Int @default(0)
+  validRows     Int @default(0)
+  invalidRows   Int @default(0)
+  duplicateRows Int @default(0)
+  importedRows  Int @default(0)
+  skippedRows   Int @default(0)
+
+  errorSummary String?
+
+  createdBy   String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+// ==========================================
+// PHASE 13: TIMBER SALES & ORDER REALIZATION
+// ==========================================
+// Separate from the existing generic SalesOrder (POS/B2B).
+// Timber Sales operates on TimberVariant-dimensional items.
+
+model TimberSalesOrder {
+  id              String    @id @default(uuid()) @db.Uuid
+  orderNumber     String    @unique
+  customerId      String    @db.Uuid
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  orderDate       DateTime
+  targetDate      DateTime?
+  partai          String? // Optional partai requirement from customer
+  notes           String?
+  // DRAFT -> CONFIRMED -> PARTIALLY_FULFILLED -> FULFILLED -> CANCELLED
+  status          String    @default("DRAFT")
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  items      TimberSalesOrderItem[]
+  deliveries TimberDeliveryNote[]
+  shipments  TimberShipment[]
+}
+
+model TimberSalesOrderItem {
+  id           String           @id @default(uuid()) @db.Uuid
+  salesOrderId String           @db.Uuid
+  salesOrder   TimberSalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+
+  // Dimensional identity - references TimberVariant
+  timberVariantId String?        @db.Uuid
+  timberVariant   TimberVariant? @relation(fields: [timberVariantId], references: [id])
+
+  // Explicitly stored for historical accuracy even if variant changes
+  thicknessMm           Int
+  widthMm               Int
+  lengthMm              Int
+  fulfillmentLocationId String?    @db.Uuid
+  fulfillmentLocation   Warehouse? @relation(fields: [fulfillmentLocationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  grade                 String?
+  species               String?
+
+  orderQty Int // PCS
+  orderM3  Float // Pre-calculated
+
+  // Realization cache (updated when delivery items are posted)
+  realizedQty Int   @default(0)
+  realizedM3  Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliveryItems       TimberDeliveryNoteItem[]
+  timberShipmentItems TimberShipmentItem[]
+}
+
+model TimberDeliveryNote {
+  id             String           @id @default(uuid()) @db.Uuid
+  deliveryNumber String           @unique
+  salesOrderId   String           @db.Uuid
+  salesOrder     TimberSalesOrder @relation(fields: [salesOrderId], references: [id])
+  deliveryDate   DateTime
+  driverName     String?
+  vehicleNumber  String?
+  notes          String?
+  // DRAFT -> POSTED -> CANCELLED
+  status         String           @default("DRAFT")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  items TimberDeliveryNoteItem[]
+}
+
+model TimberDeliveryNoteItem {
+  id             String             @id @default(uuid()) @db.Uuid
+  deliveryNoteId String             @db.Uuid
+  deliveryNote   TimberDeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+
+  salesOrderItemId String               @db.Uuid
+  salesOrderItem   TimberSalesOrderItem @relation(fields: [salesOrderItemId], references: [id])
+
+  // Source stock identity
+  locationId      String        @db.Uuid
+  location        Warehouse     @relation(fields: [locationId], references: [id])
+  timberVariantId String        @db.Uuid
+  timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])
+
+  deliveredQty Int
+  deliveredM3  Float
+
+  // Linked stock movement (created by InventoryLedgerService on Post)
+  stockMovementId String? @unique @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SawmillBundle {
+  id             String              @id @default(uuid()) @db.Uuid
+  bundleNumber   String              @unique
+  parentBundleId String?             @db.Uuid
+  parentBundle   SawmillBundle?      @relation("RepackedFrom", fields: [parentBundleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  childBundles   SawmillBundle[]     @relation("RepackedFrom")
+  status         String              @default("ACTIVE") // ACTIVE, REPACKED, SHIPPED
+  outputItems    SawmillOutputItem[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
+
+model SawmillProductionRun {
+  id             String                         @id @default(uuid()) @db.Uuid
+  productionNo   String                         @unique
+  productionDate DateTime
+  shift          String
+  operatorId     String                         @db.Uuid
+  operator       Employee                       @relation(fields: [operatorId], references: [id])
+  workCenterId   String                         @db.Uuid
+  workCenter     WorkCenter                     @relation(fields: [workCenterId], references: [id])
+  status         String                         @default("DRAFT") // DRAFT, POSTED, CANCELLED
+  notes          String?
+  consumptions   SawmillProductionConsumption[]
+  outputItems    SawmillOutputItem[]
+  createdAt      DateTime                       @default(now())
+  updatedAt      DateTime                       @updatedAt
+}
+
+model SawmillProductionConsumption {
+  id              String               @id @default(uuid()) @db.Uuid
+  inputLogId      String               @db.Uuid
+  inputLog        InputLog             @relation(fields: [inputLogId], references: [id])
+  productionRunId String               @db.Uuid
+  productionRun   SawmillProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)
+  consumedM3      Float
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+}
+
+model SawmillOutputItem {
+  id                 String               @id @default(uuid()) @db.Uuid
+  productionRunId    String               @db.Uuid
+  productionRun      SawmillProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)
+  bundleId           String               @db.Uuid
+  bundle             SawmillBundle        @relation(fields: [bundleId], references: [id])
+  timberVariantId    String               @db.Uuid
+  timberVariant      TimberVariant        @relation(fields: [timberVariantId], references: [id])
+  partai             String
+  quantityPcs        Int
+  volumeM3           Float
+  remarks            String?
+  stockMovementId    String? // Ledger IN
+  reversalMovementId String? // Ledger OUT (if cancelled)
+}
+
+// =======================
+// TIMBER MASTER DATA (PHASE 16)
+// =======================
+
+model TimberSpecies {
+  id          String   @id @default(uuid()) @db.Uuid
+  company_id  String   @db.Uuid
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code        String
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rawLogs                RawLog[]
+  trimmedLogs            TrimmedLog[]
+  inputLogs              InputLog[]
+  variants               TimberVariant[]
+  timberPurchaseLogItems TimberPurchaseLogItem[]
+}
+
+model TimberGrade {
+  id          String   @id @default(uuid()) @db.Uuid
+  company_id  String   @db.Uuid
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code        String
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  variants TimberVariant[]
+}
+
+model TimberSource {
+  id          String   @id @default(uuid()) @db.Uuid
+  company_id  String   @db.Uuid
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code        String
+  name        String
+  type        String // SUPPLIER, EXTERNAL, INTERNAL, OTHER
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rawLogs         RawLog[]
+  trimmedLogs     TrimmedLog[]
+  inputLogs       InputLog[]
+  timberPurchases TimberPurchase[]
+}
+
+model Location {
+  id          String    @id @default(uuid()) @db.Uuid
+  warehouseId String    @db.Uuid
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  code        String
+  name        String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  timberStocks TimberStock[]
+}
+
+model Vehicle {
+  id              String           @id @default(uuid()) @db.Uuid
+  company_id      String           @db.Uuid
+  company         Company          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code            String
+  plateNumber     String
+  name            String?
+  vehicleType     String // TRUCK, FUSO, PICKUP, OTHER
+  description     String?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  timberShipments TimberShipment[]
+}
+
+model Driver {
+  id              String           @id @default(uuid()) @db.Uuid
+  company_id      String           @db.Uuid
+  company         Company          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code            String?
+  name            String
+  phone           String?
+  licenseNumber   String?
+  description     String?
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  timberShipments TimberShipment[]
+}
+
+// ==================================================
+// PHASE 18: TIMBER PRODUCTION PROCESS ENGINE
+// ==================================================
+
+model ProductionProcess {
+  id          String   @id @default(uuid()) @db.Uuid
+  company_id  String   @db.Uuid
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  processNo   String   @unique
+  processType String // GESEK, PLAT, MASAK, etc.
+  processDate DateTime @default(now())
+  status      String   @default("DRAFT") // DRAFT, CONFIRMED, CANCELLED
+  notes       String?
+  createdBy   String?
+
+  inputVolumeM3   Float @default(0)
+  outputVolumeM3  Float @default(0)
+  wasteVolumeM3   Float @default(0)
+  yieldPercentage Float @default(0)
+
+  inputs  ProductionProcessInput[]
+  outputs ProductionProcessOutput[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProductionProcessInput {
+  id                  String            @id @default(uuid()) @db.Uuid
+  productionProcessId String            @db.Uuid
+  productionProcess   ProductionProcess @relation(fields: [productionProcessId], references: [id], onDelete: Cascade)
+
+  timberStockId String        @db.Uuid
+  timberStock   TimberStock   @relation(fields: [timberStockId], references: [id])
+  variantId     String        @db.Uuid
+  variant       TimberVariant @relation(fields: [variantId], references: [id])
+
+  quantityPCS Int
+  volumeM3    Float
+}
+
+model ProductionProcessOutput {
+  id                  String            @id @default(uuid()) @db.Uuid
+  productionProcessId String            @db.Uuid
+  productionProcess   ProductionProcess @relation(fields: [productionProcessId], references: [id], onDelete: Cascade)
+
+  variantId String?        @db.Uuid
+  variant   TimberVariant? @relation(fields: [variantId], references: [id]) // Optional because WASTE might not have a variant
+
+  outputType  String // PRODUCT, WASTE, BYPRODUCT
+  quantityPCS Int    @default(0)
+  volumeM3    Float
+
+  warehouseId String?    @db.Uuid
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id]) // Target warehouse for this output
+}
+
+// ==================================================
+// PHASE 20: TIMBER PURCHASE & SHIPMENT
+// ==================================================
+
+model TimberPurchase {
+  partaiId       String?       @db.Uuid
+  partai         TimberPartai? @relation(fields: [partaiId], references: [id])
+  id             String        @id @default(uuid()) @db.Uuid
+  company_id     String        @db.Uuid
+  company        Company       @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  purchaseNumber String        @unique
+  purchaseDate   DateTime      @default(now())
+
+  sourceId String       @db.Uuid
+  source   TimberSource @relation(fields: [sourceId], references: [id])
+
+  warehouseId String    @db.Uuid
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+
+  status        String  @default("DRAFT") // DRAFT, CONFIRMED, CANCELLED
+  totalPcs      Int     @default(0)
+  totalVolumeM3 Float   @default(0)
+  notes         String?
+  createdBy     String?
+
+  items    TimberPurchaseItem[]
+  logItems TimberPurchaseLogItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TimberPurchaseItem {
+  id               String         @id @default(uuid()) @db.Uuid
+  timberPurchaseId String         @db.Uuid
+  timberPurchase   TimberPurchase @relation(fields: [timberPurchaseId], references: [id], onDelete: Cascade)
+
+  timberVariantId String        @db.Uuid
+  timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])
+
+  quantityPcs Int
+  volumeM3    Float
+
+  purchaseThickness Float?
+  purchaseWidth     Float?
+  purchaseLength    Float?
+  unitPrice         Float?
+  batch             String?
+  notes             String?
+}
+
+model TimberPurchaseLogItem {
+  id               String         @id @default(uuid()) @db.Uuid
+  timberPurchaseId String         @db.Uuid
+  timberPurchase   TimberPurchase @relation(fields: [timberPurchaseId], references: [id], onDelete: Cascade)
+
+  logNumber     String
+  species       String
+  speciesId     String?        @db.Uuid
+  timberSpecies TimberSpecies? @relation(fields: [speciesId], references: [id])
+
+  purchaseLength    Float
+  purchaseDiameter1 Float
+  purchaseDiameter2 Float
+  purchaseDiameter3 Float
+  purchaseDiameter4 Float
+  purchaseVolume    Float
+
+  status        String    @default("EXPECTED") // EXPECTED, RECEIVED
+  receivingDate DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  notes     String?
+}
+
+model TimberShipment {
+  id             String   @id @default(uuid()) @db.Uuid
+  company_id     String   @db.Uuid
+  company        Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  shipmentNumber String   @unique
+  shipmentDate   DateTime @default(now())
+
+  warehouseId String    @db.Uuid
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+
+  vehicleId String?  @db.Uuid
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id])
+
+  driverId String? @db.Uuid
+  driver   Driver? @relation(fields: [driverId], references: [id])
+
+  // Direct armada fields for external transport (Ex Kalteng Fuso / Truk)
+  fusoName     String?
+  policeNumber String?
+  driverName   String?
+
+  customerId         String?   @db.Uuid
+  customer           Customer? @relation(fields: [customerId], references: [id])
+  destinationName    String?
+  destinationAddress String?
+
+  salesOrderId String?           @db.Uuid
+  salesOrder   TimberSalesOrder? @relation(fields: [salesOrderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  status        String  @default("DRAFT") // DRAFT, CONFIRMED, CANCELLED
+  totalPcs      Int     @default(0)
+  totalVolumeM3 Float   @default(0)
+  notes         String?
+  createdBy     String?
+
+  items TimberShipmentItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TimberShipmentItem {
+  id               String         @id @default(uuid()) @db.Uuid
+  timberShipmentId String         @db.Uuid
+  timberShipment   TimberShipment @relation(fields: [timberShipmentId], references: [id], onDelete: Cascade)
+
+  timberVariantId String?        @db.Uuid
+  timberVariant   TimberVariant? @relation(fields: [timberVariantId], references: [id])
+
+  batch String @default("UNKNOWN")
+
+  // Dimension & classification fields for direct tally muat
+  species         String?
+  productCategory String? @default("BALOK") // BALOK, RENG, AFKIR_BS, AIR_DRY, etc.
+  thicknessMm     Float?
+  widthMm         Float?
+  lengthMm        Float?
+
+  quantityPcs      Int
+  volumeM3         Float
+  salesOrderItemId String?               @db.Uuid
+  salesOrderItem   TimberSalesOrderItem? @relation(fields: [salesOrderItemId], references: [id])
+}
+
+// ==================================================
+// PHASE 21: TIMBER STOCK OPNAME
+// ==================================================
+
+model TimberStockOpname {
+  id           String   @id @default(uuid()) @db.Uuid
+  company_id   String   @db.Uuid
+  company      Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  opnameNumber String   @unique
+  opnameDate   DateTime @default(now())
+
+  warehouseId String    @db.Uuid
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+
+  status      String    @default("DRAFT") // DRAFT, COUNTING, CONFIRMED, CANCELLED
+  notes       String?
+  createdBy   String?
+  confirmedBy String?
+  confirmedAt DateTime?
+
+  items TimberStockOpnameItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TimberStockOpnameItem {
+  id            String            @id @default(uuid()) @db.Uuid
+  stockOpnameId String            @db.Uuid
+  stockOpname   TimberStockOpname @relation(fields: [stockOpnameId], references: [id], onDelete: Cascade)
+
+  timberVariantId String        @db.Uuid
+  timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])
+
+  batch String @default("UNKNOWN")
+
+  systemQuantityPcs Int
+  systemVolumeM3    Float
+
+  physicalQuantityPcs Int
+  physicalVolumeM3    Float
+
+  varianceQuantityPcs Int
+  varianceVolumeM3    Float
+
+  notes String?
+}
+
+// ==================================================
+// EXPORT PACKING LIST (FISH & GENERAL)
+// ==================================================
+
+model ExportShipment {
+  id          String   @id @default(uuid()) @db.Uuid
+  company_id  String   @db.Uuid
+  company     Company  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  containerNo String
+  sealNo      String
+  vehicleNo   String
+  exportDate  DateTime
+  status      String   @default("DRAFT")
+
+  items ExportShipmentItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ExportShipmentItem {
+  id       String         @id @default(uuid()) @db.Uuid
+  exportId String         @db.Uuid
+  export   ExportShipment @relation(fields: [exportId], references: [id], onDelete: Cascade)
+
+  groupName   String // Supplier / Customer grouping (e.g. "PAK LUCKY")
+  productName String
+  qtyKg       Float
+  qtyMc       Int
+  qtySak      Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StockInTally {
+  idempotency_key String?
+  status          String             @default("POSTED")
+  id              String             @id @default(uuid()) @db.Uuid
+  company_id      String             @db.Uuid
+  company         Company            @relation(fields: [company_id], references: [id])
+  tally_number    String
+  tally_date      DateTime           @default(now())
+  warehouse_id    String             @db.Uuid
+  warehouse       Warehouse          @relation(fields: [warehouse_id], references: [id])
+  notes           String?
+  items           StockInTallyItem[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, idempotency_key])
+}
+
+model StockInTallyItem {
+  id          String       @id @default(uuid()) @db.Uuid
+  tally_id    String       @db.Uuid
+  tally       StockInTally @relation(fields: [tally_id], references: [id], onDelete: Cascade)
+  product_id  String       @db.Uuid
+  product     Product      @relation(fields: [product_id], references: [id])
+  qty         Float
+  movement_id String?      @db.Uuid
+}
+
+// ==================================================
+// TIMBER PARTAI (PROJECT / BATCH)
+// ==================================================
+model TimberPartai {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  code   String
+  name   String?
+  status String  @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+
+  notes     String?
+  createdBy String?
+
+  purchases   TimberPurchase[]
+  rawLogs     RawLog[]
+  trimmedLogs TrimmedLog[]
+  inputLogs   InputLog[]
+  sawnOutputs SawnTimberOutput[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([company_id, code])
+}
+
+model InventoryDisposal {
+  id           String    @id @default(uuid()) @db.Uuid
+  company_id   String    @db.Uuid
+  company      Company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id String    @db.Uuid
+  warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  disposal_number String
+  disposal_date   DateTime
+  status          String // DRAFT, PENDING, APPROVED, REJECTED, COMPLETED, CANCELLED
+  reason          String
+  notes           String?
+
+  created_by  String? @db.Uuid
+  creator     User?   @relation("DisposalCreator", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  approved_by String? @db.Uuid
+  approver    User?   @relation("DisposalApprover", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  approved_at  DateTime?
+  completed_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  items InventoryDisposalItem[]
+
+  @@unique([company_id, disposal_number])
+}
+
+model InventoryDisposalItem {
+  id          String            @id @default(uuid()) @db.Uuid
+  disposal_id String            @db.Uuid
+  disposal    InventoryDisposal @relation(fields: [disposal_id], references: [id], onDelete: Cascade)
+  product_id  String            @db.Uuid
+  product     Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  qty   Float
+  unit  String?
+  notes String?
+}
+
+model StockTransformation {
+  id         String  @id @default(uuid()) @db.Uuid
+  company_id String  @db.Uuid
+  company    Company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  transform_no String   @unique
+  date         DateTime @default(now())
+  status       String   @default("COMPLETED") // DRAFT, COMPLETED, CANCELLED
+  notes        String?
+  created_by   String   @db.Uuid
+  user         User     @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  inputs  StockTransformationInput[]
+  outputs StockTransformationOutput[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model StockTransformationInput {
+  id                String              @id @default(uuid()) @db.Uuid
+  transformation_id String              @db.Uuid
+  transformation    StockTransformation @relation(fields: [transformation_id], references: [id], onDelete: Cascade)
+
+  warehouse_id String    @db.Uuid
+  warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  product_id String  @db.Uuid
+  product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  qty        Float
+  unit_cost  Float @default(0)
+  total_cost Float @default(0)
+}
+
+model StockTransformationOutput {
+  id                String              @id @default(uuid()) @db.Uuid
+  transformation_id String              @db.Uuid
+  transformation    StockTransformation @relation(fields: [transformation_id], references: [id], onDelete: Cascade)
+
+  warehouse_id String    @db.Uuid
+  warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  product_id String  @db.Uuid
+  product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  qty        Float
+  unit_cost  Float @default(0)
+  total_cost Float @default(0)
+}
+
+model PurchaseReturn {
+  id                String        @id @default(uuid()) @db.Uuid
+  company_id        String        @db.Uuid
+  company           Company       @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  return_number     String
+  purchase_order_id String        @db.Uuid
+  purchase_order    PurchaseOrder @relation(fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_id       String        @db.Uuid
+  supplier          Customer      @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id      String        @db.Uuid
+  warehouse         Warehouse     @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  return_date  DateTime
+  status       String // DRAFT, PROCESSING, POSTED, REVERSED
+  reason       String
+  notes        String?
+  total_amount Float    @default(0) // Informational: based on returned FIFO value or purchase value
+
+  created_by String?  @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  items PurchaseReturnItem[]
+
+  @@unique([company_id, return_number])
+}
+
+model PurchaseReturnItem {
+  id                     String            @id @default(uuid()) @db.Uuid
+  purchase_return_id     String            @db.Uuid
+  purchase_return        PurchaseReturn    @relation(fields: [purchase_return_id], references: [id], onDelete: Cascade)
+  purchase_order_item_id String            @db.Uuid
+  purchase_order_item    PurchaseOrderItem @relation(fields: [purchase_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id             String            @db.Uuid
+  product                Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  quantity   Float
+  unit       String?
+  unit_cost  Float   @default(0)
+  total_cost Float   @default(0)
+  reason     String?
+}
+
+model SalesReturn {
+  id             String     @id @default(uuid()) @db.Uuid
+  company_id     String     @db.Uuid
+  company        Company    @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  return_number  String
+  sales_order_id String     @db.Uuid
+  sales_order    SalesOrder @relation(fields: [sales_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customer_id    String     @db.Uuid
+  customer       Customer   @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse_id   String     @db.Uuid
+  warehouse      Warehouse  @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  return_date     DateTime
+  status          String // DRAFT, PROCESSING, POSTED, REVERSED
+  reason          String
+  notes           String?
+  total_amount    Float    @default(0) // Total Revenue Reversal Amount
+  idempotency_key String?
+
+  created_by String?  @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  items                     SalesReturnItem[]
+  SalesReturnCostAllocation SalesReturnCostAllocation[]
+
+  @@unique([company_id, return_number])
+}
+
+model SalesReturnItem {
+  id                  String         @id @default(uuid()) @db.Uuid
+  sales_return_id     String         @db.Uuid
+  sales_return        SalesReturn    @relation(fields: [sales_return_id], references: [id], onDelete: Cascade)
+  sales_order_item_id String         @db.Uuid
+  sales_order_item    SalesOrderItem @relation(fields: [sales_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  product_id          String         @db.Uuid
+  product             Product        @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  quantity          Float
+  unit              String?
+  unit_price        Float   @default(0)
+  total_sales_value Float   @default(0)
+  unit_cost         Float   @default(0) // Authoritative from historical CostLayerConsumption
+  total_cost        Float   @default(0)
+  reason            String?
+
+  created_at                DateTime                    @default(now())
+  updated_at                DateTime                    @updatedAt
+  SalesReturnCostAllocation SalesReturnCostAllocation[]
+}
+
+model SalesReturnCostAllocation {
+  id                   String          @id @default(uuid()) @db.Uuid
+  company_id           String          @db.Uuid
+  sales_return_id      String          @db.Uuid
+  sales_return         SalesReturn     @relation(fields: [sales_return_id], references: [id], onDelete: Cascade)
+  sales_return_item_id String          @db.Uuid
+  sales_return_item    SalesReturnItem @relation(fields: [sales_return_item_id], references: [id], onDelete: Cascade)
+
+  original_cost_layer_id             String @db.Uuid
+  original_cost_layer_consumption_id String @db.Uuid
+
+  restored_cost_layer_id String? @db.Uuid // Points to InventoryCostLayer created by receiveStock
+
+  quantity     Float
+  unit_cost    Float
+  total_cost   Float
+  warehouse_id String @db.Uuid
+
+  created_at DateTime @default(now())
+
+  @@index([sales_return_id])
+}
+
+model Shift {
+  id                   String   @id @default(uuid()) @db.Uuid
+  company_id           String?  @db.Uuid
+  company              Company? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  code                 String
+  name                 String
+  start_time           String // e.g. "08:00"
+  end_time             String // e.g. "17:00"
+  grace_period_minutes Int      @default(15) // Minutes before marked LATE
+  status               String   @default("ACTIVE")
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  employees   Employee[]
+  attendances Attendance[]
+
+  @@unique([company_id, code])
+}
+
+
+model ReverseSyncOutbox {
+  id                    String    @id @default(uuid()) @db.Uuid
+  company_id            String?   @db.Uuid
+  model_name            String    @db.VarChar(64)
+  record_id             String    @db.Uuid
+  operation             String    @db.VarChar(32)
+  previous_state        Json?
+  current_state         Json?
+  transaction_timestamp DateTime? @default(now()) @db.Timestamptz(6)
+  status                String    @default("PENDING") @db.VarChar(32)
+  replay_fingerprint    String    @db.VarChar(64)
+  processed_at          DateTime? @db.Timestamptz(6)
+  error_message         String?
+
+  @@map("_reverse_sync_outbox")
+}
+
+
+model InvoiceExchange {
+  id               String   @id @default(uuid()) @db.Uuid
+  company_id       String   @db.Uuid
+  customer_id      String   @db.Uuid
+  transaction_no   String
+  transaction_date DateTime @default(now())
+  due_date         DateTime?
+  payment_terms    String?  @default("net30")
+  email            String?
+  billing_address  String?
+  message          String?
+  memo             String?
+  total_amount     Float    @default(0)
+  status           String   @default("DRAFT")
+  created_at       DateTime @default(now())
+  updated_at       DateTime @default(now())
+
+  items            InvoiceExchangeItem[]
+
+  @@map("InvoiceExchange")
+}
+
+model InvoiceExchangeItem {
+  id               String          @id @default(uuid()) @db.Uuid
+  exchange_id      String          @db.Uuid
+  exchange         InvoiceExchange @relation(fields: [exchange_id], references: [id], onDelete: Cascade)
+  invoice_id       String          @db.Uuid
+  description      String?
+  due_date         DateTime?
+  status           String?
+  invoice_amount   Float           @default(0)
+  remaining_amount Float           @default(0)
+
+  @@map("InvoiceExchangeItem")
+}

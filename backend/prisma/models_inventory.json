@@ -1,0 +1,1290 @@
+[
+  {
+    "modelName": "Company",
+    "tableName": "Company",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "tenant_id:String"
+  },
+  {
+    "modelName": "CompanySetting",
+    "tableName": "CompanySetting",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Role",
+    "tableName": "Role",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Permission",
+    "tableName": "Permission",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "RolePermission",
+    "tableName": "RolePermission",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "User",
+    "tableName": "User",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Warehouse",
+    "tableName": "Warehouse",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "UserWarehouseAccess",
+    "tableName": "UserWarehouseAccess",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "Category",
+    "tableName": "Category",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Unit",
+    "tableName": "Unit",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Brand",
+    "tableName": "Brand",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Product",
+    "tableName": "Product",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ProductImage",
+    "tableName": "ProductImage",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "ProductDocument",
+    "tableName": "ProductDocument",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "AssetCategory",
+    "tableName": "AssetCategory",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "AssetMaster",
+    "tableName": "AssetMaster",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "AssetHistory",
+    "tableName": "AssetHistory",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "AssetLocation",
+    "tableName": "AssetLocation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "AssetAssignment",
+    "tableName": "AssetAssignment",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "AssetBorrowing",
+    "tableName": "AssetBorrowing",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "MaintenanceLog",
+    "tableName": "MaintenanceLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "MaintenanceSchedule",
+    "tableName": "MaintenanceSchedule",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "WorkOrder",
+    "tableName": "WorkOrder",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "AssetDocument",
+    "tableName": "AssetDocument",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "DepreciationLog",
+    "tableName": "DepreciationLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "Netting",
+    "tableName": "Netting",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "NettingAllocation",
+    "tableName": "NettingAllocation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "AuditLog",
+    "tableName": "AuditLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "InventoryTransaction",
+    "tableName": "InventoryTransaction",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "InventoryTransactionItem",
+    "tableName": "InventoryTransactionItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "StockMovement",
+    "tableName": "StockMovement",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "WarehouseStock",
+    "tableName": "WarehouseStock",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "CashAccount",
+    "tableName": "CashAccount",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "FinanceCategory",
+    "tableName": "FinanceCategory",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "FinanceTransaction",
+    "tableName": "FinanceTransaction",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "FinanceTransactionItem",
+    "tableName": "FinanceTransactionItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "FinanceDocument",
+    "tableName": "FinanceDocument",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "PettyCash",
+    "tableName": "PettyCash",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Budget",
+    "tableName": "Budget",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Reconciliation",
+    "tableName": "Reconciliation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "AccountType",
+    "tableName": "AccountType",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ChartOfAccount",
+    "tableName": "ChartOfAccount",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "JournalEntry",
+    "tableName": "JournalEntry",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "JournalEntryItem",
+    "tableName": "JournalEntryItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "FiscalYear",
+    "tableName": "FiscalYear",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "AccountingPeriod",
+    "tableName": "AccountingPeriod",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "JournalAdjustment",
+    "tableName": "JournalAdjustment",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "JournalReversal",
+    "tableName": "JournalReversal",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "DashboardLayout",
+    "tableName": "DashboardLayout",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "DashboardWidget",
+    "tableName": "DashboardWidget",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "BusinessInsight",
+    "tableName": "BusinessInsight",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ReportSchedule",
+    "tableName": "ReportSchedule",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ReportExportLog",
+    "tableName": "ReportExportLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "DocumentMaster",
+    "tableName": "DocumentMaster",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "DocumentVersion",
+    "tableName": "DocumentVersion",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "DocumentShareLink",
+    "tableName": "DocumentShareLink",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "WorkflowMaster",
+    "tableName": "WorkflowMaster",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "WorkflowNode",
+    "tableName": "WorkflowNode",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "WorkflowEdge",
+    "tableName": "WorkflowEdge",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "ApprovalRequest",
+    "tableName": "ApprovalRequest",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ApprovalLog",
+    "tableName": "ApprovalLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "InternalInbox",
+    "tableName": "InternalInbox",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "UserTask",
+    "tableName": "UserTask",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "NotificationTemplate",
+    "tableName": "NotificationTemplate",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "CommunicationLog",
+    "tableName": "CommunicationLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "CommunicationSetting",
+    "tableName": "CommunicationSetting",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "AutomationLog",
+    "tableName": "AutomationLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Tenant",
+    "tableName": "Tenant",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SubscriptionPlan",
+    "tableName": "SubscriptionPlan",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TenantSubscription",
+    "tableName": "TenantSubscription",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "tenant_id:String"
+  },
+  {
+    "modelName": "BillingInvoice",
+    "tableName": "BillingInvoice",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "ApiToken",
+    "tableName": "ApiToken",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "tenant_id:String"
+  },
+  {
+    "modelName": "InstalledPlugin",
+    "tableName": "InstalledPlugin",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "tenant_id:String"
+  },
+  {
+    "modelName": "Customer",
+    "tableName": "Customer",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Voucher",
+    "tableName": "Voucher",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "SalesOrder",
+    "tableName": "SalesOrder",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "SalesOrderItem",
+    "tableName": "SalesOrderItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "PosShift",
+    "tableName": "PosShift",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "AiChatHistory",
+    "tableName": "AiChatHistory",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Department",
+    "tableName": "Department",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Employee",
+    "tableName": "Employee",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Attendance",
+    "tableName": "Attendance",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Payroll",
+    "tableName": "Payroll",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "PayrollItem",
+    "tableName": "PayrollItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "MarketplaceIntegration",
+    "tableName": "MarketplaceIntegration",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Quotation",
+    "tableName": "Quotation",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "QuotationItem",
+    "tableName": "QuotationItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "DeliveryOrder",
+    "tableName": "DeliveryOrder",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "DeliveryOrderItem",
+    "tableName": "DeliveryOrderItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "Invoice",
+    "tableName": "Invoice",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "InvoiceItem",
+    "tableName": "InvoiceItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "Payment",
+    "tableName": "Payment",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "PaymentAllocation",
+    "tableName": "PaymentAllocation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "PurchaseOrder",
+    "tableName": "PurchaseOrder",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "PurchaseOrderItem",
+    "tableName": "PurchaseOrderItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "GoodsReceipt",
+    "tableName": "GoodsReceipt",
+    "pk": "id:String",
+    "softDelete": "deleted_at:DateTime",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "GoodsReceiptItem",
+    "tableName": "GoodsReceiptItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "LeaveRequest",
+    "tableName": "LeaveRequest",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Lead",
+    "tableName": "Lead",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Opportunity",
+    "tableName": "Opportunity",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "CrmActivity",
+    "tableName": "CrmActivity",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "DocumentSequence",
+    "tableName": "DocumentSequence",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "EcommerceCart",
+    "tableName": "EcommerceCart",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "EcommerceCartItem",
+    "tableName": "EcommerceCartItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "Integration",
+    "tableName": "Integration",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ExternalReference",
+    "tableName": "ExternalReference",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "IntegrationWebhookEvent",
+    "tableName": "IntegrationWebhookEvent",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "IntegrationIdempotency",
+    "tableName": "IntegrationIdempotency",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "InventoryCostLayer",
+    "tableName": "InventoryCostLayer",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "CostLayerConsumption",
+    "tableName": "CostLayerConsumption",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "CheckoutIdempotency",
+    "tableName": "CheckoutIdempotency",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Bom",
+    "tableName": "Bom",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "BomItem",
+    "tableName": "BomItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "ManufacturingOrder",
+    "tableName": "ManufacturingOrder",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ManufacturingOrderItem",
+    "tableName": "ManufacturingOrderItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "WorkCenter",
+    "tableName": "WorkCenter",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ManufacturingWorkOrder",
+    "tableName": "ManufacturingWorkOrder",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "QualityControlPoint",
+    "tableName": "QualityControlPoint",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "QualityCheck",
+    "tableName": "QualityCheck",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "MaterialReservation",
+    "tableName": "MaterialReservation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "BomRouting",
+    "tableName": "BomRouting",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "BomOperation",
+    "tableName": "BomOperation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "QualityDisposition",
+    "tableName": "QualityDisposition",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ExpenseClaim",
+    "tableName": "ExpenseClaim",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ExpenseItem",
+    "tableName": "ExpenseItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "PurchaseRequest",
+    "tableName": "PurchaseRequest",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "PurchaseRequestItem",
+    "tableName": "PurchaseRequestItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SupplierProduct",
+    "tableName": "SupplierProduct",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "AssetDepreciation",
+    "tableName": "AssetDepreciation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "RawLog",
+    "tableName": "RawLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TrimmedLog",
+    "tableName": "TrimmedLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "InputLog",
+    "tableName": "InputLog",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberVariant",
+    "tableName": "TimberVariant",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "InputLogItem",
+    "tableName": "InputLogItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SawnTimberOutput",
+    "tableName": "SawnTimberOutput",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SawnTimberOutputItem",
+    "tableName": "SawnTimberOutputItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberStockReservation",
+    "tableName": "TimberStockReservation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "TimberStock",
+    "tableName": "TimberStock",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberStockMovement",
+    "tableName": "TimberStockMovement",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "StockTransfer",
+    "tableName": "StockTransfer",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "StockTransferItem",
+    "tableName": "StockTransferItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "StockAdjustment",
+    "tableName": "StockAdjustment",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "StockAdjustmentItem",
+    "tableName": "StockAdjustmentItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "ImportSession",
+    "tableName": "ImportSession",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberSalesOrder",
+    "tableName": "TimberSalesOrder",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberSalesOrderItem",
+    "tableName": "TimberSalesOrderItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberDeliveryNote",
+    "tableName": "TimberDeliveryNote",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberDeliveryNoteItem",
+    "tableName": "TimberDeliveryNoteItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SawmillBundle",
+    "tableName": "SawmillBundle",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SawmillProductionRun",
+    "tableName": "SawmillProductionRun",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SawmillProductionConsumption",
+    "tableName": "SawmillProductionConsumption",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SawmillOutputItem",
+    "tableName": "SawmillOutputItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberSpecies",
+    "tableName": "TimberSpecies",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "TimberGrade",
+    "tableName": "TimberGrade",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "TimberSource",
+    "tableName": "TimberSource",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Location",
+    "tableName": "Location",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "Vehicle",
+    "tableName": "Vehicle",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Driver",
+    "tableName": "Driver",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ProductionProcess",
+    "tableName": "ProductionProcess",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ProductionProcessInput",
+    "tableName": "ProductionProcessInput",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "ProductionProcessOutput",
+    "tableName": "ProductionProcessOutput",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberPurchase",
+    "tableName": "TimberPurchase",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "TimberPurchaseItem",
+    "tableName": "TimberPurchaseItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberPurchaseLogItem",
+    "tableName": "TimberPurchaseLogItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberShipment",
+    "tableName": "TimberShipment",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "TimberShipmentItem",
+    "tableName": "TimberShipmentItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberStockOpname",
+    "tableName": "TimberStockOpname",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "TimberStockOpnameItem",
+    "tableName": "TimberStockOpnameItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "ExportShipment",
+    "tableName": "ExportShipment",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "ExportShipmentItem",
+    "tableName": "ExportShipmentItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "StockInTally",
+    "tableName": "StockInTally",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "StockInTallyItem",
+    "tableName": "StockInTallyItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "TimberPartai",
+    "tableName": "TimberPartai",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "InventoryDisposal",
+    "tableName": "InventoryDisposal",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "InventoryDisposalItem",
+    "tableName": "InventoryDisposalItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "StockTransformation",
+    "tableName": "StockTransformation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "StockTransformationInput",
+    "tableName": "StockTransformationInput",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "StockTransformationOutput",
+    "tableName": "StockTransformationOutput",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "PurchaseReturn",
+    "tableName": "PurchaseReturn",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "PurchaseReturnItem",
+    "tableName": "PurchaseReturnItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SalesReturn",
+    "tableName": "SalesReturn",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "SalesReturnItem",
+    "tableName": "SalesReturnItem",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "none"
+  },
+  {
+    "modelName": "SalesReturnCostAllocation",
+    "tableName": "SalesReturnCostAllocation",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  },
+  {
+    "modelName": "Shift",
+    "tableName": "Shift",
+    "pk": "id:String",
+    "softDelete": "none",
+    "tenant": "company_id:String"
+  }
+]

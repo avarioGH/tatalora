@@ -1,0 +1,1501 @@
+[
+  {
+    "modelName": "RolePermission",
+    "tableName": "RolePermission",
+    "relations": [
+      {
+        "fieldName": "role",
+        "targetModel": "Role",
+        "fk": "role_id",
+        "ref": "id",
+        "raw": "role          Role       @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "permission",
+        "targetModel": "Permission",
+        "fk": "permission_id",
+        "ref": "id",
+        "raw": "permission    Permission @relation(fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "UserWarehouseAccess",
+    "tableName": "UserWarehouseAccess",
+    "relations": [
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "user_id",
+        "ref": "id",
+        "raw": "user         User      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "warehouse",
+        "targetModel": "Warehouse",
+        "fk": "warehouse_id",
+        "ref": "id",
+        "raw": "warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "ProductImage",
+    "tableName": "ProductImage",
+    "relations": [
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "ProductDocument",
+    "tableName": "ProductDocument",
+    "relations": [
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product       Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "AssetHistory",
+    "tableName": "AssetHistory",
+    "relations": [
+      {
+        "fieldName": "asset",
+        "targetModel": "AssetMaster",
+        "fk": "asset_id",
+        "ref": "id",
+        "raw": "asset        AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "performed_by",
+        "ref": "id",
+        "raw": "user         User        @relation(\"PerformedAssetHistories\", fields: [performed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "AssetLocation",
+    "tableName": "AssetLocation",
+    "relations": [
+      {
+        "fieldName": "asset",
+        "targetModel": "AssetMaster",
+        "fk": "asset_id",
+        "ref": "id",
+        "raw": "asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "created_by",
+        "ref": "id",
+        "raw": "user       User     @relation(\"CreatedAssetLocations\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "AssetAssignment",
+    "tableName": "AssetAssignment",
+    "relations": [
+      {
+        "fieldName": "asset",
+        "targetModel": "AssetMaster",
+        "fk": "asset_id",
+        "ref": "id",
+        "raw": "asset    AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "user_id",
+        "ref": "id",
+        "raw": "user     User        @relation(\"AssignedAssets\", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "AssetBorrowing",
+    "tableName": "AssetBorrowing",
+    "relations": [
+      {
+        "fieldName": "asset",
+        "targetModel": "AssetMaster",
+        "fk": "asset_id",
+        "ref": "id",
+        "raw": "asset      AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "borrower",
+        "ref": "id",
+        "raw": "user       User        @relation(\"BorrowedAssets\", fields: [borrower], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "approver",
+        "targetModel": "User",
+        "fk": "approved_by",
+        "ref": "id",
+        "raw": "approver    User?   @relation(\"ApprovedAssetBorrowings\", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "MaintenanceLog",
+    "tableName": "MaintenanceLog",
+    "relations": [
+      {
+        "fieldName": "asset",
+        "targetModel": "AssetMaster",
+        "fk": "asset_id",
+        "ref": "id",
+        "raw": "asset            AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "created_by",
+        "ref": "id",
+        "raw": "user       User   @relation(\"CreatedMaintenanceLogs\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "MaintenanceSchedule",
+    "tableName": "MaintenanceSchedule",
+    "relations": [
+      {
+        "fieldName": "asset",
+        "targetModel": "AssetMaster",
+        "fk": "asset_id",
+        "ref": "id",
+        "raw": "asset          AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "AssetDocument",
+    "tableName": "AssetDocument",
+    "relations": [
+      {
+        "fieldName": "asset",
+        "targetModel": "AssetMaster",
+        "fk": "asset_id",
+        "ref": "id",
+        "raw": "asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "uploaded_by",
+        "ref": "id",
+        "raw": "user        User   @relation(\"UploadedAssetDocuments\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "DepreciationLog",
+    "tableName": "DepreciationLog",
+    "relations": [
+      {
+        "fieldName": "asset",
+        "targetModel": "AssetMaster",
+        "fk": "asset_id",
+        "ref": "id",
+        "raw": "asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "NettingAllocation",
+    "tableName": "NettingAllocation",
+    "relations": [
+      {
+        "fieldName": "netting",
+        "targetModel": "Netting",
+        "fk": "netting_id",
+        "ref": "id",
+        "raw": "netting    Netting @relation(fields: [netting_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "invoice",
+        "targetModel": "Invoice",
+        "fk": "invoice_id",
+        "ref": "id",
+        "raw": "invoice    Invoice @relation(fields: [invoice_id], references: [id], onDelete: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "InventoryTransactionItem",
+    "tableName": "InventoryTransactionItem",
+    "relations": [
+      {
+        "fieldName": "transaction",
+        "targetModel": "InventoryTransaction",
+        "fk": "transaction_id",
+        "ref": "id",
+        "raw": "transaction    InventoryTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product        Product              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "FinanceTransactionItem",
+    "tableName": "FinanceTransactionItem",
+    "relations": [
+      {
+        "fieldName": "transaction",
+        "targetModel": "FinanceTransaction",
+        "fk": "transaction_id",
+        "ref": "id",
+        "raw": "transaction    FinanceTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "category",
+        "targetModel": "FinanceCategory",
+        "fk": "category_id",
+        "ref": "id",
+        "raw": "category       FinanceCategory    @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "FinanceDocument",
+    "tableName": "FinanceDocument",
+    "relations": [
+      {
+        "fieldName": "transaction",
+        "targetModel": "FinanceTransaction",
+        "fk": "transaction_id",
+        "ref": "id",
+        "raw": "transaction    FinanceTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "uploaded_by",
+        "ref": "id",
+        "raw": "user        User     @relation(\"UploadedFinanceDocs\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "JournalEntryItem",
+    "tableName": "JournalEntryItem",
+    "relations": [
+      {
+        "fieldName": "journal_entry",
+        "targetModel": "JournalEntry",
+        "fk": "journal_entry_id",
+        "ref": "id",
+        "raw": "journal_entry    JournalEntry   @relation(fields: [journal_entry_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "account",
+        "targetModel": "ChartOfAccount",
+        "fk": "account_id",
+        "ref": "id",
+        "raw": "account          ChartOfAccount @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "DocumentVersion",
+    "tableName": "DocumentVersion",
+    "relations": [
+      {
+        "fieldName": "document_master",
+        "targetModel": "DocumentMaster",
+        "fk": "document_master_id",
+        "ref": "id",
+        "raw": "document_master    DocumentMaster @relation(fields: [document_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "uploaded_by",
+        "ref": "id",
+        "raw": "user               User           @relation(\"UploadedDocumentVersions\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "DocumentShareLink",
+    "tableName": "DocumentShareLink",
+    "relations": [
+      {
+        "fieldName": "document_master",
+        "targetModel": "DocumentMaster",
+        "fk": "document_master_id",
+        "ref": "id",
+        "raw": "document_master    DocumentMaster @relation(fields: [document_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "user",
+        "targetModel": "User",
+        "fk": "created_by",
+        "ref": "id",
+        "raw": "user       User     @relation(\"CreatedShareLinks\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "WorkflowNode",
+    "tableName": "WorkflowNode",
+    "relations": [
+      {
+        "fieldName": "workflow_master",
+        "targetModel": "WorkflowMaster",
+        "fk": "workflow_master_id",
+        "ref": "id",
+        "raw": "workflow_master    WorkflowMaster @relation(fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "WorkflowEdge",
+    "tableName": "WorkflowEdge",
+    "relations": [
+      {
+        "fieldName": "workflow_master",
+        "targetModel": "WorkflowMaster",
+        "fk": "workflow_master_id",
+        "ref": "id",
+        "raw": "workflow_master    WorkflowMaster @relation(fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "ApprovalLog",
+    "tableName": "ApprovalLog",
+    "relations": [
+      {
+        "fieldName": "approval_request",
+        "targetModel": "ApprovalRequest",
+        "fk": "approval_request_id",
+        "ref": "id",
+        "raw": "approval_request    ApprovalRequest @relation(fields: [approval_request_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "actor",
+        "targetModel": "User",
+        "fk": "acted_by",
+        "ref": "id",
+        "raw": "actor    User     @relation(\"ApprovalHistory\", fields: [acted_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "BillingInvoice",
+    "tableName": "BillingInvoice",
+    "relations": [
+      {
+        "fieldName": "subscription",
+        "targetModel": "TenantSubscription",
+        "fk": "subscription_id",
+        "ref": "id",
+        "raw": "subscription        TenantSubscription @relation(fields: [subscription_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "SalesOrderItem",
+    "tableName": "SalesOrderItem",
+    "relations": [
+      {
+        "fieldName": "sales_order",
+        "targetModel": "SalesOrder",
+        "fk": "sales_order_id",
+        "ref": "id",
+        "raw": "sales_order    SalesOrder        @relation(fields: [sales_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product        Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "PayrollItem",
+    "tableName": "PayrollItem",
+    "relations": [
+      {
+        "fieldName": "payroll",
+        "targetModel": "Payroll",
+        "fk": "payroll_id",
+        "ref": "id",
+        "raw": "payroll    Payroll @relation(fields: [payroll_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "QuotationItem",
+    "tableName": "QuotationItem",
+    "relations": [
+      {
+        "fieldName": "quotation",
+        "targetModel": "Quotation",
+        "fk": "quotation_id",
+        "ref": "id",
+        "raw": "quotation    Quotation @relation(fields: [quotation_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product      Product   @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "DeliveryOrderItem",
+    "tableName": "DeliveryOrderItem",
+    "relations": [
+      {
+        "fieldName": "delivery_order",
+        "targetModel": "DeliveryOrder",
+        "fk": "delivery_order_id",
+        "ref": "id",
+        "raw": "delivery_order    DeliveryOrder @relation(fields: [delivery_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product           Product       @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "InvoiceItem",
+    "tableName": "InvoiceItem",
+    "relations": [
+      {
+        "fieldName": "invoice",
+        "targetModel": "Invoice",
+        "fk": "invoice_id",
+        "ref": "id",
+        "raw": "invoice     Invoice @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product     Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "PaymentAllocation",
+    "tableName": "PaymentAllocation",
+    "relations": [
+      {
+        "fieldName": "payment",
+        "targetModel": "Payment",
+        "fk": "payment_id",
+        "ref": "id",
+        "raw": "payment        Payment     @relation(fields: [payment_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "sales_order",
+        "targetModel": "SalesOrder",
+        "fk": "sales_order_id",
+        "ref": "id",
+        "raw": "sales_order    SalesOrder? @relation(fields: [sales_order_id], references: [id], onDelete: NoAction)"
+      },
+      {
+        "fieldName": "invoice",
+        "targetModel": "Invoice",
+        "fk": "invoice_id",
+        "ref": "id",
+        "raw": "invoice        Invoice?    @relation(fields: [invoice_id], references: [id], onDelete: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "PurchaseOrderItem",
+    "tableName": "PurchaseOrderItem",
+    "relations": [
+      {
+        "fieldName": "purchase_order",
+        "targetModel": "PurchaseOrder",
+        "fk": "purchase_order_id",
+        "ref": "id",
+        "raw": "purchase_order    PurchaseOrder        @relation(fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product           Product              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "GoodsReceiptItem",
+    "tableName": "GoodsReceiptItem",
+    "relations": [
+      {
+        "fieldName": "goods_receipt",
+        "targetModel": "GoodsReceipt",
+        "fk": "goods_receipt_id",
+        "ref": "id",
+        "raw": "goods_receipt    GoodsReceipt @relation(fields: [goods_receipt_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product          Product      @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "EcommerceCartItem",
+    "tableName": "EcommerceCartItem",
+    "relations": [
+      {
+        "fieldName": "cart",
+        "targetModel": "EcommerceCart",
+        "fk": "cart_id",
+        "ref": "id",
+        "raw": "cart       EcommerceCart @relation(fields: [cart_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product    Product       @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "BomItem",
+    "tableName": "BomItem",
+    "relations": [
+      {
+        "fieldName": "bom",
+        "targetModel": "Bom",
+        "fk": "bom_id",
+        "ref": "id",
+        "raw": "bom        Bom     @relation(fields: [bom_id], references: [id])"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product    Product @relation(fields: [product_id], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "ManufacturingOrderItem",
+    "tableName": "ManufacturingOrderItem",
+    "relations": [
+      {
+        "fieldName": "manufacturing_order",
+        "targetModel": "ManufacturingOrder",
+        "fk": "manufacturing_order_id",
+        "ref": "id",
+        "raw": "manufacturing_order    ManufacturingOrder @relation(fields: [manufacturing_order_id], references: [id])"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product                Product            @relation(fields: [product_id], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "BomRouting",
+    "tableName": "BomRouting",
+    "relations": [
+      {
+        "fieldName": "bom",
+        "targetModel": "Bom",
+        "fk": "bom_id",
+        "ref": "id",
+        "raw": "bom        Bom            @relation(fields: [bom_id], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "BomOperation",
+    "tableName": "BomOperation",
+    "relations": [
+      {
+        "fieldName": "routing",
+        "targetModel": "BomRouting",
+        "fk": "routing_id",
+        "ref": "id",
+        "raw": "routing          BomRouting @relation(fields: [routing_id], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "ExpenseItem",
+    "tableName": "ExpenseItem",
+    "relations": [
+      {
+        "fieldName": "expense_claim",
+        "targetModel": "ExpenseClaim",
+        "fk": "expense_claim_id",
+        "ref": "id",
+        "raw": "expense_claim    ExpenseClaim    @relation(fields: [expense_claim_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "category",
+        "targetModel": "FinanceCategory",
+        "fk": "category_id",
+        "ref": "id",
+        "raw": "category         FinanceCategory @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "PurchaseRequestItem",
+    "tableName": "PurchaseRequestItem",
+    "relations": [
+      {
+        "fieldName": "purchase_request",
+        "targetModel": "PurchaseRequest",
+        "fk": "purchase_request_id",
+        "ref": "id",
+        "raw": "purchase_request    PurchaseRequest @relation(fields: [purchase_request_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product             Product         @relation(fields: [product_id], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "RawLog",
+    "tableName": "RawLog",
+    "relations": [
+      {
+        "fieldName": "partai",
+        "targetModel": "TimberPartai",
+        "fk": "partaiId",
+        "ref": "id",
+        "raw": "partai            TimberPartai?  @relation(fields: [partaiId], references: [id])"
+      },
+      {
+        "fieldName": "timberSpecies",
+        "targetModel": "TimberSpecies",
+        "fk": "speciesId",
+        "ref": "id",
+        "raw": "timberSpecies     TimberSpecies? @relation(fields: [speciesId], references: [id])"
+      },
+      {
+        "fieldName": "timberSource",
+        "targetModel": "TimberSource",
+        "fk": "sourceId",
+        "ref": "id",
+        "raw": "timberSource      TimberSource?  @relation(fields: [sourceId], references: [id])"
+      },
+      {
+        "fieldName": "location",
+        "targetModel": "Warehouse",
+        "fk": "locationId",
+        "ref": "id",
+        "raw": "location   Warehouse? @relation(fields: [locationId], references: [id])"
+      },
+      {
+        "fieldName": "inputLog",
+        "targetModel": "InputLog",
+        "fk": "inputLogId",
+        "ref": "id",
+        "raw": "inputLog      InputLog?      @relation(fields: [inputLogId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TrimmedLog",
+    "tableName": "TrimmedLog",
+    "relations": [
+      {
+        "fieldName": "partai",
+        "targetModel": "TimberPartai",
+        "fk": "partaiId",
+        "ref": "id",
+        "raw": "partai     TimberPartai? @relation(fields: [partaiId], references: [id])"
+      },
+      {
+        "fieldName": "rawLog",
+        "targetModel": "RawLog",
+        "fk": "rawLogId",
+        "ref": "id",
+        "raw": "rawLog     RawLog        @relation(fields: [rawLogId], references: [id])"
+      },
+      {
+        "fieldName": "timberSpecies",
+        "targetModel": "TimberSpecies",
+        "fk": "speciesId",
+        "ref": "id",
+        "raw": "timberSpecies   TimberSpecies? @relation(fields: [speciesId], references: [id])"
+      },
+      {
+        "fieldName": "timberSource",
+        "targetModel": "TimberSource",
+        "fk": "sourceId",
+        "ref": "id",
+        "raw": "timberSource    TimberSource?  @relation(fields: [sourceId], references: [id])"
+      },
+      {
+        "fieldName": "location",
+        "targetModel": "Warehouse",
+        "fk": "locationId",
+        "ref": "id",
+        "raw": "location   Warehouse? @relation(fields: [locationId], references: [id])"
+      },
+      {
+        "fieldName": "inputLog",
+        "targetModel": "InputLog",
+        "fk": "inputLogId",
+        "ref": "id",
+        "raw": "inputLog      InputLog?      @relation(fields: [inputLogId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "InputLog",
+    "tableName": "InputLog",
+    "relations": [
+      {
+        "fieldName": "partai",
+        "targetModel": "TimberPartai",
+        "fk": "partaiId",
+        "ref": "id",
+        "raw": "partai              TimberPartai?                  @relation(fields: [partaiId], references: [id])"
+      },
+      {
+        "fieldName": "timberSpecies",
+        "targetModel": "TimberSpecies",
+        "fk": "speciesId",
+        "ref": "id",
+        "raw": "timberSpecies       TimberSpecies?                 @relation(fields: [speciesId], references: [id])"
+      },
+      {
+        "fieldName": "timberSource",
+        "targetModel": "TimberSource",
+        "fk": "sourceId",
+        "ref": "id",
+        "raw": "timberSource        TimberSource?                  @relation(fields: [sourceId], references: [id])"
+      },
+      {
+        "fieldName": "location",
+        "targetModel": "Warehouse",
+        "fk": "locationId",
+        "ref": "id",
+        "raw": "location   Warehouse? @relation(fields: [locationId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "InputLogItem",
+    "tableName": "InputLogItem",
+    "relations": [
+      {
+        "fieldName": "inputLog",
+        "targetModel": "InputLog",
+        "fk": "inputLogId",
+        "ref": "id",
+        "raw": "inputLog     InputLog    @relation(fields: [inputLogId], references: [id])"
+      },
+      {
+        "fieldName": "trimmedLog",
+        "targetModel": "TrimmedLog",
+        "fk": "trimmedLogId",
+        "ref": "id",
+        "raw": "trimmedLog   TrimmedLog? @relation(fields: [trimmedLogId], references: [id])"
+      },
+      {
+        "fieldName": "rawLog",
+        "targetModel": "RawLog",
+        "fk": "rawLogId",
+        "ref": "id",
+        "raw": "rawLog       RawLog?     @relation(fields: [rawLogId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "SawnTimberOutput",
+    "tableName": "SawnTimberOutput",
+    "relations": [
+      {
+        "fieldName": "partai",
+        "targetModel": "TimberPartai",
+        "fk": "partaiId",
+        "ref": "id",
+        "raw": "partai         TimberPartai? @relation(fields: [partaiId], references: [id])"
+      },
+      {
+        "fieldName": "location",
+        "targetModel": "Warehouse",
+        "fk": "locationId",
+        "ref": "id",
+        "raw": "location       Warehouse     @relation(fields: [locationId], references: [id])"
+      },
+      {
+        "fieldName": "inputLog",
+        "targetModel": "InputLog",
+        "fk": "inputLogId",
+        "ref": "id",
+        "raw": "inputLog       InputLog      @relation(fields: [inputLogId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "SawnTimberOutputItem",
+    "tableName": "SawnTimberOutputItem",
+    "relations": [
+      {
+        "fieldName": "output",
+        "targetModel": "SawnTimberOutput",
+        "fk": "outputId",
+        "ref": "id",
+        "raw": "output   SawnTimberOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberStock",
+    "tableName": "TimberStock",
+    "relations": [
+      {
+        "fieldName": "location",
+        "targetModel": "Warehouse",
+        "fk": "locationId",
+        "ref": "id",
+        "raw": "location        Warehouse     @relation(fields: [locationId], references: [id])"
+      },
+      {
+        "fieldName": "subLocation",
+        "targetModel": "Location",
+        "fk": "subLocationId",
+        "ref": "id",
+        "raw": "subLocation     Location?     @relation(fields: [subLocationId], references: [id])"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberStockMovement",
+    "tableName": "TimberStockMovement",
+    "relations": [
+      {
+        "fieldName": "timberStock",
+        "targetModel": "TimberStock",
+        "fk": "timberStockId",
+        "ref": "id",
+        "raw": "timberStock   TimberStock @relation(fields: [timberStockId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "StockTransfer",
+    "tableName": "StockTransfer",
+    "relations": [
+      {
+        "fieldName": "fromLocation",
+        "targetModel": "Warehouse",
+        "fk": "fromLocationId",
+        "ref": "id",
+        "raw": "fromLocation   Warehouse @relation(\"TransferFromLocation\", fields: [fromLocationId], references: [id])"
+      },
+      {
+        "fieldName": "toLocation",
+        "targetModel": "Warehouse",
+        "fk": "toLocationId",
+        "ref": "id",
+        "raw": "toLocation     Warehouse @relation(\"TransferToLocation\", fields: [toLocationId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "StockTransferItem",
+    "tableName": "StockTransferItem",
+    "relations": [
+      {
+        "fieldName": "transfer",
+        "targetModel": "StockTransfer",
+        "fk": "transferId",
+        "ref": "id",
+        "raw": "transfer   StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "StockAdjustment",
+    "tableName": "StockAdjustment",
+    "relations": [
+      {
+        "fieldName": "location",
+        "targetModel": "Warehouse",
+        "fk": "locationId",
+        "ref": "id",
+        "raw": "location         Warehouse @relation(fields: [locationId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "StockAdjustmentItem",
+    "tableName": "StockAdjustmentItem",
+    "relations": [
+      {
+        "fieldName": "adjustment",
+        "targetModel": "StockAdjustment",
+        "fk": "adjustmentId",
+        "ref": "id",
+        "raw": "adjustment   StockAdjustment @relation(fields: [adjustmentId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberSalesOrder",
+    "tableName": "TimberSalesOrder",
+    "relations": [
+      {
+        "fieldName": "customer",
+        "targetModel": "Customer",
+        "fk": "customerId",
+        "ref": "id",
+        "raw": "customer        Customer  @relation(fields: [customerId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberSalesOrderItem",
+    "tableName": "TimberSalesOrderItem",
+    "relations": [
+      {
+        "fieldName": "salesOrder",
+        "targetModel": "TimberSalesOrder",
+        "fk": "salesOrderId",
+        "ref": "id",
+        "raw": "salesOrder   TimberSalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant? @relation(fields: [timberVariantId], references: [id])"
+      },
+      {
+        "fieldName": "fulfillmentLocation",
+        "targetModel": "Warehouse",
+        "fk": "fulfillmentLocationId",
+        "ref": "id",
+        "raw": "fulfillmentLocation   Warehouse? @relation(fields: [fulfillmentLocationId], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberDeliveryNote",
+    "tableName": "TimberDeliveryNote",
+    "relations": [
+      {
+        "fieldName": "salesOrder",
+        "targetModel": "TimberSalesOrder",
+        "fk": "salesOrderId",
+        "ref": "id",
+        "raw": "salesOrder     TimberSalesOrder @relation(fields: [salesOrderId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberDeliveryNoteItem",
+    "tableName": "TimberDeliveryNoteItem",
+    "relations": [
+      {
+        "fieldName": "deliveryNote",
+        "targetModel": "TimberDeliveryNote",
+        "fk": "deliveryNoteId",
+        "ref": "id",
+        "raw": "deliveryNote   TimberDeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "salesOrderItem",
+        "targetModel": "TimberSalesOrderItem",
+        "fk": "salesOrderItemId",
+        "ref": "id",
+        "raw": "salesOrderItem   TimberSalesOrderItem @relation(fields: [salesOrderItemId], references: [id])"
+      },
+      {
+        "fieldName": "location",
+        "targetModel": "Warehouse",
+        "fk": "locationId",
+        "ref": "id",
+        "raw": "location        Warehouse     @relation(fields: [locationId], references: [id])"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "SawmillBundle",
+    "tableName": "SawmillBundle",
+    "relations": [
+      {
+        "fieldName": "parentBundle",
+        "targetModel": "SawmillBundle",
+        "fk": "parentBundleId",
+        "ref": "id",
+        "raw": "parentBundle   SawmillBundle?      @relation(\"RepackedFrom\", fields: [parentBundleId], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "raw": "childBundles   SawmillBundle[]     @relation(\"RepackedFrom\")"
+      }
+    ]
+  },
+  {
+    "modelName": "SawmillProductionRun",
+    "tableName": "SawmillProductionRun",
+    "relations": [
+      {
+        "fieldName": "operator",
+        "targetModel": "Employee",
+        "fk": "operatorId",
+        "ref": "id",
+        "raw": "operator       Employee                       @relation(fields: [operatorId], references: [id])"
+      },
+      {
+        "fieldName": "workCenter",
+        "targetModel": "WorkCenter",
+        "fk": "workCenterId",
+        "ref": "id",
+        "raw": "workCenter     WorkCenter                     @relation(fields: [workCenterId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "SawmillProductionConsumption",
+    "tableName": "SawmillProductionConsumption",
+    "relations": [
+      {
+        "fieldName": "inputLog",
+        "targetModel": "InputLog",
+        "fk": "inputLogId",
+        "ref": "id",
+        "raw": "inputLog        InputLog             @relation(fields: [inputLogId], references: [id])"
+      },
+      {
+        "fieldName": "productionRun",
+        "targetModel": "SawmillProductionRun",
+        "fk": "productionRunId",
+        "ref": "id",
+        "raw": "productionRun   SawmillProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)"
+      }
+    ]
+  },
+  {
+    "modelName": "SawmillOutputItem",
+    "tableName": "SawmillOutputItem",
+    "relations": [
+      {
+        "fieldName": "productionRun",
+        "targetModel": "SawmillProductionRun",
+        "fk": "productionRunId",
+        "ref": "id",
+        "raw": "productionRun      SawmillProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "bundle",
+        "targetModel": "SawmillBundle",
+        "fk": "bundleId",
+        "ref": "id",
+        "raw": "bundle             SawmillBundle        @relation(fields: [bundleId], references: [id])"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant      TimberVariant        @relation(fields: [timberVariantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "Location",
+    "tableName": "Location",
+    "relations": [
+      {
+        "fieldName": "warehouse",
+        "targetModel": "Warehouse",
+        "fk": "warehouseId",
+        "ref": "id",
+        "raw": "warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)"
+      }
+    ]
+  },
+  {
+    "modelName": "ProductionProcessInput",
+    "tableName": "ProductionProcessInput",
+    "relations": [
+      {
+        "fieldName": "productionProcess",
+        "targetModel": "ProductionProcess",
+        "fk": "productionProcessId",
+        "ref": "id",
+        "raw": "productionProcess   ProductionProcess @relation(fields: [productionProcessId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberStock",
+        "targetModel": "TimberStock",
+        "fk": "timberStockId",
+        "ref": "id",
+        "raw": "timberStock   TimberStock   @relation(fields: [timberStockId], references: [id])"
+      },
+      {
+        "fieldName": "variant",
+        "targetModel": "TimberVariant",
+        "fk": "variantId",
+        "ref": "id",
+        "raw": "variant       TimberVariant @relation(fields: [variantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "ProductionProcessOutput",
+    "tableName": "ProductionProcessOutput",
+    "relations": [
+      {
+        "fieldName": "productionProcess",
+        "targetModel": "ProductionProcess",
+        "fk": "productionProcessId",
+        "ref": "id",
+        "raw": "productionProcess   ProductionProcess @relation(fields: [productionProcessId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "variant",
+        "targetModel": "TimberVariant",
+        "fk": "variantId",
+        "ref": "id",
+        "raw": "variant   TimberVariant? @relation(fields: [variantId], references: [id]) // Optional because WASTE might not have a variant"
+      },
+      {
+        "fieldName": "warehouse",
+        "targetModel": "Warehouse",
+        "fk": "warehouseId",
+        "ref": "id",
+        "raw": "warehouse   Warehouse? @relation(fields: [warehouseId], references: [id]) // Target warehouse for this output"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberPurchaseItem",
+    "tableName": "TimberPurchaseItem",
+    "relations": [
+      {
+        "fieldName": "timberPurchase",
+        "targetModel": "TimberPurchase",
+        "fk": "timberPurchaseId",
+        "ref": "id",
+        "raw": "timberPurchase   TimberPurchase @relation(fields: [timberPurchaseId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberPurchaseLogItem",
+    "tableName": "TimberPurchaseLogItem",
+    "relations": [
+      {
+        "fieldName": "timberPurchase",
+        "targetModel": "TimberPurchase",
+        "fk": "timberPurchaseId",
+        "ref": "id",
+        "raw": "timberPurchase   TimberPurchase @relation(fields: [timberPurchaseId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberSpecies",
+        "targetModel": "TimberSpecies",
+        "fk": "speciesId",
+        "ref": "id",
+        "raw": "timberSpecies TimberSpecies? @relation(fields: [speciesId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberShipmentItem",
+    "tableName": "TimberShipmentItem",
+    "relations": [
+      {
+        "fieldName": "timberShipment",
+        "targetModel": "TimberShipment",
+        "fk": "timberShipmentId",
+        "ref": "id",
+        "raw": "timberShipment   TimberShipment @relation(fields: [timberShipmentId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant? @relation(fields: [timberVariantId], references: [id])"
+      },
+      {
+        "fieldName": "salesOrderItem",
+        "targetModel": "TimberSalesOrderItem",
+        "fk": "salesOrderItemId",
+        "ref": "id",
+        "raw": "salesOrderItem   TimberSalesOrderItem? @relation(fields: [salesOrderItemId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "TimberStockOpnameItem",
+    "tableName": "TimberStockOpnameItem",
+    "relations": [
+      {
+        "fieldName": "stockOpname",
+        "targetModel": "TimberStockOpname",
+        "fk": "stockOpnameId",
+        "ref": "id",
+        "raw": "stockOpname   TimberStockOpname @relation(fields: [stockOpnameId], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "timberVariant",
+        "targetModel": "TimberVariant",
+        "fk": "timberVariantId",
+        "ref": "id",
+        "raw": "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "ExportShipmentItem",
+    "tableName": "ExportShipmentItem",
+    "relations": [
+      {
+        "fieldName": "export",
+        "targetModel": "ExportShipment",
+        "fk": "exportId",
+        "ref": "id",
+        "raw": "export   ExportShipment @relation(fields: [exportId], references: [id], onDelete: Cascade)"
+      }
+    ]
+  },
+  {
+    "modelName": "StockInTallyItem",
+    "tableName": "StockInTallyItem",
+    "relations": [
+      {
+        "fieldName": "tally",
+        "targetModel": "StockInTally",
+        "fk": "tally_id",
+        "ref": "id",
+        "raw": "tally       StockInTally @relation(fields: [tally_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product     Product      @relation(fields: [product_id], references: [id])"
+      }
+    ]
+  },
+  {
+    "modelName": "InventoryDisposalItem",
+    "tableName": "InventoryDisposalItem",
+    "relations": [
+      {
+        "fieldName": "disposal",
+        "targetModel": "InventoryDisposal",
+        "fk": "disposal_id",
+        "ref": "id",
+        "raw": "disposal    InventoryDisposal @relation(fields: [disposal_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product     Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "StockTransformationInput",
+    "tableName": "StockTransformationInput",
+    "relations": [
+      {
+        "fieldName": "transformation",
+        "targetModel": "StockTransformation",
+        "fk": "transformation_id",
+        "ref": "id",
+        "raw": "transformation    StockTransformation @relation(fields: [transformation_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "warehouse",
+        "targetModel": "Warehouse",
+        "fk": "warehouse_id",
+        "ref": "id",
+        "raw": "warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "StockTransformationOutput",
+    "tableName": "StockTransformationOutput",
+    "relations": [
+      {
+        "fieldName": "transformation",
+        "targetModel": "StockTransformation",
+        "fk": "transformation_id",
+        "ref": "id",
+        "raw": "transformation    StockTransformation @relation(fields: [transformation_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "warehouse",
+        "targetModel": "Warehouse",
+        "fk": "warehouse_id",
+        "ref": "id",
+        "raw": "warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "PurchaseReturnItem",
+    "tableName": "PurchaseReturnItem",
+    "relations": [
+      {
+        "fieldName": "purchase_return",
+        "targetModel": "PurchaseReturn",
+        "fk": "purchase_return_id",
+        "ref": "id",
+        "raw": "purchase_return        PurchaseReturn    @relation(fields: [purchase_return_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "purchase_order_item",
+        "targetModel": "PurchaseOrderItem",
+        "fk": "purchase_order_item_id",
+        "ref": "id",
+        "raw": "purchase_order_item    PurchaseOrderItem @relation(fields: [purchase_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product                Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  },
+  {
+    "modelName": "SalesReturnItem",
+    "tableName": "SalesReturnItem",
+    "relations": [
+      {
+        "fieldName": "sales_return",
+        "targetModel": "SalesReturn",
+        "fk": "sales_return_id",
+        "ref": "id",
+        "raw": "sales_return        SalesReturn    @relation(fields: [sales_return_id], references: [id], onDelete: Cascade)"
+      },
+      {
+        "fieldName": "sales_order_item",
+        "targetModel": "SalesOrderItem",
+        "fk": "sales_order_item_id",
+        "ref": "id",
+        "raw": "sales_order_item    SalesOrderItem @relation(fields: [sales_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      },
+      {
+        "fieldName": "product",
+        "targetModel": "Product",
+        "fk": "product_id",
+        "ref": "id",
+        "raw": "product             Product        @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+      }
+    ]
+  }
+]

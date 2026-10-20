@@ -1,0 +1,10 @@
+﻿// Add HR user
+  const roleHrId = new ObjectId().toHexString();
+  await prisma.role.create({ data: { id: roleHrId, company_id: c1, name: 'HR Only' }});
+
+  // Assign permissions to role
+  await prisma.permission.create({ data: { id: new ObjectId().toHexString(), role_id: roleHrId, resource: 'hr', action: 'view' } });
+
+  await prisma.user.create({ data: { 
+    id: new ObjectId().toHexString(), company_id: c1, username: 'hr_user', name: 'HR User', password: hash, role_id: roleHrId 
+  }});

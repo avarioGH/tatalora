@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Database MongoDB (Replica Set required for Prisma Transactions)
+  db:
+    image: mongo:6
+    container_name: erp_mongodb
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: test $$(echo "rs.initiate({_id:'rs0',members:[{_id:0,host:\"db:27017\"}]}).ok || rs.status().ok" | mongo --port 27017 --quiet) -eq 1
+      interval: 10s
+      timeout: 10s
+      start_period: 40s
+      retries: 5
+
+  # Redis for BullMQ Queue & Caching
+  redis:
+    image: redis:7-alpine
+    container_name: erp_redis
+    ports:
+      - "6379:6379"
+
+  # NestJS API (Backend)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: erp_api
+    environment:
+      DATABASE_URL: "mongodb://db:27017/erp_db?replicaSet=rs0"
+      REDIS_URL: "redis://redis:6379"
+      NODE_ENV: "production"
+      PORT: "3000"
+      JWT_SECRET: "avario_erp_super_secret_key_2026"
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./uploads:/usr/src/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: sh -c "npm run start:prod"
+
+volumes:
+  mongodata:

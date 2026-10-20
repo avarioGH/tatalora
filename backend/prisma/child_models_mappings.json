@@ -1,0 +1,1139 @@
+[
+  {
+    "model": "Permission",
+    "relations": []
+  },
+  {
+    "model": "RolePermission",
+    "relations": [
+      {
+        "field": "role",
+        "target": "Role",
+        "details": "fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "permission",
+        "target": "Permission",
+        "details": "fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "UserWarehouseAccess",
+    "relations": [
+      {
+        "field": "user",
+        "target": "User",
+        "details": "fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "warehouse",
+        "target": "Warehouse",
+        "details": "fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "ProductImage",
+    "relations": [
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "ProductDocument",
+    "relations": [
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "AssetHistory",
+    "relations": [
+      {
+        "field": "asset",
+        "target": "AssetMaster",
+        "details": "fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"PerformedAssetHistories\", fields: [performed_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "AssetLocation",
+    "relations": [
+      {
+        "field": "asset",
+        "target": "AssetMaster",
+        "details": "fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"CreatedAssetLocations\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "AssetAssignment",
+    "relations": [
+      {
+        "field": "asset",
+        "target": "AssetMaster",
+        "details": "fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"AssignedAssets\", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "AssetBorrowing",
+    "relations": [
+      {
+        "field": "asset",
+        "target": "AssetMaster",
+        "details": "fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"BorrowedAssets\", fields: [borrower], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "approver",
+        "target": "User",
+        "details": "\"ApprovedAssetBorrowings\", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "MaintenanceLog",
+    "relations": [
+      {
+        "field": "asset",
+        "target": "AssetMaster",
+        "details": "fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"CreatedMaintenanceLogs\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "MaintenanceSchedule",
+    "relations": [
+      {
+        "field": "asset",
+        "target": "AssetMaster",
+        "details": "fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "AssetDocument",
+    "relations": [
+      {
+        "field": "asset",
+        "target": "AssetMaster",
+        "details": "fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"UploadedAssetDocuments\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "DepreciationLog",
+    "relations": [
+      {
+        "field": "asset",
+        "target": "AssetMaster",
+        "details": "fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "NettingAllocation",
+    "relations": [
+      {
+        "field": "netting",
+        "target": "Netting",
+        "details": "fields: [netting_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "invoice",
+        "target": "Invoice",
+        "details": "fields: [invoice_id], references: [id], onDelete: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "InventoryTransactionItem",
+    "relations": [
+      {
+        "field": "transaction",
+        "target": "InventoryTransaction",
+        "details": "fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "FinanceTransactionItem",
+    "relations": [
+      {
+        "field": "transaction",
+        "target": "FinanceTransaction",
+        "details": "fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "category",
+        "target": "FinanceCategory",
+        "details": "fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "FinanceDocument",
+    "relations": [
+      {
+        "field": "transaction",
+        "target": "FinanceTransaction",
+        "details": "fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"UploadedFinanceDocs\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "JournalEntryItem",
+    "relations": [
+      {
+        "field": "journal_entry",
+        "target": "JournalEntry",
+        "details": "fields: [journal_entry_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "account",
+        "target": "ChartOfAccount",
+        "details": "fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "DocumentVersion",
+    "relations": [
+      {
+        "field": "document_master",
+        "target": "DocumentMaster",
+        "details": "fields: [document_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"UploadedDocumentVersions\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "DocumentShareLink",
+    "relations": [
+      {
+        "field": "document_master",
+        "target": "DocumentMaster",
+        "details": "fields: [document_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "user",
+        "target": "User",
+        "details": "\"CreatedShareLinks\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "WorkflowNode",
+    "relations": [
+      {
+        "field": "workflow_master",
+        "target": "WorkflowMaster",
+        "details": "fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "WorkflowEdge",
+    "relations": [
+      {
+        "field": "workflow_master",
+        "target": "WorkflowMaster",
+        "details": "fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "ApprovalLog",
+    "relations": [
+      {
+        "field": "approval_request",
+        "target": "ApprovalRequest",
+        "details": "fields: [approval_request_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "actor",
+        "target": "User",
+        "details": "\"ApprovalHistory\", fields: [acted_by], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "Tenant",
+    "relations": []
+  },
+  {
+    "model": "SubscriptionPlan",
+    "relations": []
+  },
+  {
+    "model": "BillingInvoice",
+    "relations": [
+      {
+        "field": "subscription",
+        "target": "TenantSubscription",
+        "details": "fields: [subscription_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "SalesOrderItem",
+    "relations": [
+      {
+        "field": "sales_order",
+        "target": "SalesOrder",
+        "details": "fields: [sales_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "PayrollItem",
+    "relations": [
+      {
+        "field": "payroll",
+        "target": "Payroll",
+        "details": "fields: [payroll_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "QuotationItem",
+    "relations": [
+      {
+        "field": "quotation",
+        "target": "Quotation",
+        "details": "fields: [quotation_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "DeliveryOrderItem",
+    "relations": [
+      {
+        "field": "delivery_order",
+        "target": "DeliveryOrder",
+        "details": "fields: [delivery_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "InvoiceItem",
+    "relations": [
+      {
+        "field": "invoice",
+        "target": "Invoice",
+        "details": "fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "PaymentAllocation",
+    "relations": [
+      {
+        "field": "payment",
+        "target": "Payment",
+        "details": "fields: [payment_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "sales_order",
+        "target": "SalesOrder",
+        "details": "fields: [sales_order_id], references: [id], onDelete: NoAction"
+      },
+      {
+        "field": "invoice",
+        "target": "Invoice",
+        "details": "fields: [invoice_id], references: [id], onDelete: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "PurchaseOrderItem",
+    "relations": [
+      {
+        "field": "purchase_order",
+        "target": "PurchaseOrder",
+        "details": "fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "GoodsReceiptItem",
+    "relations": [
+      {
+        "field": "goods_receipt",
+        "target": "GoodsReceipt",
+        "details": "fields: [goods_receipt_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "EcommerceCartItem",
+    "relations": [
+      {
+        "field": "cart",
+        "target": "EcommerceCart",
+        "details": "fields: [cart_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "BomItem",
+    "relations": [
+      {
+        "field": "bom",
+        "target": "Bom",
+        "details": "fields: [bom_id], references: [id]"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "ManufacturingOrderItem",
+    "relations": [
+      {
+        "field": "manufacturing_order",
+        "target": "ManufacturingOrder",
+        "details": "fields: [manufacturing_order_id], references: [id]"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "BomRouting",
+    "relations": [
+      {
+        "field": "bom",
+        "target": "Bom",
+        "details": "fields: [bom_id], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "BomOperation",
+    "relations": [
+      {
+        "field": "routing",
+        "target": "BomRouting",
+        "details": "fields: [routing_id], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "ExpenseItem",
+    "relations": [
+      {
+        "field": "expense_claim",
+        "target": "ExpenseClaim",
+        "details": "fields: [expense_claim_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "category",
+        "target": "FinanceCategory",
+        "details": "fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "PurchaseRequestItem",
+    "relations": [
+      {
+        "field": "purchase_request",
+        "target": "PurchaseRequest",
+        "details": "fields: [purchase_request_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "RawLog",
+    "relations": [
+      {
+        "field": "partai",
+        "target": "TimberPartai",
+        "details": "fields: [partaiId], references: [id]"
+      },
+      {
+        "field": "timberSpecies",
+        "target": "TimberSpecies",
+        "details": "fields: [speciesId], references: [id]"
+      },
+      {
+        "field": "timberSource",
+        "target": "TimberSource",
+        "details": "fields: [sourceId], references: [id]"
+      },
+      {
+        "field": "location",
+        "target": "Warehouse",
+        "details": "fields: [locationId], references: [id]"
+      },
+      {
+        "field": "inputLog",
+        "target": "InputLog",
+        "details": "fields: [inputLogId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TrimmedLog",
+    "relations": [
+      {
+        "field": "partai",
+        "target": "TimberPartai",
+        "details": "fields: [partaiId], references: [id]"
+      },
+      {
+        "field": "rawLog",
+        "target": "RawLog",
+        "details": "fields: [rawLogId], references: [id]"
+      },
+      {
+        "field": "timberSpecies",
+        "target": "TimberSpecies",
+        "details": "fields: [speciesId], references: [id]"
+      },
+      {
+        "field": "timberSource",
+        "target": "TimberSource",
+        "details": "fields: [sourceId], references: [id]"
+      },
+      {
+        "field": "location",
+        "target": "Warehouse",
+        "details": "fields: [locationId], references: [id]"
+      },
+      {
+        "field": "inputLog",
+        "target": "InputLog",
+        "details": "fields: [inputLogId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "InputLog",
+    "relations": [
+      {
+        "field": "partai",
+        "target": "TimberPartai",
+        "details": "fields: [partaiId], references: [id]"
+      },
+      {
+        "field": "timberSpecies",
+        "target": "TimberSpecies",
+        "details": "fields: [speciesId], references: [id]"
+      },
+      {
+        "field": "timberSource",
+        "target": "TimberSource",
+        "details": "fields: [sourceId], references: [id]"
+      },
+      {
+        "field": "location",
+        "target": "Warehouse",
+        "details": "fields: [locationId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "InputLogItem",
+    "relations": [
+      {
+        "field": "inputLog",
+        "target": "InputLog",
+        "details": "fields: [inputLogId], references: [id]"
+      },
+      {
+        "field": "trimmedLog",
+        "target": "TrimmedLog",
+        "details": "fields: [trimmedLogId], references: [id]"
+      },
+      {
+        "field": "rawLog",
+        "target": "RawLog",
+        "details": "fields: [rawLogId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "SawnTimberOutput",
+    "relations": [
+      {
+        "field": "partai",
+        "target": "TimberPartai",
+        "details": "fields: [partaiId], references: [id]"
+      },
+      {
+        "field": "location",
+        "target": "Warehouse",
+        "details": "fields: [locationId], references: [id]"
+      },
+      {
+        "field": "inputLog",
+        "target": "InputLog",
+        "details": "fields: [inputLogId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "SawnTimberOutputItem",
+    "relations": [
+      {
+        "field": "output",
+        "target": "SawnTimberOutput",
+        "details": "fields: [outputId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TimberStock",
+    "relations": [
+      {
+        "field": "location",
+        "target": "Warehouse",
+        "details": "fields: [locationId], references: [id]"
+      },
+      {
+        "field": "subLocation",
+        "target": "Location",
+        "details": "fields: [subLocationId], references: [id]"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TimberStockMovement",
+    "relations": [
+      {
+        "field": "timberStock",
+        "target": "TimberStock",
+        "details": "fields: [timberStockId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "StockTransfer",
+    "relations": [
+      {
+        "field": "fromLocation",
+        "target": "Warehouse",
+        "details": "\"TransferFromLocation\", fields: [fromLocationId], references: [id]"
+      },
+      {
+        "field": "toLocation",
+        "target": "Warehouse",
+        "details": "\"TransferToLocation\", fields: [toLocationId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "StockTransferItem",
+    "relations": [
+      {
+        "field": "transfer",
+        "target": "StockTransfer",
+        "details": "fields: [transferId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "StockAdjustment",
+    "relations": [
+      {
+        "field": "location",
+        "target": "Warehouse",
+        "details": "fields: [locationId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "StockAdjustmentItem",
+    "relations": [
+      {
+        "field": "adjustment",
+        "target": "StockAdjustment",
+        "details": "fields: [adjustmentId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "ImportSession",
+    "relations": []
+  },
+  {
+    "model": "TimberSalesOrder",
+    "relations": [
+      {
+        "field": "customer",
+        "target": "Customer",
+        "details": "fields: [customerId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TimberSalesOrderItem",
+    "relations": [
+      {
+        "field": "salesOrder",
+        "target": "TimberSalesOrder",
+        "details": "fields: [salesOrderId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      },
+      {
+        "field": "fulfillmentLocation",
+        "target": "Warehouse",
+        "details": "fields: [fulfillmentLocationId], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "TimberDeliveryNote",
+    "relations": [
+      {
+        "field": "salesOrder",
+        "target": "TimberSalesOrder",
+        "details": "fields: [salesOrderId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TimberDeliveryNoteItem",
+    "relations": [
+      {
+        "field": "deliveryNote",
+        "target": "TimberDeliveryNote",
+        "details": "fields: [deliveryNoteId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "salesOrderItem",
+        "target": "TimberSalesOrderItem",
+        "details": "fields: [salesOrderItemId], references: [id]"
+      },
+      {
+        "field": "location",
+        "target": "Warehouse",
+        "details": "fields: [locationId], references: [id]"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "SawmillBundle",
+    "relations": [
+      {
+        "field": "parentBundle",
+        "target": "SawmillBundle",
+        "details": "\"RepackedFrom\", fields: [parentBundleId], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      "childBundles   SawmillBundle[]     @relation(\"RepackedFrom\")"
+    ]
+  },
+  {
+    "model": "SawmillProductionRun",
+    "relations": [
+      {
+        "field": "operator",
+        "target": "Employee",
+        "details": "fields: [operatorId], references: [id]"
+      },
+      {
+        "field": "workCenter",
+        "target": "WorkCenter",
+        "details": "fields: [workCenterId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "SawmillProductionConsumption",
+    "relations": [
+      {
+        "field": "inputLog",
+        "target": "InputLog",
+        "details": "fields: [inputLogId], references: [id]"
+      },
+      {
+        "field": "productionRun",
+        "target": "SawmillProductionRun",
+        "details": "fields: [productionRunId], references: [id], onDelete: Cascade"
+      }
+    ]
+  },
+  {
+    "model": "SawmillOutputItem",
+    "relations": [
+      {
+        "field": "productionRun",
+        "target": "SawmillProductionRun",
+        "details": "fields: [productionRunId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "bundle",
+        "target": "SawmillBundle",
+        "details": "fields: [bundleId], references: [id]"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "Location",
+    "relations": [
+      {
+        "field": "warehouse",
+        "target": "Warehouse",
+        "details": "fields: [warehouseId], references: [id], onDelete: Cascade"
+      }
+    ]
+  },
+  {
+    "model": "ProductionProcessInput",
+    "relations": [
+      {
+        "field": "productionProcess",
+        "target": "ProductionProcess",
+        "details": "fields: [productionProcessId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberStock",
+        "target": "TimberStock",
+        "details": "fields: [timberStockId], references: [id]"
+      },
+      {
+        "field": "variant",
+        "target": "TimberVariant",
+        "details": "fields: [variantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "ProductionProcessOutput",
+    "relations": [
+      {
+        "field": "productionProcess",
+        "target": "ProductionProcess",
+        "details": "fields: [productionProcessId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "variant",
+        "target": "TimberVariant",
+        "details": "fields: [variantId], references: [id]"
+      },
+      {
+        "field": "warehouse",
+        "target": "Warehouse",
+        "details": "fields: [warehouseId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TimberPurchaseItem",
+    "relations": [
+      {
+        "field": "timberPurchase",
+        "target": "TimberPurchase",
+        "details": "fields: [timberPurchaseId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TimberPurchaseLogItem",
+    "relations": [
+      {
+        "field": "timberPurchase",
+        "target": "TimberPurchase",
+        "details": "fields: [timberPurchaseId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberSpecies",
+        "target": "TimberSpecies",
+        "details": "fields: [speciesId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TimberShipmentItem",
+    "relations": [
+      {
+        "field": "timberShipment",
+        "target": "TimberShipment",
+        "details": "fields: [timberShipmentId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      },
+      {
+        "field": "salesOrderItem",
+        "target": "TimberSalesOrderItem",
+        "details": "fields: [salesOrderItemId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "TimberStockOpnameItem",
+    "relations": [
+      {
+        "field": "stockOpname",
+        "target": "TimberStockOpname",
+        "details": "fields: [stockOpnameId], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "timberVariant",
+        "target": "TimberVariant",
+        "details": "fields: [timberVariantId], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "ExportShipmentItem",
+    "relations": [
+      {
+        "field": "export",
+        "target": "ExportShipment",
+        "details": "fields: [exportId], references: [id], onDelete: Cascade"
+      }
+    ]
+  },
+  {
+    "model": "StockInTallyItem",
+    "relations": [
+      {
+        "field": "tally",
+        "target": "StockInTally",
+        "details": "fields: [tally_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id]"
+      }
+    ]
+  },
+  {
+    "model": "InventoryDisposalItem",
+    "relations": [
+      {
+        "field": "disposal",
+        "target": "InventoryDisposal",
+        "details": "fields: [disposal_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "StockTransformationInput",
+    "relations": [
+      {
+        "field": "transformation",
+        "target": "StockTransformation",
+        "details": "fields: [transformation_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "warehouse",
+        "target": "Warehouse",
+        "details": "fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "StockTransformationOutput",
+    "relations": [
+      {
+        "field": "transformation",
+        "target": "StockTransformation",
+        "details": "fields: [transformation_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "warehouse",
+        "target": "Warehouse",
+        "details": "fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "PurchaseReturnItem",
+    "relations": [
+      {
+        "field": "purchase_return",
+        "target": "PurchaseReturn",
+        "details": "fields: [purchase_return_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "purchase_order_item",
+        "target": "PurchaseOrderItem",
+        "details": "fields: [purchase_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  },
+  {
+    "model": "SalesReturnItem",
+    "relations": [
+      {
+        "field": "sales_return",
+        "target": "SalesReturn",
+        "details": "fields: [sales_return_id], references: [id], onDelete: Cascade"
+      },
+      {
+        "field": "sales_order_item",
+        "target": "SalesOrderItem",
+        "details": "fields: [sales_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      },
+      {
+        "field": "product",
+        "target": "Product",
+        "details": "fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction"
+      }
+    ]
+  }
+]

@@ -1,0 +1,21 @@
+name: Sync to Repo B
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo A
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Repo B
+        run: |
+          git remote add repo-b https://x-access-token:${{ secrets.REPO_B_TOKEN }}@github.com/${{ secrets.ACCOUNT_B_USERNAME }}/${{ secrets.REPO_B_NAME }}.git
+          git push repo-b main --force

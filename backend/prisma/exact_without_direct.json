@@ -1,0 +1,1799 @@
+[
+  {
+    "modelName": "Permission",
+    "tableName": "Permission",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "name",
+      "description",
+      "roles",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": []
+  },
+  {
+    "modelName": "RolePermission",
+    "tableName": "RolePermission",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "role_id",
+      "role",
+      "permission_id",
+      "permission",
+      "created_at"
+    ],
+    "relations": [
+      "role          Role       @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "permission    Permission @relation(fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "UserWarehouseAccess",
+    "tableName": "UserWarehouseAccess",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "user_id",
+      "user",
+      "warehouse_id",
+      "warehouse",
+      "created_at"
+    ],
+    "relations": [
+      "user         User      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "ProductImage",
+    "tableName": "ProductImage",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "product_id",
+      "product",
+      "image_url",
+      "is_primary",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "ProductDocument",
+    "tableName": "ProductDocument",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "product_id",
+      "product",
+      "document_url",
+      "document_type",
+      "title",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "product       Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "AssetHistory",
+    "tableName": "AssetHistory",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "asset_id",
+      "asset",
+      "action",
+      "before_data",
+      "after_data",
+      "performed_by",
+      "user",
+      "performed_at"
+    ],
+    "relations": [
+      "asset        AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user         User        @relation(\"PerformedAssetHistories\", fields: [performed_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "AssetLocation",
+    "tableName": "AssetLocation",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "asset_id",
+      "asset",
+      "from_location",
+      "to_location",
+      "from_user",
+      "to_user",
+      "notes",
+      "created_by",
+      "user",
+      "moved_at"
+    ],
+    "relations": [
+      "asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user       User     @relation(\"CreatedAssetLocations\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "AssetAssignment",
+    "tableName": "AssetAssignment",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "asset_id",
+      "asset",
+      "user_id",
+      "user",
+      "assigned_at",
+      "returned_at",
+      "status",
+      "notes"
+    ],
+    "relations": [
+      "asset    AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user     User        @relation(\"AssignedAssets\", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "AssetBorrowing",
+    "tableName": "AssetBorrowing",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "asset_id",
+      "asset",
+      "borrower",
+      "user",
+      "department",
+      "borrow_date",
+      "return_date",
+      "actual_return_date",
+      "status",
+      "approved_by",
+      "approver",
+      "notes",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "asset      AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user       User        @relation(\"BorrowedAssets\", fields: [borrower], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "approver    User?   @relation(\"ApprovedAssetBorrowings\", fields: [approved_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "MaintenanceLog",
+    "tableName": "MaintenanceLog",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "asset_id",
+      "asset",
+      "maintenance_type",
+      "vendor",
+      "cost",
+      "description",
+      "before_photo",
+      "after_photo",
+      "invoice",
+      "service_date",
+      "next_service_date",
+      "technician",
+      "status",
+      "created_by",
+      "user",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "asset            AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user       User   @relation(\"CreatedMaintenanceLogs\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "MaintenanceSchedule",
+    "tableName": "MaintenanceSchedule",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "asset_id",
+      "asset",
+      "interval_type",
+      "interval_value",
+      "last_schedule",
+      "next_schedule",
+      "status",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "asset          AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "AssetDocument",
+    "tableName": "AssetDocument",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "asset_id",
+      "asset",
+      "document_type",
+      "file_name",
+      "file_url",
+      "uploaded_by",
+      "user",
+      "uploaded_at"
+    ],
+    "relations": [
+      "asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user        User   @relation(\"UploadedAssetDocuments\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "DepreciationLog",
+    "tableName": "DepreciationLog",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "asset_id",
+      "asset",
+      "period",
+      "opening_value",
+      "depreciation",
+      "closing_value",
+      "created_at"
+    ],
+    "relations": [
+      "asset         AssetMaster @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "NettingAllocation",
+    "tableName": "NettingAllocation",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "netting_id",
+      "netting",
+      "invoice_id",
+      "invoice",
+      "type",
+      "amount",
+      "created_at"
+    ],
+    "relations": [
+      "netting    Netting @relation(fields: [netting_id], references: [id], onDelete: Cascade)",
+      "invoice    Invoice @relation(fields: [invoice_id], references: [id], onDelete: NoAction)"
+    ]
+  },
+  {
+    "modelName": "InventoryTransactionItem",
+    "tableName": "InventoryTransactionItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "transaction_id",
+      "transaction",
+      "product_id",
+      "product",
+      "qty",
+      "system_qty",
+      "counted_qty",
+      "difference",
+      "unit_cost",
+      "subtotal",
+      "batch_number",
+      "expired_date",
+      "notes",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "transaction    InventoryTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product        Product              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "FinanceTransactionItem",
+    "tableName": "FinanceTransactionItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "transaction_id",
+      "transaction",
+      "category_id",
+      "category",
+      "amount",
+      "tax",
+      "description"
+    ],
+    "relations": [
+      "transaction    FinanceTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "category       FinanceCategory    @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "FinanceDocument",
+    "tableName": "FinanceDocument",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "transaction_id",
+      "transaction",
+      "document_type",
+      "file_url",
+      "uploaded_by",
+      "user",
+      "uploaded_at"
+    ],
+    "relations": [
+      "transaction    FinanceTransaction @relation(fields: [transaction_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user        User     @relation(\"UploadedFinanceDocs\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "JournalEntryItem",
+    "tableName": "JournalEntryItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "journal_entry_id",
+      "journal_entry",
+      "account_id",
+      "account",
+      "debit",
+      "credit",
+      "description"
+    ],
+    "relations": [
+      "journal_entry    JournalEntry   @relation(fields: [journal_entry_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "account          ChartOfAccount @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "DocumentVersion",
+    "tableName": "DocumentVersion",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "document_master_id",
+      "document_master",
+      "version_number",
+      "file_url",
+      "file_size",
+      "mime_type",
+      "uploaded_by",
+      "user",
+      "created_at"
+    ],
+    "relations": [
+      "document_master    DocumentMaster @relation(fields: [document_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user               User           @relation(\"UploadedDocumentVersions\", fields: [uploaded_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "DocumentShareLink",
+    "tableName": "DocumentShareLink",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "document_master_id",
+      "document_master",
+      "token",
+      "password_hash",
+      "expired_at",
+      "created_by",
+      "user",
+      "created_at"
+    ],
+    "relations": [
+      "document_master    DocumentMaster @relation(fields: [document_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "user       User     @relation(\"CreatedShareLinks\", fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "WorkflowNode",
+    "tableName": "WorkflowNode",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "workflow_master_id",
+      "workflow_master",
+      "node_type",
+      "node_name",
+      "config",
+      "ui_position",
+      "created_at"
+    ],
+    "relations": [
+      "workflow_master    WorkflowMaster @relation(fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "WorkflowEdge",
+    "tableName": "WorkflowEdge",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "workflow_master_id",
+      "workflow_master",
+      "source_node_id",
+      "target_node_id",
+      "condition_label",
+      "created_at"
+    ],
+    "relations": [
+      "workflow_master    WorkflowMaster @relation(fields: [workflow_master_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "ApprovalLog",
+    "tableName": "ApprovalLog",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "approval_request_id",
+      "approval_request",
+      "action",
+      "notes",
+      "acted_by",
+      "actor",
+      "acted_at"
+    ],
+    "relations": [
+      "approval_request    ApprovalRequest @relation(fields: [approval_request_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "actor    User     @relation(\"ApprovalHistory\", fields: [acted_by], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "Tenant",
+    "tableName": "Tenant",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "name",
+      "domain",
+      "status",
+      "companies",
+      "subscription",
+      "api_tokens",
+      "plugins",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": []
+  },
+  {
+    "modelName": "SubscriptionPlan",
+    "tableName": "SubscriptionPlan",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "name",
+      "price_monthly",
+      "price_yearly",
+      "max_users",
+      "max_warehouses",
+      "max_assets",
+      "storage_limit_mb",
+      "api_limit_day",
+      "ai_credits_mo",
+      "subscriptions",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": []
+  },
+  {
+    "modelName": "BillingInvoice",
+    "tableName": "BillingInvoice",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "subscription_id",
+      "subscription",
+      "invoice_no",
+      "amount",
+      "status",
+      "due_date",
+      "paid_at",
+      "payment_method",
+      "payment_gateway_ref",
+      "created_at"
+    ],
+    "relations": [
+      "subscription        TenantSubscription @relation(fields: [subscription_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "SalesOrderItem",
+    "tableName": "SalesOrderItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "sales_order_id",
+      "sales_order",
+      "product_id",
+      "product",
+      "qty",
+      "system_qty",
+      "counted_qty",
+      "difference",
+      "unit_price",
+      "subtotal",
+      "returned_qty",
+      "salesReturns",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "sales_order    SalesOrder        @relation(fields: [sales_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product        Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "PayrollItem",
+    "tableName": "PayrollItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "payroll_id",
+      "payroll",
+      "type",
+      "name",
+      "amount",
+      "created_at"
+    ],
+    "relations": [
+      "payroll    Payroll @relation(fields: [payroll_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "QuotationItem",
+    "tableName": "QuotationItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "quotation_id",
+      "quotation",
+      "product_id",
+      "product",
+      "qty",
+      "unit_price",
+      "discount",
+      "tax",
+      "subtotal",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "quotation    Quotation @relation(fields: [quotation_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product      Product   @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "DeliveryOrderItem",
+    "tableName": "DeliveryOrderItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "delivery_order_id",
+      "delivery_order",
+      "product_id",
+      "product",
+      "ordered_qty",
+      "delivered_qty",
+      "remaining_qty",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "delivery_order    DeliveryOrder @relation(fields: [delivery_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product           Product       @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "InvoiceItem",
+    "tableName": "InvoiceItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "invoice_id",
+      "invoice",
+      "product_id",
+      "product",
+      "description",
+      "qty",
+      "unit_price",
+      "discount",
+      "tax",
+      "subtotal"
+    ],
+    "relations": [
+      "invoice     Invoice @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product     Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "PaymentAllocation",
+    "tableName": "PaymentAllocation",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "payment_id",
+      "payment",
+      "sales_order_id",
+      "sales_order",
+      "invoice_id",
+      "invoice",
+      "amount",
+      "created_at"
+    ],
+    "relations": [
+      "payment        Payment     @relation(fields: [payment_id], references: [id], onDelete: Cascade)",
+      "sales_order    SalesOrder? @relation(fields: [sales_order_id], references: [id], onDelete: NoAction)",
+      "invoice        Invoice?    @relation(fields: [invoice_id], references: [id], onDelete: NoAction)"
+    ]
+  },
+  {
+    "modelName": "PurchaseOrderItem",
+    "tableName": "PurchaseOrderItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "purchase_order_id",
+      "purchase_order",
+      "product_id",
+      "product",
+      "qty",
+      "received_qty",
+      "billed_qty",
+      "returned_qty",
+      "purchaseReturns",
+      "unit_price",
+      "discount",
+      "tax",
+      "subtotal"
+    ],
+    "relations": [
+      "purchase_order    PurchaseOrder        @relation(fields: [purchase_order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product           Product              @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "GoodsReceiptItem",
+    "tableName": "GoodsReceiptItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "goods_receipt_id",
+      "goods_receipt",
+      "product_id",
+      "product",
+      "qty"
+    ],
+    "relations": [
+      "goods_receipt    GoodsReceipt @relation(fields: [goods_receipt_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product          Product      @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "EcommerceCartItem",
+    "tableName": "EcommerceCartItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "cart_id",
+      "cart",
+      "product_id",
+      "product",
+      "quantity",
+      "created_at",
+      "updated_at"
+    ],
+    "relations": [
+      "cart       EcommerceCart @relation(fields: [cart_id], references: [id], onDelete: Cascade)",
+      "product    Product       @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "BomItem",
+    "tableName": "BomItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "bom_id",
+      "bom",
+      "product_id",
+      "product",
+      "quantity",
+      "unit_id"
+    ],
+    "relations": [
+      "bom        Bom     @relation(fields: [bom_id], references: [id])",
+      "product    Product @relation(fields: [product_id], references: [id])"
+    ]
+  },
+  {
+    "modelName": "ManufacturingOrderItem",
+    "tableName": "ManufacturingOrderItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "manufacturing_order_id",
+      "manufacturing_order",
+      "product_id",
+      "product",
+      "required_quantity",
+      "consumed_quantity",
+      "unit_id"
+    ],
+    "relations": [
+      "manufacturing_order    ManufacturingOrder @relation(fields: [manufacturing_order_id], references: [id])",
+      "product                Product            @relation(fields: [product_id], references: [id])"
+    ]
+  },
+  {
+    "modelName": "BomRouting",
+    "tableName": "BomRouting",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "bom_id",
+      "bom",
+      "operations"
+    ],
+    "relations": [
+      "bom        Bom            @relation(fields: [bom_id], references: [id])"
+    ]
+  },
+  {
+    "modelName": "BomOperation",
+    "tableName": "BomOperation",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "routing_id",
+      "routing",
+      "work_center_id",
+      "sequence",
+      "operation_name",
+      "setup_minutes",
+      "standard_minutes"
+    ],
+    "relations": [
+      "routing          BomRouting @relation(fields: [routing_id], references: [id])"
+    ]
+  },
+  {
+    "modelName": "ExpenseItem",
+    "tableName": "ExpenseItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "expense_claim_id",
+      "expense_claim",
+      "category_id",
+      "category",
+      "description",
+      "amount",
+      "expense_date",
+      "reference"
+    ],
+    "relations": [
+      "expense_claim    ExpenseClaim    @relation(fields: [expense_claim_id], references: [id], onDelete: Cascade)",
+      "category         FinanceCategory @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "PurchaseRequestItem",
+    "tableName": "PurchaseRequestItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "purchase_request_id",
+      "purchase_request",
+      "product_id",
+      "product",
+      "qty",
+      "unit",
+      "notes"
+    ],
+    "relations": [
+      "purchase_request    PurchaseRequest @relation(fields: [purchase_request_id], references: [id], onDelete: Cascade)",
+      "product             Product         @relation(fields: [product_id], references: [id])"
+    ]
+  },
+  {
+    "modelName": "RawLog",
+    "tableName": "RawLog",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "partaiId",
+      "partai",
+      "purchaseLogItemId",
+      "id",
+      "logNumber",
+      "sequence",
+      "code",
+      "species",
+      "speciesId",
+      "timberSpecies",
+      "sourceId",
+      "timberSource",
+      "quantity",
+      "originalLength",
+      "diameter1",
+      "diameter2",
+      "diameter3",
+      "diameter4",
+      "averageDiameter",
+      "roundedDiameter",
+      "grossVolume",
+      "gerowong",
+      "hollowVolume",
+      "trimmingLength",
+      "trimmingVolume",
+      "netVolume",
+      "barcode",
+      "diameterClass",
+      "batch",
+      "supplierRef",
+      "receivingDate",
+      "locationId",
+      "location",
+      "status",
+      "notes",
+      "createdAt",
+      "updatedAt",
+      "trimmedLogs",
+      "inputLogId",
+      "inputLog",
+      "inputLogItems"
+    ],
+    "relations": [
+      "partai            TimberPartai?  @relation(fields: [partaiId], references: [id])",
+      "timberSpecies     TimberSpecies? @relation(fields: [speciesId], references: [id])",
+      "timberSource      TimberSource?  @relation(fields: [sourceId], references: [id])",
+      "location   Warehouse? @relation(fields: [locationId], references: [id])",
+      "inputLog      InputLog?      @relation(fields: [inputLogId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "TrimmedLog",
+    "tableName": "TrimmedLog",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "partaiId",
+      "partai",
+      "id",
+      "trimNumber",
+      "rawLogId",
+      "rawLog",
+      "species",
+      "speciesId",
+      "timberSpecies",
+      "sourceId",
+      "timberSource",
+      "length",
+      "diameter1",
+      "diameter2",
+      "diameter3",
+      "diameter4",
+      "averageDiameter",
+      "roundedDiameter",
+      "grossVolume",
+      "gerowong",
+      "hollowVolume",
+      "trimmingLength",
+      "trimmingVolume",
+      "netVolume",
+      "barcode",
+      "locationId",
+      "location",
+      "status",
+      "inputLogId",
+      "inputLog",
+      "inputLogItems",
+      "notes",
+      "date",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "partai     TimberPartai? @relation(fields: [partaiId], references: [id])",
+      "rawLog     RawLog        @relation(fields: [rawLogId], references: [id])",
+      "timberSpecies   TimberSpecies? @relation(fields: [speciesId], references: [id])",
+      "timberSource    TimberSource?  @relation(fields: [sourceId], references: [id])",
+      "location   Warehouse? @relation(fields: [locationId], references: [id])",
+      "inputLog      InputLog?      @relation(fields: [inputLogId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "InputLog",
+    "tableName": "InputLog",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "partaiId",
+      "partai",
+      "sawmillConsumptions",
+      "id",
+      "inputNumber",
+      "date",
+      "shift",
+      "operatorName",
+      "machine",
+      "bundleRef",
+      "batch",
+      "species",
+      "speciesId",
+      "timberSpecies",
+      "sourceId",
+      "timberSource",
+      "totalQty",
+      "totalLength",
+      "totalGross",
+      "totalGerowong",
+      "totalTrimming",
+      "totalVolume",
+      "locationId",
+      "location",
+      "status",
+      "notes",
+      "items",
+      "sawnOutputs",
+      "trimmedLogs",
+      "rawLogs",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "partai              TimberPartai?                  @relation(fields: [partaiId], references: [id])",
+      "timberSpecies       TimberSpecies?                 @relation(fields: [speciesId], references: [id])",
+      "timberSource        TimberSource?                  @relation(fields: [sourceId], references: [id])",
+      "location   Warehouse? @relation(fields: [locationId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "InputLogItem",
+    "tableName": "InputLogItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "inputLogId",
+      "inputLog",
+      "trimmedLogId",
+      "trimmedLog",
+      "rawLogId",
+      "rawLog",
+      "quantity",
+      "volume",
+      "createdAt"
+    ],
+    "relations": [
+      "inputLog     InputLog    @relation(fields: [inputLogId], references: [id])",
+      "trimmedLog   TrimmedLog? @relation(fields: [trimmedLogId], references: [id])",
+      "rawLog       RawLog?     @relation(fields: [rawLogId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "SawnTimberOutput",
+    "tableName": "SawnTimberOutput",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "partaiId",
+      "partai",
+      "id",
+      "bundleNumber",
+      "outputDate",
+      "shift",
+      "operatorName",
+      "machine",
+      "locationId",
+      "location",
+      "inputLogId",
+      "inputLog",
+      "batch",
+      "notes",
+      "status",
+      "consumedVolume",
+      "items",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "partai         TimberPartai? @relation(fields: [partaiId], references: [id])",
+      "location       Warehouse     @relation(fields: [locationId], references: [id])",
+      "inputLog       InputLog      @relation(fields: [inputLogId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "SawnTimberOutputItem",
+    "tableName": "SawnTimberOutputItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "outputId",
+      "output",
+      "timberVariantId",
+      "timberVariant",
+      "grade",
+      "productType",
+      "quantityPcs",
+      "thicknessMm",
+      "widthMm",
+      "lengthMm",
+      "volumeM3",
+      "notes"
+    ],
+    "relations": [
+      "output   SawnTimberOutput @relation(fields: [outputId], references: [id], onDelete: Cascade)",
+      "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "TimberStock",
+    "tableName": "TimberStock",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "locationId",
+      "location",
+      "subLocationId",
+      "subLocation",
+      "timberVariantId",
+      "timberVariant",
+      "openingPcs",
+      "stockInPcs",
+      "stockOutPcs",
+      "adjustmentPcs",
+      "currentPcs",
+      "currentVolumeM3",
+      "movements",
+      "updatedAt",
+      "batch",
+      "productionInputs"
+    ],
+    "relations": [
+      "location        Warehouse     @relation(fields: [locationId], references: [id])",
+      "subLocation     Location?     @relation(fields: [subLocationId], references: [id])",
+      "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "TimberStockMovement",
+    "tableName": "TimberStockMovement",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "timberStockId",
+      "timberStock",
+      "type",
+      "referenceType",
+      "referenceId",
+      "batch",
+      "quantityPcs",
+      "volumeM3",
+      "date",
+      "createdAt"
+    ],
+    "relations": [
+      "timberStock   TimberStock @relation(fields: [timberStockId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "StockTransfer",
+    "tableName": "StockTransfer",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "transferNumber",
+      "transferDate",
+      "fromLocationId",
+      "fromLocation",
+      "toLocationId",
+      "toLocation",
+      "status",
+      "notes",
+      "items",
+      "createdBy",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "fromLocation   Warehouse @relation(\"TransferFromLocation\", fields: [fromLocationId], references: [id])",
+      "toLocation     Warehouse @relation(\"TransferToLocation\", fields: [toLocationId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "StockTransferItem",
+    "tableName": "StockTransferItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "transferId",
+      "transfer",
+      "timberVariantId",
+      "timberVariant",
+      "batch",
+      "quantityPcs",
+      "volumeM3",
+      "notes"
+    ],
+    "relations": [
+      "transfer   StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)",
+      "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "StockAdjustment",
+    "tableName": "StockAdjustment",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "adjustmentNumber",
+      "adjustmentDate",
+      "locationId",
+      "location",
+      "status",
+      "reason",
+      "notes",
+      "items",
+      "createdBy",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "location         Warehouse @relation(fields: [locationId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "StockAdjustmentItem",
+    "tableName": "StockAdjustmentItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "adjustmentId",
+      "adjustment",
+      "timberVariantId",
+      "timberVariant",
+      "batch",
+      "systemPcs",
+      "physicalPcs",
+      "differencePcs",
+      "differenceM3",
+      "notes"
+    ],
+    "relations": [
+      "adjustment   StockAdjustment @relation(fields: [adjustmentId], references: [id], onDelete: Cascade)",
+      "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "ImportSession",
+    "tableName": "ImportSession",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "fileName",
+      "fileType",
+      "importType",
+      "status",
+      "selectedSheet",
+      "totalRows",
+      "validRows",
+      "invalidRows",
+      "duplicateRows",
+      "importedRows",
+      "skippedRows",
+      "errorSummary",
+      "createdBy",
+      "createdAt",
+      "completedAt"
+    ],
+    "relations": []
+  },
+  {
+    "modelName": "TimberSalesOrder",
+    "tableName": "TimberSalesOrder",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "orderNumber",
+      "customerId",
+      "customer",
+      "orderDate",
+      "targetDate",
+      "partai",
+      "notes",
+      "status",
+      "createdByUserId",
+      "createdAt",
+      "updatedAt",
+      "items",
+      "deliveries",
+      "shipments"
+    ],
+    "relations": [
+      "customer        Customer  @relation(fields: [customerId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "TimberSalesOrderItem",
+    "tableName": "TimberSalesOrderItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "salesOrderId",
+      "salesOrder",
+      "timberVariantId",
+      "timberVariant",
+      "thicknessMm",
+      "widthMm",
+      "lengthMm",
+      "fulfillmentLocationId",
+      "fulfillmentLocation",
+      "grade",
+      "species",
+      "orderQty",
+      "orderM3",
+      "realizedQty",
+      "realizedM3",
+      "createdAt",
+      "updatedAt",
+      "deliveryItems",
+      "timberShipmentItems"
+    ],
+    "relations": [
+      "salesOrder   TimberSalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)",
+      "timberVariant   TimberVariant? @relation(fields: [timberVariantId], references: [id])",
+      "fulfillmentLocation   Warehouse? @relation(fields: [fulfillmentLocationId], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "TimberDeliveryNote",
+    "tableName": "TimberDeliveryNote",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "deliveryNumber",
+      "salesOrderId",
+      "salesOrder",
+      "deliveryDate",
+      "driverName",
+      "vehicleNumber",
+      "notes",
+      "status",
+      "createdAt",
+      "updatedAt",
+      "items"
+    ],
+    "relations": [
+      "salesOrder     TimberSalesOrder @relation(fields: [salesOrderId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "TimberDeliveryNoteItem",
+    "tableName": "TimberDeliveryNoteItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "deliveryNoteId",
+      "deliveryNote",
+      "salesOrderItemId",
+      "salesOrderItem",
+      "locationId",
+      "location",
+      "timberVariantId",
+      "timberVariant",
+      "deliveredQty",
+      "deliveredM3",
+      "stockMovementId",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "deliveryNote   TimberDeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)",
+      "salesOrderItem   TimberSalesOrderItem @relation(fields: [salesOrderItemId], references: [id])",
+      "location        Warehouse     @relation(fields: [locationId], references: [id])",
+      "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "SawmillBundle",
+    "tableName": "SawmillBundle",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "bundleNumber",
+      "parentBundleId",
+      "parentBundle",
+      "childBundles",
+      "status",
+      "outputItems",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "parentBundle   SawmillBundle?      @relation(\"RepackedFrom\", fields: [parentBundleId], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "childBundles   SawmillBundle[]     @relation(\"RepackedFrom\")"
+    ]
+  },
+  {
+    "modelName": "SawmillProductionRun",
+    "tableName": "SawmillProductionRun",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "productionNo",
+      "productionDate",
+      "shift",
+      "operatorId",
+      "operator",
+      "workCenterId",
+      "workCenter",
+      "status",
+      "notes",
+      "consumptions",
+      "outputItems",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "operator       Employee                       @relation(fields: [operatorId], references: [id])",
+      "workCenter     WorkCenter                     @relation(fields: [workCenterId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "SawmillProductionConsumption",
+    "tableName": "SawmillProductionConsumption",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "inputLogId",
+      "inputLog",
+      "productionRunId",
+      "productionRun",
+      "consumedM3",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "inputLog        InputLog             @relation(fields: [inputLogId], references: [id])",
+      "productionRun   SawmillProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)"
+    ]
+  },
+  {
+    "modelName": "SawmillOutputItem",
+    "tableName": "SawmillOutputItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "productionRunId",
+      "productionRun",
+      "bundleId",
+      "bundle",
+      "timberVariantId",
+      "timberVariant",
+      "partai",
+      "quantityPcs",
+      "volumeM3",
+      "remarks",
+      "stockMovementId",
+      "reversalMovementId"
+    ],
+    "relations": [
+      "productionRun      SawmillProductionRun @relation(fields: [productionRunId], references: [id], onDelete: Cascade)",
+      "bundle             SawmillBundle        @relation(fields: [bundleId], references: [id])",
+      "timberVariant      TimberVariant        @relation(fields: [timberVariantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "Location",
+    "tableName": "Location",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "warehouseId",
+      "warehouse",
+      "code",
+      "name",
+      "description",
+      "isActive",
+      "createdAt",
+      "updatedAt",
+      "timberStocks"
+    ],
+    "relations": [
+      "warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)"
+    ]
+  },
+  {
+    "modelName": "ProductionProcessInput",
+    "tableName": "ProductionProcessInput",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "productionProcessId",
+      "productionProcess",
+      "timberStockId",
+      "timberStock",
+      "variantId",
+      "variant",
+      "quantityPCS",
+      "volumeM3"
+    ],
+    "relations": [
+      "productionProcess   ProductionProcess @relation(fields: [productionProcessId], references: [id], onDelete: Cascade)",
+      "timberStock   TimberStock   @relation(fields: [timberStockId], references: [id])",
+      "variant       TimberVariant @relation(fields: [variantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "ProductionProcessOutput",
+    "tableName": "ProductionProcessOutput",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "productionProcessId",
+      "productionProcess",
+      "variantId",
+      "variant",
+      "outputType",
+      "quantityPCS",
+      "volumeM3",
+      "warehouseId",
+      "warehouse"
+    ],
+    "relations": [
+      "productionProcess   ProductionProcess @relation(fields: [productionProcessId], references: [id], onDelete: Cascade)",
+      "variant   TimberVariant? @relation(fields: [variantId], references: [id]) // Optional because WASTE might not have a variant",
+      "warehouse   Warehouse? @relation(fields: [warehouseId], references: [id]) // Target warehouse for this output"
+    ]
+  },
+  {
+    "modelName": "TimberPurchaseItem",
+    "tableName": "TimberPurchaseItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "timberPurchaseId",
+      "timberPurchase",
+      "timberVariantId",
+      "timberVariant",
+      "quantityPcs",
+      "volumeM3",
+      "purchaseThickness",
+      "purchaseWidth",
+      "purchaseLength",
+      "unitPrice",
+      "batch",
+      "notes"
+    ],
+    "relations": [
+      "timberPurchase   TimberPurchase @relation(fields: [timberPurchaseId], references: [id], onDelete: Cascade)",
+      "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "TimberPurchaseLogItem",
+    "tableName": "TimberPurchaseLogItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "timberPurchaseId",
+      "timberPurchase",
+      "logNumber",
+      "species",
+      "speciesId",
+      "timberSpecies",
+      "purchaseLength",
+      "purchaseDiameter1",
+      "purchaseDiameter2",
+      "purchaseDiameter3",
+      "purchaseDiameter4",
+      "purchaseVolume",
+      "status",
+      "receivingDate",
+      "createdAt",
+      "updatedAt",
+      "notes"
+    ],
+    "relations": [
+      "timberPurchase   TimberPurchase @relation(fields: [timberPurchaseId], references: [id], onDelete: Cascade)",
+      "timberSpecies TimberSpecies? @relation(fields: [speciesId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "TimberShipmentItem",
+    "tableName": "TimberShipmentItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "timberShipmentId",
+      "timberShipment",
+      "timberVariantId",
+      "timberVariant",
+      "batch",
+      "species",
+      "productCategory",
+      "thicknessMm",
+      "widthMm",
+      "lengthMm",
+      "quantityPcs",
+      "volumeM3",
+      "salesOrderItemId",
+      "salesOrderItem"
+    ],
+    "relations": [
+      "timberShipment   TimberShipment @relation(fields: [timberShipmentId], references: [id], onDelete: Cascade)",
+      "timberVariant   TimberVariant? @relation(fields: [timberVariantId], references: [id])",
+      "salesOrderItem   TimberSalesOrderItem? @relation(fields: [salesOrderItemId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "TimberStockOpnameItem",
+    "tableName": "TimberStockOpnameItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "stockOpnameId",
+      "stockOpname",
+      "timberVariantId",
+      "timberVariant",
+      "batch",
+      "systemQuantityPcs",
+      "systemVolumeM3",
+      "physicalQuantityPcs",
+      "physicalVolumeM3",
+      "varianceQuantityPcs",
+      "varianceVolumeM3",
+      "notes"
+    ],
+    "relations": [
+      "stockOpname   TimberStockOpname @relation(fields: [stockOpnameId], references: [id], onDelete: Cascade)",
+      "timberVariant   TimberVariant @relation(fields: [timberVariantId], references: [id])"
+    ]
+  },
+  {
+    "modelName": "ExportShipmentItem",
+    "tableName": "ExportShipmentItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "exportId",
+      "export",
+      "groupName",
+      "productName",
+      "qtyKg",
+      "qtyMc",
+      "qtySak",
+      "createdAt",
+      "updatedAt"
+    ],
+    "relations": [
+      "export   ExportShipment @relation(fields: [exportId], references: [id], onDelete: Cascade)"
+    ]
+  },
+  {
+    "modelName": "StockInTallyItem",
+    "tableName": "StockInTallyItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "tally_id",
+      "tally",
+      "product_id",
+      "product",
+      "qty",
+      "movement_id"
+    ],
+    "relations": [
+      "tally       StockInTally @relation(fields: [tally_id], references: [id], onDelete: Cascade)",
+      "product     Product      @relation(fields: [product_id], references: [id])"
+    ]
+  },
+  {
+    "modelName": "InventoryDisposalItem",
+    "tableName": "InventoryDisposalItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "disposal_id",
+      "disposal",
+      "product_id",
+      "product",
+      "qty",
+      "unit",
+      "notes"
+    ],
+    "relations": [
+      "disposal    InventoryDisposal @relation(fields: [disposal_id], references: [id], onDelete: Cascade)",
+      "product     Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "StockTransformationInput",
+    "tableName": "StockTransformationInput",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "transformation_id",
+      "transformation",
+      "warehouse_id",
+      "warehouse",
+      "product_id",
+      "product",
+      "qty",
+      "unit_cost",
+      "total_cost"
+    ],
+    "relations": [
+      "transformation    StockTransformation @relation(fields: [transformation_id], references: [id], onDelete: Cascade)",
+      "warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "StockTransformationOutput",
+    "tableName": "StockTransformationOutput",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "transformation_id",
+      "transformation",
+      "warehouse_id",
+      "warehouse",
+      "product_id",
+      "product",
+      "qty",
+      "unit_cost",
+      "total_cost"
+    ],
+    "relations": [
+      "transformation    StockTransformation @relation(fields: [transformation_id], references: [id], onDelete: Cascade)",
+      "warehouse    Warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product    Product @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "PurchaseReturnItem",
+    "tableName": "PurchaseReturnItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "purchase_return_id",
+      "purchase_return",
+      "purchase_order_item_id",
+      "purchase_order_item",
+      "product_id",
+      "product",
+      "quantity",
+      "unit",
+      "unit_cost",
+      "total_cost",
+      "reason"
+    ],
+    "relations": [
+      "purchase_return        PurchaseReturn    @relation(fields: [purchase_return_id], references: [id], onDelete: Cascade)",
+      "purchase_order_item    PurchaseOrderItem @relation(fields: [purchase_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product                Product           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  },
+  {
+    "modelName": "SalesReturnItem",
+    "tableName": "SalesReturnItem",
+    "hasCompanyId": false,
+    "hasTenantId": false,
+    "fields": [
+      "id",
+      "sales_return_id",
+      "sales_return",
+      "sales_order_item_id",
+      "sales_order_item",
+      "product_id",
+      "product",
+      "quantity",
+      "unit",
+      "unit_price",
+      "total_sales_value",
+      "unit_cost",
+      "total_cost",
+      "reason",
+      "created_at",
+      "updated_at",
+      "SalesReturnCostAllocation"
+    ],
+    "relations": [
+      "sales_return        SalesReturn    @relation(fields: [sales_return_id], references: [id], onDelete: Cascade)",
+      "sales_order_item    SalesOrderItem @relation(fields: [sales_order_item_id], references: [id], onDelete: NoAction, onUpdate: NoAction)",
+      "product             Product        @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)"
+    ]
+  }
+]

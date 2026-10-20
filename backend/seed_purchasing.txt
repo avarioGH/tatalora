@@ -1,0 +1,40 @@
+﻿// --- NEW: Purchasing Seed Data for 20H.2 ---
+  
+  // Warehouse
+  const whId = new ObjectId().toHexString();
+  await prisma.warehouse.create({ data: { id: whId, company_id: c1, code: 'WH-HQ', name: 'Main Depot' } });
+
+  // Supplier
+  const supId = new ObjectId().toHexString();
+  await prisma.supplier.create({ data: { id: supId, company_id: c1, code: 'SUP-01', name: 'Global Tech Suppliers', email: 'sales@globaltech.com', phone: '555-9000' } });
+
+  // Unit
+  const unitId = new ObjectId().toHexString();
+  await prisma.unit.create({ data: { id: unitId, company_id: c1, name: 'pcs', symbol: 'pcs' } });
+
+  // Product
+  const prodId = new ObjectId().toHexString();
+  await prisma.product.create({ data: { id: prodId, company_id: c1, code: 'CERT-01', name: 'Certification Product', type: 'GOODS', unit_id: unitId, purchase_price: 10000, selling_price: 15000 } });
+
+  // Supplier Product (For Comparison Matrix)
+  await prisma.supplierProduct.create({ data: { id: new ObjectId().toHexString(), company_id: c1, supplier_id: supId, product_id: prodId, unit_price: 9500, minimum_order_qty: 5, lead_time_days: 3, active: true } });
+
+  // Purchase Request
+  const prId = new ObjectId().toHexString();
+  await prisma.purchaseRequest.create({
+    data: {
+      id: prId, company_id: c1, request_number: 'PR-CERT-001', source: 'MANUAL', status: 'SUBMITTED', reason: 'Certification Testing',
+      items: { create: [{ product_id: prodId, qty: 10 }] }
+    }
+  });
+
+  // Create an explicit Purchase Order (PO-CERT-002) in CONFIRMED state for Partial Receiving tests
+  const poId = new ObjectId().toHexString();
+  await prisma.purchaseOrder.create({
+    data: {
+      id: poId, company_id: c1, supplier_id: supId, order_number: 'PO-CERT-002', order_date: new Date(),
+      status: 'CONFIRMED', receipt_status: 'PENDING', bill_status: 'PENDING', payment_status: 'UNPAID', total_amount: 95000,
+      warehouse_id: whId,
+      items: { create: [{ product_id: prodId, qty: 10, received_qty: 0, billed_qty: 0, unit_price: 9500, subtotal: 95000 }] }
+    }
+  });

@@ -1,0 +1,10 @@
+[
+  {
+    "source_model": "Invoice",
+    "source_object_id": "a204521bcf930a081deccd32",
+    "destination_uuid": "1234",
+    "status": "REVERSED",
+    "created_at": "2026-10-15T07:09:58.239Z",
+    "updated_at": "2026-10-15T07:09:58.239Z"
+  }
+]

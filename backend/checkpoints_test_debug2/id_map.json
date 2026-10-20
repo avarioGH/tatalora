@@ -1,0 +1,18 @@
+[
+  {
+    "source_model": "Invoice",
+    "source_object_id": "3ad4d08fc2aed477a4991521",
+    "destination_uuid": "inv1",
+    "status": "REVERSED",
+    "created_at": "2026-10-15T07:10:03.864Z",
+    "updated_at": "2026-10-15T07:10:03.864Z"
+  },
+  {
+    "source_model": "Invoice",
+    "source_object_id": "e4e067c7dd61092c3c5c158e",
+    "destination_uuid": "inv2",
+    "status": "REVERSED",
+    "created_at": "2026-10-15T07:10:03.865Z",
+    "updated_at": "2026-10-15T07:10:03.865Z"
+  }
+]
