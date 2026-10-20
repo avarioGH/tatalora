@@ -1,13 +1,83 @@
 version: '3.8'
+
 services:
-  mongodb:
-    image: mongo:6.0
-    container_name: erp_mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
+  # ----------------------------------------------------
+  # 1. PostgreSQL Database
+  # ----------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: tatalora_db
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tatalora_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-AvarioSecurePass2026!}
+      POSTGRES_DB: ${POSTGRES_DB:-tatalora_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tatalora_admin} -d ${POSTGRES_DB:-tatalora_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------
+  # 2. Redis Caching & Queue
+  # ----------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: tatalora_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # ----------------------------------------------------
+  # 3. NestJS Backend API
+  # ----------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: tatalora_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:-postgresql://tatalora_admin:AvarioSecurePass2026!@db:5432/tatalora_db?schema=public}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      JWT_SECRET: ${JWT_SECRET:-tatalora_super_secret_jwt_key_2026!}
+      JWT_EXPIRES_IN: 1d
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # ----------------------------------------------------
+  # 4. Next.js Frontend
+  # ----------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    container_name: tatalora_frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    ports:
+      - "3005:3005"
+    depends_on:
+      - backend
 
 volumes:
-  mongodb_data:
+  postgres_data:
+  redis_data:
