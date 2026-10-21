@@ -74,9 +74,10 @@ export default function CreateInvoiceExchangePage() {
   }, [])
 
   // When customer changes, populate details and fetch their unpaid invoices
-  const handleCustomerChange = async (cId: string) => {
-    setCustomerId(cId)
-    const found = customers.find(c => c.id === cId)
+  const handleCustomerChange = async (cId: string | null) => {
+    const validId = cId || ""
+    setCustomerId(validId)
+    const found = customers.find(c => c.id === validId)
     if (found) {
       setEmail(found.email || "")
       setBillingAddress(found.address || "")
@@ -88,7 +89,7 @@ export default function CreateInvoiceExchangePage() {
       const allInvoices = res.data?.data || res.data || []
       // Filter by customer and unpaid/draft/posted
       const custInvoices = allInvoices.filter(
-        (inv: any) => inv.customer_id === cId || !cId
+        (inv: any) => inv.customer_id === validId || !validId
       )
       setInvoices(custInvoices)
     } catch (e) {
@@ -97,22 +98,24 @@ export default function CreateInvoiceExchangePage() {
   }
 
   // Handle Payment Terms change -> recalculate due date
-  const handlePaymentTermsChange = (term: string) => {
-    setPaymentTerms(term)
+  const handlePaymentTermsChange = (term: string | null) => {
+    const validTerm = term || "net30"
+    setPaymentTerms(validTerm)
     const baseDate = new Date(transactionDate)
     let days = 30
-    if (term === "cod") days = 0
-    else if (term === "net15") days = 15
-    else if (term === "net30") days = 30
-    else if (term === "net60") days = 60
+    if (validTerm === "cod") days = 0
+    else if (validTerm === "net15") days = 15
+    else if (validTerm === "net30") days = 30
+    else if (validTerm === "net60") days = 60
     
     baseDate.setDate(baseDate.getDate() + days)
     setDueDate(baseDate.toISOString().split("T")[0])
   }
 
   // Handle Invoice Row selection
-  const handleInvoiceSelect = (index: number, invId: string) => {
-    const selectedInv = invoices.find(inv => inv.id === invId)
+  const handleInvoiceSelect = (index: number, invId: string | null) => {
+    const validInvId = invId || ""
+    const selectedInv = invoices.find(inv => inv.id === validInvId)
     const updated = [...items]
     if (selectedInv) {
       updated[index] = {

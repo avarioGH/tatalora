@@ -150,9 +150,10 @@ export default function CreateSalesInvoicePage() {
   }, [quotation_id, so_id])
 
   // When customer changes, populate email & address
-  const handleCustomerChange = (cId: string) => {
-    setCustomerId(cId)
-    const found = customers.find(c => c.id === cId)
+  const handleCustomerChange = (cId: string | null) => {
+    const validId = cId || ""
+    setCustomerId(validId)
+    const found = customers.find(c => c.id === validId)
     if (found) {
       setEmail(found.email || "")
       setBillingAddress(found.address || "")
@@ -160,8 +161,9 @@ export default function CreateSalesInvoicePage() {
   }
 
   // When payment terms change, recalculate due date
-  const handlePaymentTermsChange = (term: string) => {
-    setPaymentTerms(term)
+  const handlePaymentTermsChange = (term: string | null) => {
+    const validTerm = term || "net30"
+    setPaymentTerms(validTerm)
     const baseDate = new Date(transactionDate)
     let days = 30
     if (term === "cod") days = 0
@@ -454,7 +456,7 @@ export default function CreateSalesInvoicePage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold">Gudang</Label>
-                  <Select value={warehouseId} onValueChange={setWarehouseId}>
+                  <Select value={warehouseId} onValueChange={(val) => setWarehouseId(val || "")}>
                     <SelectTrigger className="bg-background border-border h-10">
                       <SelectValue placeholder="Pilih gudang..." />
                     </SelectTrigger>
@@ -475,7 +477,7 @@ export default function CreateSalesInvoicePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Mata uang</Label>
-              <Select value={currency} onValueChange={setCurrency}>
+              <Select value={currency} onValueChange={(val) => setCurrency(val || "IDR")}>
                 <SelectTrigger className="bg-background border-border h-10">
                   <SelectValue placeholder="Pilih Mata Uang" />
                 </SelectTrigger>

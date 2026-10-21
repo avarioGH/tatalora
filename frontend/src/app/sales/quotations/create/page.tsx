@@ -89,9 +89,10 @@ export default function CreateQuotationPage() {
   }, [])
 
   // When customer changes, populate email & address
-  const handleCustomerChange = (cId: string) => {
-    setCustomerId(cId)
-    const found = customers.find(c => c.id === cId)
+  const handleCustomerChange = (cId: string | null) => {
+    const validId = cId || ""
+    setCustomerId(validId)
+    const found = customers.find(c => c.id === validId)
     if (found) {
       setEmail(found.email || "")
       setBillingAddress(found.address || "")
@@ -99,14 +100,15 @@ export default function CreateQuotationPage() {
   }
 
   // When payment terms change, recalculate expiration date
-  const handlePaymentTermsChange = (term: string) => {
-    setPaymentTerms(term)
+  const handlePaymentTermsChange = (term: string | null) => {
+    const validTerm = term || "net30"
+    setPaymentTerms(validTerm)
     const baseDate = new Date(transactionDate)
     let days = 14
-    if (term === "cod") days = 0
-    else if (term === "net15") days = 15
-    else if (term === "net30") days = 30
-    else if (term === "net60") days = 60
+    if (validTerm === "cod") days = 0
+    else if (validTerm === "net15") days = 15
+    else if (validTerm === "net30") days = 30
+    else if (validTerm === "net60") days = 60
     
     baseDate.setDate(baseDate.getDate() + days)
     setExpirationDate(baseDate.toISOString().split("T")[0])
@@ -398,7 +400,7 @@ export default function CreateQuotationPage() {
 
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Mata Uang</Label>
-              <Select value={currency} onValueChange={setCurrency}>
+              <Select value={currency} onValueChange={(val) => setCurrency(val || "IDR")}>
                 <SelectTrigger className="bg-background border-border">
                   <SelectValue placeholder="Mata uang" />
                 </SelectTrigger>
