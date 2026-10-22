@@ -69,6 +69,14 @@
         .tabular {
             font-variant-numeric: tabular-nums;
         }
+        .price-num {
+            display: inline-block;
+            transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .price-changing {
+            opacity: 0.2;
+            transform: translateY(-4px) scale(0.97);
+        }
     </style>
 </head>
 <body class="selection:bg-blue-100 selection:text-blue-900">
@@ -118,11 +126,6 @@
                 
                 <!-- Hero Content Left -->
                 <div class="lg:col-span-5 text-left">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-6">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                        ERP Modern untuk Semua Jenis Bisnis
-                    </div>
-
                     <h1 class="text-4xl sm:text-5xl lg:text-[48px] font-extrabold tracking-tight text-ink-primary leading-[1.15] mb-6">
                         Kelola Bisnis Lebih Mudah.<br class="hidden sm:inline">
                         Semua Terintegrasi.
@@ -379,9 +382,6 @@
     <section id="fitur" class="py-20 md:py-28 px-4 sm:px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-left max-w-2xl mb-16">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
-                    FITUR LENGKAP
-                </div>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4 leading-tight">
                     Semua yang Dibutuhkan untuk Mengelola Bisnis Anda
                 </h2>
@@ -486,9 +486,6 @@
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
                 <div class="lg:col-span-5 text-left">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
-                        ALUR BISNIS TERINTEGRASI
-                    </div>
                     <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4 leading-tight">
                         Data Terhubung, Proses Lebih Efisien
                     </h2>
@@ -574,9 +571,6 @@
     <section id="solusi" class="py-20 md:py-28 px-4 sm:px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-left max-w-2xl mb-14">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
-                    UNTUK BERBAGAI JENIS BISNIS
-                </div>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4 leading-tight">
                     Cocok untuk Setiap Industri
                 </h2>
@@ -655,9 +649,6 @@
     <section id="harga" class="py-20 md:py-28 bg-white border-y border-surface-border px-4 sm:px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-center max-w-2xl mx-auto mb-16">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
-                    HARGA TRANSPARAN
-                </div>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4">
                     Pilih Paket yang Sesuai dengan Kebutuhan Anda
                 </h2>
@@ -687,7 +678,7 @@
                         <p class="text-xs text-ink-secondary mb-6">Cocok untuk bisnis kecil & berkembang yang butuh kontrol rapi.</p>
                         
                         <div class="mb-6 pb-6 border-b border-surface-border">
-                            <span class="text-3xl sm:text-4xl font-extrabold text-ink-primary tabular price-starter">Rp 299.000</span>
+                            <span class="text-3xl sm:text-4xl font-extrabold text-ink-primary tabular price-starter price-num">Rp 299.000</span>
                             <span class="text-xs font-semibold text-ink-muted">/ bulan</span>
                         </div>
 
@@ -716,7 +707,7 @@
                         <p class="text-xs text-ink-secondary mb-6">Solusi lengkap untuk operasional multi-cabang & manufaktur.</p>
                         
                         <div class="mb-6 pb-6 border-b border-surface-border">
-                            <span class="text-3xl sm:text-4xl font-extrabold text-blue-600 tabular price-business">Rp 599.000</span>
+                            <span class="text-3xl sm:text-4xl font-extrabold text-blue-600 tabular price-business price-num">Rp 599.000</span>
                             <span class="text-xs font-semibold text-ink-muted">/ bulan</span>
                         </div>
 
@@ -768,9 +759,6 @@
     <section id="testimoni" class="py-20 px-4 sm:px-6">
         <div class="max-w-7xl mx-auto">
             <div class="text-left max-w-2xl mb-12">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
-                    TESTIMONI PENGGUNA
-                </div>
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4 leading-tight">
                     Dipercaya oleh Berbagai Bisnis
                 </h2>
@@ -832,9 +820,6 @@
     <section id="faq" class="py-20 bg-white border-y border-surface-border px-4 sm:px-6">
         <div class="max-w-4xl mx-auto">
             <div class="text-center mb-14">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
-                    PERTANYAAN UMUM
-                </div>
                 <h2 class="text-3xl font-extrabold text-ink-primary tracking-tight mb-3">
                     Frequently Asked Questions
                 </h2>
@@ -889,10 +874,6 @@
     <section class="py-20 md:py-28 px-4 sm:px-6 relative overflow-hidden bg-surface-bg">
         <div class="max-w-5xl mx-auto">
             <div class="glass-panel bg-white border border-surface-border rounded-3xl p-8 sm:p-14 text-center shadow-lg relative z-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-6">
-                    SIAP MENGEMBANGKAN BISNIS ANDA?
-                </div>
-                
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4">
                     Mulai Kelola Bisnis dengan Lebih Terarah.
                 </h2>
@@ -982,10 +963,6 @@
 
             <!-- Modal Header -->
             <div class="mb-6">
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-bold mb-2">
-                    <i data-lucide="sparkles" class="w-3 h-3"></i>
-                    Konsultasi Gratis
-                </div>
                 <h3 class="text-xl font-bold text-ink-primary">Jadwalkan Konsultasi Sistem</h3>
                 <p class="text-xs text-ink-secondary mt-1">Ceritakan kebutuhan bisnis Anda. Tim konsultan kami akan menyiapkan demo yang relevan.</p>
             </div>
@@ -1087,26 +1064,62 @@
             if (e.target === this) closeConsultationModal();
         });
 
-        // Billing Toggle Logic
+        // Billing Toggle Logic with smooth number counting animation
         let currentBilling = 'monthly';
+        let currentStarterVal = 299000;
+        let currentBusinessVal = 599000;
+        let starterAnimFrame = null;
+        let businessAnimFrame = null;
+
+        function animateNumber(element, start, end, duration, onComplete) {
+            const startTime = performance.now();
+            element.classList.add('price-changing');
+            
+            function update(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out cubic
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const currentVal = Math.round(start + (end - start) * ease);
+                
+                element.textContent = "Rp " + currentVal.toLocaleString('id-ID');
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    element.classList.remove('price-changing');
+                    if (onComplete) onComplete();
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
         function setBilling(mode) {
+            if (currentBilling === mode) return;
             currentBilling = mode;
             const btnM = document.getElementById('btnMonthly');
             const btnA = document.getElementById('btnAnnual');
             const priceStarter = document.querySelector('.price-starter');
             const priceBusiness = document.querySelector('.price-business');
 
+            const targetStarter = mode === 'monthly' ? 299000 : 239000;
+            const targetBusiness = mode === 'monthly' ? 599000 : 479000;
+
             if (mode === 'monthly') {
                 btnM.className = "px-5 py-2 rounded-full text-xs font-bold bg-white text-ink-primary shadow-xs transition-all";
                 btnA.className = "px-5 py-2 rounded-full text-xs font-bold text-ink-secondary hover:text-ink-primary transition-all flex items-center gap-1.5";
-                priceStarter.textContent = "Rp 299.000";
-                priceBusiness.textContent = "Rp 599.000";
             } else {
                 btnA.className = "px-5 py-2 rounded-full text-xs font-bold bg-white text-ink-primary shadow-xs transition-all flex items-center gap-1.5";
                 btnM.className = "px-5 py-2 rounded-full text-xs font-bold text-ink-secondary hover:text-ink-primary transition-all";
-                priceStarter.textContent = "Rp 239.000";
-                priceBusiness.textContent = "Rp 479.000";
             }
+
+            // Smooth counting transition
+            animateNumber(priceStarter, currentStarterVal, targetStarter, 350, () => {
+                currentStarterVal = targetStarter;
+            });
+            animateNumber(priceBusiness, currentBusinessVal, targetBusiness, 350, () => {
+                currentBusinessVal = targetBusiness;
+            });
         }
 
         // Handle Consultation Form Submit
@@ -1139,9 +1152,20 @@
 
             // Construct WhatsApp Redirect Message
             const waNotes = payload.notes ? payload.notes : 'Ingin konsultasi alur sistem ERP';
-            const message = `Halo Tim TATALORA, saya ingin konsultasi mengenai implementasi sistem ERP untuk bisnis saya.%0A%0A📋 *Detail Bisnis & Kebutuhan:*%0A• Nama: ${encodeURIComponent(payload.name)} (${encodeURIComponent(payload.position)})%0A• Perusahaan: ${encodeURIComponent(payload.company_name)}%0A• Bidang Usaha: ${encodeURIComponent(payload.industry)}%0A• Estimasi Budget: ${encodeURIComponent(payload.budget)}%0A• Kebutuhan / Kendala: ${encodeURIComponent(waNotes)}%0A%0AMohon informasi lebih lanjut mengenai jadwal demo dan konsultasinya. Terima kasih!`;
+            const plainText = [
+                'Halo Tim TATALORA, saya ingin konsultasi mengenai implementasi sistem ERP untuk bisnis saya.',
+                '',
+                '📋 *Detail Bisnis & Kebutuhan:*',
+                '• Nama: ' + payload.name + ' (' + payload.position + ')',
+                '• Perusahaan: ' + payload.company_name,
+                '• Bidang Usaha: ' + payload.industry,
+                '• Estimasi Budget: ' + payload.budget,
+                '• Kebutuhan / Kendala: ' + waNotes,
+                '',
+                'Mohon informasi lebih lanjut mengenai jadwal demo dan konsultasinya. Terima kasih!'
+            ].join('\n');
             
-            const waUrl = `https://wa.me/6287785876197?text=${message}`;
+            const waUrl = 'https://wa.me/6287785876197?text=' + encodeURIComponent(plainText);
 
             window.open(waUrl, '_blank');
 
