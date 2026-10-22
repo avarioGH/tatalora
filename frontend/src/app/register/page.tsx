@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { api } from "@/lib/api"
-import { ArrowLeft, Loader2, Lock, User, Building, Mail } from "lucide-react"
+import { ArrowLeft, Loader2, Lock, User, Building, Mail, Eye, EyeOff } from "lucide-react"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -14,6 +14,7 @@ export default function RegisterPage() {
     company_name: "",
     password: "",
   })
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -22,7 +23,7 @@ export default function RegisterPage() {
     setError("")
 
     if (formData.password.length < 6) {
-      setError("Password minimal 6 karakter.")
+      setError("Kata sandi minimal 6 karakter.")
       return
     }
 
@@ -40,7 +41,11 @@ export default function RegisterPage() {
         router.push("/login")
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || "Gagal membuat akun."
+      const msg =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        err.message ||
+        "Gagal membuat akun."
       setError(msg)
     } finally {
       setLoading(false)
@@ -131,7 +136,16 @@ export default function RegisterPage() {
           {error && (
             <div className="mb-5 p-3.5 rounded-xl text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1 flex-shrink-0" />
-              <span>{error}</span>
+              <div className="flex-1">
+                <span>{error}</span>
+                {error.toLowerCase().includes("sudah terdaftar") && (
+                  <div className="mt-1 font-bold">
+                    <Link href="/login" className="text-blue-600 hover:underline">
+                      Klik di sini untuk langsung masuk →
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -202,13 +216,20 @@ export default function RegisterPage() {
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   placeholder="Minimal 6 karakter"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-xs"
+                  className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-xs"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
