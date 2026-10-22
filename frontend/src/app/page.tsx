@@ -25,8 +25,8 @@ export default function HomeLauncher() {
   const apps = [
     { 
       title: "Penjualan", 
-      desc: "Overview & Tagihan", 
-      url: "/sales/overview", 
+      desc: "Transaksi & Tagihan", 
+      url: "/sales", 
       icon: <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10" />, 
       color: "from-blue-400 to-blue-600",
       shadow: "shadow-blue-500/30"
