@@ -1,4 +1,4 @@
-﻿import type { Metadata } from"next";
+import type { Metadata } from"next";
 import { Inter } from"next/font/google";
 import"./globals.css";
 import { ThemeProvider } from"@/components/theme-provider";
@@ -12,6 +12,16 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
  title:"TATALORA",
  description:"Enterprise SaaS ERP",
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/logo.png', type: 'image/png' }
+    ],
+    apple: [
+      { url: '/logo.png' }
+    ]
+  },
 };
 
 export default function RootLayout({

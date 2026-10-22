@@ -8,6 +8,7 @@ import { CrmService } from './crm.service';
 import { CrmController } from './crm.controller';
 import { InventoryModule } from '../inventory/inventory.module';
 import { CustomerService } from './customer.service';
+import { PublicConsultationController, AdminConsultationController } from './consultation.controller';
 
 @Module({
   imports: [
@@ -20,6 +21,8 @@ import { CustomerService } from './customer.service';
     CustomerController,
     VoucherController,
     CrmController,
+    PublicConsultationController,
+    AdminConsultationController,
   ],
   providers: [CrmService, CustomerService],
   exports: [CrmService, CustomerService],

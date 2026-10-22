@@ -3983,3 +3983,19 @@ model InvoiceExchangeItem {
 
   @@map("InvoiceExchangeItem")
 }
+
+model ConsultationLead {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  phone         String
+  company_name  String
+  position      String
+  industry      String
+  budget        String
+  notes         String?
+  status        String   @default("NEW") // NEW, CONTACTED, QUALIFIED, CONVERTED, ARCHIVED
+  source        String   @default("WEBSITE")
+  ip_address    String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}

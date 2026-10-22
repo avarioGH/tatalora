@@ -446,3 +446,9 @@ export const PaymentAPI = {
     (await api.get('/communication/payments/' + paymentId + '/history')).data,
 };
 
+export const ConsultationAPI: any = {
+  getAll: async () => (await api.get('/admin/consultations')).data,
+  getStats: async () => (await api.get('/admin/consultations/stats')).data,
+  updateStatus: async (id: string, status: string) => (await api.patch('/admin/consultations/' + id + '/status', { status })).data,
+};
+

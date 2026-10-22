@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -62,12 +62,12 @@ const items: MenuItem[] = [
  { title: "Akun", url: "/finance/gl", icon: FileText, id: "accounting" },
  { title: "Aset Tetap", url: "/assets", icon: Building, id: "assets" },
  { title: "Kontak", url: "/crm/partners", icon: Users, id: "contacts" },
- { title: "Payroll", url: "/hr/payroll", icon: BadgeDollarSign, id: "payroll", badge: "â˜…" },
- { title: "CRM", url: "/crm", icon: HeartHandshake, id: "crm", badge: "â˜…" },
- { title: "POS", url: "/pos/new-transaction", icon: MonitorSmartphone, id: "pos", badge: "â˜…" },
- { title: "Distribusi", url: "/distribution", icon: Truck, id: "distribution", badge: "â˜…" },
- { title: "Marketplace", url: "/marketplace", icon: Store, id: "marketplace", badge: "â˜…" },
- { title: "Membership", url: "/membership", icon: Star, id: "membership", badge: "â˜…" },
+ { title: "Payroll", url: "/hr/payroll", icon: BadgeDollarSign, id: "payroll", badge: "★" },
+ { title: "CRM", url: "/crm", icon: HeartHandshake, id: "crm", badge: "★" },
+ { title: "POS", url: "/pos/new-transaction", icon: MonitorSmartphone, id: "pos", badge: "★" },
+ { title: "Distribusi", url: "/distribution", icon: Truck, id: "distribution", badge: "★" },
+ { title: "Marketplace", url: "/marketplace", icon: Store, id: "marketplace", badge: "★" },
+ { title: "Membership", url: "/membership", icon: Star, id: "membership", badge: "★" },
 ]
 
 const settings: MenuItem[] = [
@@ -98,9 +98,7 @@ export function SaasSidebar() {
  return (
    <Sidebar className="border-r border-sidebar-border bg-sidebar h-full">
      <SidebarHeader className="p-4 flex flex-row items-center gap-3 border-b border-sidebar-border/50">
-       <div className="h-9 w-9 bg-primary rounded-xl flex items-center justify-center text-sidebar-primary-foreground shadow-sm">
-         <Hexagon className="h-5 w-5" />
-       </div>
+       <img src="/logo.png" alt="TATALORA" className="h-8 w-8 rounded-lg object-contain shadow-xs" />
        <span className="font-bold text-lg tracking-tight text-sidebar-foreground">TATALORA</span>
      </SidebarHeader>
      
