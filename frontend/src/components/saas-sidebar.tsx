@@ -59,7 +59,7 @@ const items: MenuItem[] = [
  { title: "Inventori", url: "/inventory/stock", icon: Database, id: "inventory", subItems: [{ title: "Daftar Stok", url: "/inventory/stock" }, { title: "Input Stok Masuk", url: "/inventory/inflow" }, { title: "Pemusnahan Stok", url: "/inventory/disposals" }] },
  { title: "Laporan", url: "/reports", icon: BarChart3, id: "reports" },
  { title: "Kas & Bank", url: "/finance/cash", icon: Wallet, id: "cash" },
- { title: "Akun", url: "/finance/gl", icon: FileText, id: "accounting" },
+ { title: "Buku Besar (GL)", url: "/finance/gl", icon: FileText, id: "accounting" },
  { title: "Aset Tetap", url: "/assets", icon: Building, id: "assets" },
  { title: "Kontak", url: "/crm/partners", icon: Users, id: "contacts" },
  { title: "Payroll", url: "/hr/payroll", icon: BadgeDollarSign, id: "payroll", badge: "★" },

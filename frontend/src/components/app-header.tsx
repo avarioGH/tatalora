@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-import { Bell, Search, ChevronDown, MapPin, Check, Command } from "lucide-react"
+import { Bell, Search, ChevronDown, MapPin, Check, Command, User, Settings, LogOut } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ThemeToggle } from "./theme-toggle"
 import { 
@@ -205,16 +205,38 @@ export function AppHeader() {
   </button>
 )}
  <Separator orientation="vertical" className="hidden md:block h-5 bg-sidebar-border mx-1" />
- <div className="flex items-center gap-3 cursor-pointer group hover:bg-sidebar-accent py-1 px-2 rounded-md transition-colors">
- <Avatar className="h-8 w-8 border border-border shadow-sm">
- <AvatarImage src="https://github.com/shadcn.png" />
- <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">US</AvatarFallback>
- </Avatar>
- <div className="hidden md:flex flex-col items-start justify-center">
- <span className="text-[13px] font-semibold text-sidebar-foreground group-hover:text-sidebar-primary transition-colors leading-tight">{user?.name || "Administrator"}</span>
- <span className="text-[11px] text-sidebar-foreground/70 font-medium leading-tight">{user?.role || "Owner"}</span>
- </div>
- </div>
+ <DropdownMenu>
+    <DropdownMenuTrigger className="flex items-center gap-3 cursor-pointer group hover:bg-sidebar-accent py-1 px-2 rounded-md transition-colors outline-none">
+      <Avatar className="h-8 w-8 border border-border shadow-xs">
+        <AvatarImage src="https://github.com/shadcn.png" />
+        <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">US</AvatarFallback>
+      </Avatar>
+      <div className="hidden md:flex flex-col items-start justify-center">
+        <span className="text-[13px] font-semibold text-sidebar-foreground group-hover:text-sidebar-primary transition-colors leading-tight">{user?.name || "Administrator"}</span>
+        <span className="text-[11px] text-sidebar-foreground/70 font-medium leading-tight">{user?.role || "Owner"}</span>
+      </div>
+      <ChevronDown className="w-3.5 h-3.5 text-sidebar-foreground/60 hidden md:block ml-0.5" />
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="end" className="w-56 p-1 mt-1 shadow-md">
+      <div className="px-3 py-2 border-b border-border/50">
+        <p className="text-xs font-bold text-foreground leading-none truncate">{user?.name || "Administrator"}</p>
+        <p className="text-[11px] text-muted-foreground mt-1 truncate">{user?.email || "admin@tatalora.com"}</p>
+      </div>
+      <DropdownMenuItem onClick={() => router.push('/settings/account')} className="cursor-pointer gap-2 py-2 text-xs">
+        <User className="w-4 h-4 text-blue-600" />
+        <span>Profil & Akun</span>
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer gap-2 py-2 text-xs">
+        <Settings className="w-4 h-4 text-slate-600" />
+        <span>Pusat Pengaturan</span>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator className="my-1" />
+      <DropdownMenuItem onClick={() => { localStorage.removeItem('erp_token'); localStorage.removeItem('erp_user'); window.location.href = '/login'; }} className="cursor-pointer gap-2 py-2 text-xs text-destructive focus:text-destructive focus:bg-destructive/10">
+        <LogOut className="w-4 h-4" />
+        <span>Keluar (Logout)</span>
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
  </div>
  </header>
  )
