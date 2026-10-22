@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TATALORA — Kelola Bisnis Lebih Mudah. Semua Terintegrasi.</title>
+    <meta name="description" content="Satukan penjualan, persediaan, pembelian, keuangan, dan operasional bisnis dalam satu sistem cloud ERP modern.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#1d4ed8',
+                            600: '#0052FF',
+                            700: '#1d4ed8',
+                        },
+                        surface: {
+                            bg: '#FAFAF9',
+                            card: '#FFFFFF',
+                            muted: '#F4F4F2',
+                            border: '#E8E8E4'
+                        },
+                        ink: {
+                            primary: '#111827',
+                            secondary: '#4B5563',
+                            muted: '#9CA3AF'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FAFAF9;
+            color: #111827;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .nav-blur {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.88);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #E8E8E4;
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04), 0 12px 32px -4px rgba(0, 0, 0, 0.03);
+        }
+        .modal-blur {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            background: rgba(17, 24, 39, 0.45);
+        }
+        .workflow-line {
+            background: linear-gradient(90deg, #E5E7EB 0%, #3B82F6 50%, #E5E7EB 100%);
+        }
+        .tabular {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="selection:bg-blue-100 selection:text-blue-900">
+
+    <!-- Top Floating Navbar -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-200 py-3.5 px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="nav-blur border border-surface-border rounded-full px-5 py-2.5 flex items-center justify-between shadow-sm">
+                <!-- Logo -->
+                <a href="#" class="flex items-center gap-2.5 group">
+                    <img src="logo.png" alt="TATALORA" class="w-8 h-8 rounded-lg object-contain">
+                    <span class="text-xl font-extrabold tracking-tight text-ink-primary">TATALORA</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-ink-secondary">
+                    <a href="#beranda" class="hover:text-blue-600 transition-colors">Beranda</a>
+                    <a href="#fitur" class="hover:text-blue-600 transition-colors">Fitur</a>
+                    <a href="#solusi" class="hover:text-blue-600 transition-colors">Solusi Bisnis</a>
+                    <a href="#harga" class="hover:text-blue-600 transition-colors">Harga</a>
+                    <a href="#testimoni" class="hover:text-blue-600 transition-colors">Testimoni</a>
+                    <a href="#faq" class="hover:text-blue-600 transition-colors">FAQ</a>
+                </nav>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-3">
+                    <button onclick="openConsultationModal()" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200 text-blue-700 bg-blue-50/70 hover:bg-blue-100 text-xs font-semibold transition-all">
+                        <i data-lucide="message-square" class="w-3.5 h-3.5 text-blue-600"></i>
+                        Konsultasi Gratis
+                    </button>
+                    <a href="https://app.tatalora.com/login" class="text-sm font-semibold text-ink-secondary hover:text-ink-primary px-3 py-1.5 transition-colors">
+                        Masuk
+                    </a>
+                    <a href="https://app.tatalora.com/login" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm hover:shadow transition-all">
+                        <span>Coba Gratis</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="beranda" class="pt-32 pb-20 md:pt-40 md:pb-28 px-4 sm:px-6 overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+                
+                <!-- Hero Content Left -->
+                <div class="lg:col-span-5 text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-6">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                        ERP Modern untuk Semua Jenis Bisnis
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-[48px] font-extrabold tracking-tight text-ink-primary leading-[1.15] mb-6">
+                        Kelola Bisnis Lebih Mudah.<br class="hidden sm:inline">
+                        Semua Terintegrasi.
+                    </h1>
+
+                    <p class="text-base sm:text-lg text-ink-secondary leading-relaxed mb-8 max-w-xl">
+                        TATALORA membantu Anda mengelola penjualan, pembelian, persediaan, keuangan, dan operasional bisnis dalam satu sistem yang terhubung. Fokus pada pertumbuhan bisnis, bukan pekerjaan manual.
+                    </p>
+
+                    <!-- CTAs -->
+                    <div class="flex flex-wrap items-center gap-3.5 mb-10">
+                        <button onclick="openConsultationModal()" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all">
+                            <span>Coba Gratis Sekarang</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                        <a href="#fitur" class="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-white hover:bg-neutral-50 text-ink-primary border border-surface-border font-semibold text-sm transition-all shadow-sm">
+                            <i data-lucide="play-circle" class="w-4 h-4 text-blue-600"></i>
+                            <span>Lihat Demo</span>
+                        </a>
+                    </div>
+
+                    <!-- Trust indicators -->
+                    <div class="flex flex-wrap items-center gap-6 pt-6 border-t border-surface-border text-xs font-medium text-ink-secondary">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-blue-600 stroke-[2.5]"></i>
+                            <span>Mudah digunakan</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-blue-600 stroke-[2.5]"></i>
+                            <span>Data real-time</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-blue-600 stroke-[2.5]"></i>
+                            <span>Dukungan tim Indonesia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Graphic Right: Believable ERP Dashboard Mockup -->
+                <div class="lg:col-span-7 relative">
+                    <div class="relative mx-auto max-w-2xl lg:max-w-none">
+                        
+                        <!-- Desktop ERP Mockup Window -->
+                        <div class="glass-panel rounded-2xl p-4 sm:p-5 bg-white shadow-xl relative z-10 border border-neutral-200/80">
+                            <!-- Window Top Bar -->
+                            <div class="flex items-center justify-between pb-4 mb-4 border-b border-neutral-100">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-rose-400"></div>
+                                    <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                                    <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                                    <span class="ml-2 text-xs font-semibold text-ink-muted">app.tatalora.com</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="text-[11px] font-medium text-neutral-500 bg-neutral-100 px-2.5 py-1 rounded-md">PT Maju Bersama</div>
+                                    <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">MB</div>
+                                </div>
+                            </div>
+
+                            <!-- ERP Dashboard Grid Inside -->
+                            <div class="grid grid-cols-12 gap-4">
+                                <!-- Sidebar Mini -->
+                                <div class="col-span-3 hidden sm:block pr-3 border-r border-neutral-100 space-y-1">
+                                    <div class="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold">
+                                        <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
+                                        <span>Dashboard</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-ink-secondary text-xs hover:bg-neutral-50">
+                                        <i data-lucide="trending-up" class="w-3.5 h-3.5 text-neutral-400"></i>
+                                        <span>Penjualan</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-ink-secondary text-xs hover:bg-neutral-50">
+                                        <i data-lucide="shopping-cart" class="w-3.5 h-3.5 text-neutral-400"></i>
+                                        <span>Pembelian</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-ink-secondary text-xs hover:bg-neutral-50">
+                                        <i data-lucide="box" class="w-3.5 h-3.5 text-neutral-400"></i>
+                                        <span>Persediaan</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-ink-secondary text-xs hover:bg-neutral-50">
+                                        <i data-lucide="wallet" class="w-3.5 h-3.5 text-neutral-400"></i>
+                                        <span>Keuangan</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 px-2.5 py-2 rounded-lg text-ink-secondary text-xs hover:bg-neutral-50">
+                                        <i data-lucide="factory" class="w-3.5 h-3.5 text-neutral-400"></i>
+                                        <span>Produksi</span>
+                                    </div>
+                                </div>
+
+                                <!-- Main Body -->
+                                <div class="col-span-12 sm:col-span-9 space-y-4">
+                                    <!-- Header Dashboard -->
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h3 class="text-sm font-bold text-ink-primary">Ringkasan Operasional</h3>
+                                            <p class="text-[11px] text-ink-muted">Update otomatis • Real-time</p>
+                                        </div>
+                                        <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            Sistem Sinkron
+                                        </span>
+                                    </div>
+
+                                    <!-- 3 Metric Cards -->
+                                    <div class="grid grid-cols-3 gap-2.5">
+                                        <div class="bg-neutral-50/80 p-2.5 rounded-xl border border-neutral-100">
+                                            <p class="text-[10px] text-ink-muted">Total Penjualan</p>
+                                            <p class="text-xs sm:text-sm font-bold text-ink-primary tabular mt-0.5">Rp 1.250.000.000</p>
+                                            <p class="text-[9px] text-emerald-600 font-medium mt-1 flex items-center gap-0.5">
+                                                <i data-lucide="arrow-up-right" class="w-2.5 h-2.5"></i> +12% bln ini
+                                            </p>
+                                        </div>
+                                        <div class="bg-neutral-50/80 p-2.5 rounded-xl border border-neutral-100">
+                                            <p class="text-[10px] text-ink-muted">Total Pembelian</p>
+                                            <p class="text-xs sm:text-sm font-bold text-ink-primary tabular mt-0.5">Rp 780.000.000</p>
+                                            <p class="text-[9px] text-blue-600 font-medium mt-1 flex items-center gap-0.5">
+                                                <i data-lucide="check" class="w-2.5 h-2.5"></i> 14 PO Selesai
+                                            </p>
+                                        </div>
+                                        <div class="bg-neutral-50/80 p-2.5 rounded-xl border border-neutral-100">
+                                            <p class="text-[10px] text-ink-muted">Laba Bersih</p>
+                                            <p class="text-xs sm:text-sm font-bold text-emerald-600 tabular mt-0.5">Rp 320.000.000</p>
+                                            <p class="text-[9px] text-emerald-600 font-medium mt-1 flex items-center gap-0.5">
+                                                <i data-lucide="trending-up" class="w-2.5 h-2.5"></i> Margin 25.6%
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Chart Bar Visual + Table Preview -->
+                                    <div class="bg-white p-3 rounded-xl border border-neutral-100 space-y-2">
+                                        <div class="flex items-center justify-between text-[11px]">
+                                            <span class="font-semibold text-ink-primary">Grafik Tren Penjualan 6 Bulan</span>
+                                            <span class="text-ink-muted text-[10px]">Tahun Berjalan</span>
+                                        </div>
+                                        <div class="flex items-end justify-between h-20 pt-3 px-2 gap-2">
+                                            <div class="flex-1 flex flex-col items-center gap-1.5">
+                                                <div class="w-full bg-blue-100 rounded-t-sm" style="height: 40%"></div>
+                                                <span class="text-[9px] text-neutral-400">Mei</span>
+                                            </div>
+                                            <div class="flex-1 flex flex-col items-center gap-1.5">
+                                                <div class="w-full bg-blue-200 rounded-t-sm" style="height: 55%"></div>
+                                                <span class="text-[9px] text-neutral-400">Jun</span>
+                                            </div>
+                                            <div class="flex-1 flex flex-col items-center gap-1.5">
+                                                <div class="w-full bg-blue-300 rounded-t-sm" style="height: 48%"></div>
+                                                <span class="text-[9px] text-neutral-400">Jul</span>
+                                            </div>
+                                            <div class="flex-1 flex flex-col items-center gap-1.5">
+                                                <div class="w-full bg-blue-400 rounded-t-sm" style="height: 72%"></div>
+                                                <span class="text-[9px] text-neutral-400">Ags</span>
+                                            </div>
+                                            <div class="flex-1 flex flex-col items-center gap-1.5">
+                                                <div class="w-full bg-blue-500 rounded-t-sm" style="height: 85%"></div>
+                                                <span class="text-[9px] text-neutral-400">Sep</span>
+                                            </div>
+                                            <div class="flex-1 flex flex-col items-center gap-1.5">
+                                                <div class="w-full bg-blue-600 rounded-t-sm" style="height: 100%"></div>
+                                                <span class="text-[9px] font-bold text-blue-600">Okt</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Recent Transactions Row -->
+                                    <div class="border border-neutral-100 rounded-xl overflow-hidden text-[11px]">
+                                        <div class="bg-neutral-50 px-3 py-1.5 font-semibold text-neutral-600 flex justify-between">
+                                            <span>Transaksi Terakhir</span>
+                                            <span class="text-[10px] text-blue-600 hover:underline">Semua</span>
+                                        </div>
+                                        <div class="divide-y divide-neutral-100 bg-white">
+                                            <div class="px-3 py-2 flex items-center justify-between">
+                                                <div>
+                                                    <span class="font-medium text-ink-primary">INV-2026-0812</span>
+                                                    <span class="text-neutral-400 mx-1">•</span>
+                                                    <span class="text-neutral-500">PT Sentosa Abadi</span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold text-ink-primary tabular">Rp 25.500.000</span>
+                                                    <span class="bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded text-[10px]">Lunas</span>
+                                                </div>
+                                            </div>
+                                            <div class="px-3 py-2 flex items-center justify-between">
+                                                <div>
+                                                    <span class="font-medium text-ink-primary">INV-2026-0811</span>
+                                                    <span class="text-neutral-400 mx-1">•</span>
+                                                    <span class="text-neutral-500">CV Sinar Makmur</span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold text-ink-primary tabular">Rp 18.000.000</span>
+                                                    <span class="bg-amber-50 text-amber-700 font-semibold px-2 py-0.5 rounded text-[10px]">Sebagian</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Floating Mobile Preview Badge -->
+                        <div class="absolute -bottom-6 -left-4 sm:-bottom-8 sm:-left-8 z-20 bg-white border border-neutral-200/90 rounded-2xl p-3 shadow-xl max-w-[210px] hidden sm:block">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="smartphone" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold text-ink-primary">Mobile Friendly</p>
+                                    <p class="text-[10px] text-ink-muted">Pantau bisnis di mana saja</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Industry Ribbon -->
+    <section class="py-10 border-y border-surface-border bg-white/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <p class="text-center text-xs font-bold uppercase tracking-wider text-ink-muted mb-6">
+                Dirancang untuk Berbagai Kebutuhan Bisnis Indonesia
+            </p>
+            <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-ink-secondary text-sm font-semibold">
+                <div class="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                    <i data-lucide="factory" class="w-4 h-4 text-neutral-400"></i>
+                    <span>Manufaktur</span>
+                </div>
+                <div class="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                    <i data-lucide="truck" class="w-4 h-4 text-neutral-400"></i>
+                    <span>Distribusi</span>
+                </div>
+                <div class="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                    <i data-lucide="store" class="w-4 h-4 text-neutral-400"></i>
+                    <span>Retail</span>
+                </div>
+                <div class="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                    <i data-lucide="trees" class="w-4 h-4 text-neutral-400"></i>
+                    <span>Perkayuan</span>
+                </div>
+                <div class="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                    <i data-lucide="fish" class="w-4 h-4 text-neutral-400"></i>
+                    <span>Perikanan</span>
+                </div>
+                <div class="flex items-center gap-2 hover:text-blue-600 transition-colors">
+                    <i data-lucide="briefcase" class="w-4 h-4 text-neutral-400"></i>
+                    <span>Jasa & Trading</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features Section -->
+    <section id="fitur" class="py-20 md:py-28 px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-left max-w-2xl mb-16">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
+                    FITUR LENGKAP
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4 leading-tight">
+                    Semua yang Dibutuhkan untuk Mengelola Bisnis Anda
+                </h2>
+                <p class="text-base text-ink-secondary leading-relaxed">
+                    Dari penawaran hingga laporan keuangan akhir tahun, seluruh alur bisnis berjalan otomatis tanpa data terpisah.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- 1. Penjualan & Invoice -->
+                <div class="glass-panel rounded-2xl p-6 hover:border-blue-300 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ink-primary mb-2">Penjualan & Invoice</h3>
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                        Kelola alur quotation, sales order, surat jalan, hingga penagihan invoice otomatis lengkap dengan pengingat jatuh tempo.
+                    </p>
+                    <div class="pt-3 border-t border-neutral-100 text-xs font-semibold text-blue-600 flex items-center gap-1">
+                        <span>Invoice otomatis & POS kasir</span>
+                    </div>
+                </div>
+
+                <!-- 2. Pembelian & Supplier -->
+                <div class="glass-panel rounded-2xl p-6 hover:border-blue-300 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ink-primary mb-2">Pembelian & Supplier</h3>
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                        Buat purchase order terstruktur, kontrol penerimaan barang (receiving note), dan lacak tagihan utang supplier secara tepat waktu.
+                    </p>
+                    <div class="pt-3 border-t border-neutral-100 text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                        <span>Kontrol tagihan & PO berjenjang</span>
+                    </div>
+                </div>
+
+                <!-- 3. Persediaan & Gudang -->
+                <div class="glass-panel rounded-2xl p-6 hover:border-blue-300 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-5 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <i data-lucide="box" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ink-primary mb-2">Persediaan & Gudang</h3>
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                        Multi-gudang, nomor batch/lot, stock opname akurat, mutasi antar cabang, serta peringatan otomatis stok minimum.
+                    </p>
+                    <div class="pt-3 border-t border-neutral-100 text-xs font-semibold text-indigo-600 flex items-center gap-1">
+                        <span>Multi-gudang & barcode tracking</span>
+                    </div>
+                </div>
+
+                <!-- 4. Keuangan & Akuntansi -->
+                <div class="glass-panel rounded-2xl p-6 hover:border-blue-300 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-5 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                        <i data-lucide="wallet" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ink-primary mb-2">Keuangan & Akuntansi</h3>
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                        Jurnal otomatis dari setiap transaksi transaksi riil, rekonsiliasi bank, buku besar, neraca, serta laba rugi real-time.
+                    </p>
+                    <div class="pt-3 border-t border-neutral-100 text-xs font-semibold text-amber-600 flex items-center gap-1">
+                        <span>Laporan keuangan standar PSAK</span>
+                    </div>
+                </div>
+
+                <!-- 5. Produksi & Operasional -->
+                <div class="glass-panel rounded-2xl p-6 hover:border-blue-300 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-5 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                        <i data-lucide="factory" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ink-primary mb-2">Produksi & Operasional</h3>
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                        Bill of Materials (BOM), work order bertahap, perhitungan rendemen material, dan pelacakan biaya pokok produksi (HPP).
+                    </p>
+                    <div class="pt-3 border-t border-neutral-100 text-xs font-semibold text-rose-600 flex items-center gap-1">
+                        <span>Sawmill & proses produksi bertahap</span>
+                    </div>
+                </div>
+
+                <!-- 6. Laporan & Analitik Bisnis -->
+                <div class="glass-panel rounded-2xl p-6 hover:border-blue-300 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-5 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-ink-primary mb-2">Laporan & Analitik</h3>
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                        Visualisasi metrik KPI perusahaan, laporan performa penjualan per salesman, omset per outlet, dan cash flow forecast.
+                    </p>
+                    <div class="pt-3 border-t border-neutral-100 text-xs font-semibold text-cyan-600 flex items-center gap-1">
+                        <span>Export Excel & PDF sekali klik</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Integrated Business Workflow Section -->
+    <section class="py-20 bg-white border-y border-surface-border px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div class="lg:col-span-5 text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
+                        ALUR BISNIS TERINTEGRASI
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4 leading-tight">
+                        Data Terhubung, Proses Lebih Efisien
+                    </h2>
+                    <p class="text-base text-ink-secondary leading-relaxed mb-6">
+                        Setiap departemen bekerja dalam satu platform terpusat. Ketika barang diterima gudang, persediaan langsung bertambah, utang tercatat di keuangan, dan laporan ter-update secara serentak.
+                    </p>
+                    <ul class="space-y-3 text-sm font-medium text-ink-secondary">
+                        <li class="flex items-center gap-2.5">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600"></i>
+                            <span>Menghilangkan duplikasi entri data antar divisi</span>
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600"></i>
+                            <span>Mengurangi selisih stok fisik dan sistem</span>
+                        </li>
+                        <li class="flex items-center gap-2.5">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-600"></i>
+                            <span>Audit trail lengkap untuk setiap mutasi transaksi</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Workflow diagram visualization -->
+                <div class="lg:col-span-7 bg-surface-bg p-6 sm:p-8 rounded-2xl border border-surface-border">
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center mb-6">
+                        <div class="bg-white p-3.5 rounded-xl border border-surface-border shadow-xs">
+                            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-2">
+                                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xs font-bold text-ink-primary block">Pembelian</span>
+                            <span class="text-[10px] text-ink-muted">PO & Vendor</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-surface-border shadow-xs">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-2">
+                                <i data-lucide="package" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xs font-bold text-ink-primary block">Persediaan</span>
+                            <span class="text-[10px] text-ink-muted">Gudang & Batch</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-surface-border shadow-xs">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2">
+                                <i data-lucide="receipt" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xs font-bold text-ink-primary block">Penjualan</span>
+                            <span class="text-[10px] text-ink-muted">SO & Invoice</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-xl border border-surface-border shadow-xs">
+                            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-2">
+                                <i data-lucide="landmark" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xs font-bold text-ink-primary block">Keuangan</span>
+                            <span class="text-[10px] text-ink-muted">Kas & Jurnal</span>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1 bg-white p-3.5 rounded-xl border border-surface-border shadow-xs">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto mb-2">
+                                <i data-lucide="pie-chart" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xs font-bold text-ink-primary block">Laporan</span>
+                            <span class="text-[10px] text-ink-muted">Laba & Neraca</span>
+                        </div>
+                    </div>
+
+                    <!-- Database Hub Connection -->
+                    <div class="bg-blue-600 text-white p-4 rounded-xl flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-blue-500/80 flex items-center justify-center">
+                                <i data-lucide="database" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold">Database Terpadu TATALORA</p>
+                                <p class="text-[11px] text-blue-100">Satu sumber kebenaran (Single Source of Truth) untuk seluruh operasional</p>
+                            </div>
+                        </div>
+                        <span class="hidden sm:inline-block text-[11px] font-semibold bg-white/20 px-2.5 py-1 rounded-md">100% Cloud</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Solutions for Different Industries Section -->
+    <section id="solusi" class="py-20 md:py-28 px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-left max-w-2xl mb-14">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
+                    UNTUK BERBAGAI JENIS BISNIS
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4 leading-tight">
+                    Cocok untuk Setiap Industri
+                </h2>
+                <p class="text-base text-ink-secondary leading-relaxed">
+                    TATALORA fleksibel dan dapat dikonfigurasi mengikuti alur kerja khas industri Anda.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Industri Kayu -->
+                <div class="glass-panel rounded-2xl overflow-hidden group hover:shadow-md transition-all">
+                    <div class="h-44 bg-gradient-to-br from-amber-800 to-amber-950 p-6 flex flex-col justify-end text-white relative overflow-hidden">
+                        <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                            Specialized
+                        </div>
+                        <i data-lucide="trees" class="w-8 h-8 mb-2 text-amber-200"></i>
+                        <h3 class="text-xl font-bold">Industri Perkayuan & Sawmill</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                            Sistem khusus pelacakan log kayu, penghitungan volume kubikasi, konversi sawmill, rendemen kayu, serta penomoran bundle siap kirim.
+                        </p>
+                        <ul class="space-y-2 text-xs font-semibold text-ink-primary">
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> Hitung kubikasi log & papan</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> Pantau rendemen sawmill harian</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Industri Perikanan -->
+                <div class="glass-panel rounded-2xl overflow-hidden group hover:shadow-md transition-all">
+                    <div class="h-44 bg-gradient-to-br from-cyan-800 to-blue-950 p-6 flex flex-col justify-end text-white relative overflow-hidden">
+                        <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                            Specialized
+                        </div>
+                        <i data-lucide="fish" class="w-8 h-8 mb-2 text-cyan-200"></i>
+                        <h3 class="text-xl font-bold">Industri Perikanan & Cold Storage</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                            Manajemen penerimaan hasil tangkap kapal, grading ikan, kontrol suhu cold chain, packing frozen, hingga packing list ekspor.
+                        </p>
+                        <ul class="space-y-2 text-xs font-semibold text-ink-primary">
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> Sortir grading & susut bobot</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> Kontrol persediaan cold storage</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Retail & Distribusi -->
+                <div class="glass-panel rounded-2xl overflow-hidden group hover:shadow-md transition-all">
+                    <div class="h-44 bg-gradient-to-br from-indigo-800 to-slate-900 p-6 flex flex-col justify-end text-white relative overflow-hidden">
+                        <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                            Multi-Store
+                        </div>
+                        <i data-lucide="store" class="w-8 h-8 mb-2 text-indigo-200"></i>
+                        <h3 class="text-xl font-bold">Retail, Grosir & Distribusi</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-ink-secondary leading-relaxed mb-4">
+                            Kasir POS responsif untuk toko fisik, sinkronisasi stok antar cabang, harga bertingkat untuk grosir, serta penagihan sales canvaser.
+                        </p>
+                        <ul class="space-y-2 text-xs font-semibold text-ink-primary">
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> Multi-cabang & kasir offline/online</li>
+                            <li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-blue-600"></i> Skema harga grosir & diskon partner</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="harga" class="py-20 md:py-28 bg-white border-y border-surface-border px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
+                    HARGA TRANSPARAN
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4">
+                    Pilih Paket yang Sesuai dengan Kebutuhan Anda
+                </h2>
+                <p class="text-base text-ink-secondary leading-relaxed mb-8">
+                    Mulai dari bisnis berkembang hingga skala enterprise, TATALORA siap mendukung pertumbuhan perusahaan Anda.
+                </p>
+
+                <!-- Billing Toggle -->
+                <div class="inline-flex items-center p-1 bg-surface-muted rounded-full border border-surface-border">
+                    <button id="btnMonthly" onclick="setBilling('monthly')" class="px-5 py-2 rounded-full text-xs font-bold bg-white text-ink-primary shadow-xs transition-all">
+                        Bulanan
+                    </button>
+                    <button id="btnAnnual" onclick="setBilling('annual')" class="px-5 py-2 rounded-full text-xs font-bold text-ink-secondary hover:text-ink-primary transition-all flex items-center gap-1.5">
+                        <span>Tahunan</span>
+                        <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Hemat 20%</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3 Pricing Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
+                
+                <!-- Starter -->
+                <div class="glass-panel rounded-2xl p-7 flex flex-col justify-between border border-surface-border">
+                    <div>
+                        <h3 class="text-xl font-bold text-ink-primary mb-1">Starter</h3>
+                        <p class="text-xs text-ink-secondary mb-6">Cocok untuk bisnis kecil & berkembang yang butuh kontrol rapi.</p>
+                        
+                        <div class="mb-6 pb-6 border-b border-surface-border">
+                            <span class="text-3xl sm:text-4xl font-extrabold text-ink-primary tabular price-starter">Rp 299.000</span>
+                            <span class="text-xs font-semibold text-ink-muted">/ bulan</span>
+                        </div>
+
+                        <ul class="space-y-3 text-xs font-medium text-ink-secondary mb-8">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Termasuk 2 Pengguna (User)</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Modul Penjualan & Tagihan Invoice</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Modul Pembelian & Supplier</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Inventori 1 Gudang Utama</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Laporan Keuangan Standar</li>
+                        </ul>
+                    </div>
+
+                    <a href="https://app.tatalora.com/login" class="w-full py-3 rounded-xl border border-surface-border hover:bg-neutral-50 text-ink-primary text-xs font-bold text-center transition-all block">
+                        Coba Gratis 14 Hari
+                    </a>
+                </div>
+
+                <!-- Business (Popular) -->
+                <div class="glass-panel rounded-2xl p-7 flex flex-col justify-between border-2 border-blue-600 relative shadow-lg bg-white">
+                    <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                        Paling Populer
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-ink-primary mb-1">Business</h3>
+                        <p class="text-xs text-ink-secondary mb-6">Solusi lengkap untuk operasional multi-cabang & manufaktur.</p>
+                        
+                        <div class="mb-6 pb-6 border-b border-surface-border">
+                            <span class="text-3xl sm:text-4xl font-extrabold text-blue-600 tabular price-business">Rp 599.000</span>
+                            <span class="text-xs font-semibold text-ink-muted">/ bulan</span>
+                        </div>
+
+                        <ul class="space-y-3 text-xs font-medium text-ink-secondary mb-8">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Termasuk 5 Pengguna + Role Khusus</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Semua Fitur Paket Starter</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Multi-Gudang & Barcode Scanner</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Modul Produksi & Work Order (Sawmill/Manufaktur)</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> POS Kasir Kasir Toko & Multi-Shift</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Dukungan Prioritas WhatsApp</li>
+                        </ul>
+                    </div>
+
+                    <button onclick="openConsultationModal()" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold text-center transition-all shadow-sm">
+                        Konsultasi & Coba Paket
+                    </button>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="glass-panel rounded-2xl p-7 flex flex-col justify-between border border-surface-border">
+                    <div>
+                        <h3 class="text-xl font-bold text-ink-primary mb-1">Enterprise</h3>
+                        <p class="text-xs text-ink-secondary mb-6">Kustomisasi mendalam, integrasi API, dan server tersendiri.</p>
+                        
+                        <div class="mb-6 pb-6 border-b border-surface-border">
+                            <span class="text-2xl sm:text-3xl font-extrabold text-ink-primary">Hubungi Kami</span>
+                            <p class="text-[11px] text-ink-muted mt-1">Sesuai skala & kebutuhan implementasi</p>
+                        </div>
+
+                        <ul class="space-y-3 text-xs font-medium text-ink-secondary mb-8">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Pengguna & Cabang Tanpa Batas</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Kustomisasi Modul Khusus Industri</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Akses API Lengkap & Integrasi Custom</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Dedicated Server & SLA 99.9%</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-blue-600"></i> Pendampingan On-site & Training Karyawan</li>
+                        </ul>
+                    </div>
+
+                    <button onclick="openConsultationModal()" class="w-full py-3 rounded-xl border border-surface-border hover:bg-neutral-50 text-ink-primary text-xs font-bold text-center transition-all block">
+                        Hubungi Tim Sales
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimoni" class="py-20 px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-left max-w-2xl mb-12">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
+                    TESTIMONI PENGGUNA
+                </div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4 leading-tight">
+                    Dipercaya oleh Berbagai Bisnis
+                </h2>
+                <p class="text-base text-ink-secondary leading-relaxed">
+                    TATALORA membantu para pemilik usaha dan manajemen bekerja lebih terstruktur dan efisien.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-panel p-6 rounded-2xl border border-surface-border">
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-6">
+                        "Sebelumnya pencatatan kayu log dan sortir papan sering selisih ratusan meter kubik. Sejak pakai TATALORA, rendemen sawmill terlacak real-time dari HP."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs">
+                            AP
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-ink-primary">Andi Pratama</p>
+                            <p class="text-[11px] text-ink-muted">Direktur, Industri Perkayuan Kalteng</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl border border-surface-border">
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-6">
+                        "Implementasi sangat terbantu oleh tim TATALORA. Integrasi antara kasir toko, gudang pusat, dan faktur pajak penjualan sekarang serba otomatis."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-xs">
+                            SW
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-ink-primary">Sari Wijaya</p>
+                            <p class="text-[11px] text-ink-muted">COO, Distribusi Retail Jawa Barat</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl border border-surface-border">
+                    <p class="text-sm text-ink-secondary leading-relaxed mb-6">
+                        "Laporan laba rugi bulanan sekarang selesai dalam hitungan detik setelah tutup buku tanggal 31. Sangat menghemat waktu tim finance kami."
+                    </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-xs">
+                            DK
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-ink-primary">Dedi Kurniawan</p>
+                            <p class="text-[11px] text-ink-muted">Owner, PT Maju Mandiri</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 bg-white border-y border-surface-border px-4 sm:px-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-14">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-4">
+                    PERTANYAAN UMUM
+                </div>
+                <h2 class="text-3xl font-extrabold text-ink-primary tracking-tight mb-3">
+                    Frequently Asked Questions
+                </h2>
+                <p class="text-sm text-ink-secondary">Jawaban atas pertanyaan umum seputar TATALORA ERP.</p>
+            </div>
+
+            <div class="space-y-4">
+                <details class="group glass-panel rounded-xl p-5 border border-surface-border cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-sm text-ink-primary list-none">
+                        <span>Apa itu TATALORA?</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-ink-muted group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <p class="text-xs text-ink-secondary mt-3 leading-relaxed">
+                        TATALORA adalah sistem ERP (Enterprise Resource Planning) berbasis cloud yang mengintegrasikan penjualan, persediaan gudang, pembelian, produksi manufaktur, akuntansi, dan POS retail ke dalam satu dashboard terpadu.
+                    </p>
+                </details>
+
+                <details class="group glass-panel rounded-xl p-5 border border-surface-border cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-sm text-ink-primary list-none">
+                        <span>Apakah tim TATALORA membantu proses migrasi data dari Excel atau sistem lama?</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-ink-muted group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <p class="text-xs text-ink-secondary mt-3 leading-relaxed">
+                        Ya. Tim implementasi kami menyediakan template migrasi data master (pelanggan, supplier, daftar barang, saldo awal piutang & utang) serta mendampingi tim Anda hingga siap go-live.
+                    </p>
+                </details>
+
+                <details class="group glass-panel rounded-xl p-5 border border-surface-border cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-sm text-ink-primary list-none">
+                        <span>Apakah TATALORA bisa diakses dari HP atau tablet?</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-ink-muted group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <p class="text-xs text-ink-secondary mt-3 leading-relaxed">
+                        Ya. Seluruh antarmuka TATALORA dirancang responsive dan dapat diakses dengan mudah melalui browser di laptop, tablet kasir, maupun smartphone tanpa harus menginstal aplikasi tambahan.
+                    </p>
+                </details>
+
+                <details class="group glass-panel rounded-xl p-5 border border-surface-border cursor-pointer">
+                    <summary class="flex justify-between items-center font-bold text-sm text-ink-primary list-none">
+                        <span>Bagaimana dengan keamanan data bisnis saya?</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-ink-muted group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <p class="text-xs text-ink-secondary mt-3 leading-relaxed">
+                        Data disimpan di server cloud berstandar enterprise dengan enkripsi SSL/TLS 256-bit, backup harian otomatis, dan kontrol hak akses pengguna (role-based access control) yang ketat.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom Conversion CTA -->
+    <section class="py-20 md:py-28 px-4 sm:px-6 relative overflow-hidden bg-surface-bg">
+        <div class="max-w-5xl mx-auto">
+            <div class="glass-panel bg-white border border-surface-border rounded-3xl p-8 sm:p-14 text-center shadow-lg relative z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-6">
+                    SIAP MENGEMBANGKAN BISNIS ANDA?
+                </div>
+                
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-ink-primary tracking-tight mb-4">
+                    Mulai Kelola Bisnis dengan Lebih Terarah.
+                </h2>
+                
+                <p class="text-base text-ink-secondary leading-relaxed max-w-xl mx-auto mb-8">
+                    Satukan seluruh proses bisnis Anda dalam satu sistem dan temukan cara kerja yang lebih terstruktur bersama TATALORA.
+                </p>
+
+                <div class="flex flex-wrap items-center justify-center gap-3.5">
+                    <button onclick="openConsultationModal()" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all">
+                        <span>Konsultasi dengan Tim Kami</span>
+                        <i data-lucide="message-square" class="w-4 h-4"></i>
+                    </button>
+                    <a href="https://app.tatalora.com/login" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white hover:bg-neutral-50 text-ink-primary border border-surface-border font-semibold text-sm shadow-sm transition-all">
+                        <span>Coba Gratis Sekarang</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-surface-border py-12 px-4 sm:px-6 text-ink-secondary text-xs">
+        <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+            <div class="col-span-2">
+                <div class="flex items-center gap-2.5 mb-3">
+                    <img src="logo.png" alt="TATALORA" class="w-7 h-7 rounded-lg object-contain">
+                    <span class="text-lg font-extrabold text-ink-primary">TATALORA</span>
+                </div>
+                <p class="text-xs text-ink-muted leading-relaxed max-w-sm mb-4">
+                    Sistem ERP dan manajemen bisnis terpadu untuk percepatan bisnis modern Indonesia.
+                </p>
+                <p class="text-xs text-ink-muted">WhatsApp: +62 877-8587-6197</p>
+                <p class="text-xs text-ink-muted">Email: info@tatalora.com</p>
+            </div>
+
+            <div>
+                <p class="font-bold text-ink-primary mb-3 text-xs">Modul Produk</p>
+                <ul class="space-y-2 text-ink-muted">
+                    <li><a href="#fitur" class="hover:text-blue-600">Penjualan & SO</a></li>
+                    <li><a href="#fitur" class="hover:text-blue-600">Pembelian & PO</a></li>
+                    <li><a href="#fitur" class="hover:text-blue-600">Persediaan Gudang</a></li>
+                    <li><a href="#fitur" class="hover:text-blue-600">Keuangan & Kas</a></li>
+                    <li><a href="#fitur" class="hover:text-blue-600">POS Retail</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-ink-primary mb-3 text-xs">Solusi Industri</p>
+                <ul class="space-y-2 text-ink-muted">
+                    <li><a href="#solusi" class="hover:text-blue-600">Perkayuan & Sawmill</a></li>
+                    <li><a href="#solusi" class="hover:text-blue-600">Perikanan & Cold Chain</a></li>
+                    <li><a href="#solusi" class="hover:text-blue-600">Manufaktur Umum</a></li>
+                    <li><a href="#solusi" class="hover:text-blue-600">Distribusi & Retail</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-ink-primary mb-3 text-xs">Perusahaan</p>
+                <ul class="space-y-2 text-ink-muted">
+                    <li><a href="#harga" class="hover:text-blue-600">Daftar Harga</a></li>
+                    <li><a href="#testimoni" class="hover:text-blue-600">Cerita Pengguna</a></li>
+                    <li><a href="https://app.tatalora.com/login" class="hover:text-blue-600">Portal Login ERP</a></li>
+                    <li><button onclick="openConsultationModal()" class="hover:text-blue-600 text-left">Jadwalkan Konsultasi</button></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto pt-6 border-t border-surface-border flex flex-col sm:flex-row items-center justify-between text-[11px] text-ink-muted gap-4">
+            <p>© 2026 TATALORA by Avario. Seluruh hak cipta dilindungi undang-undang.</p>
+            <div class="flex gap-6">
+                <a href="#" class="hover:underline">Kebijakan Privasi</a>
+                <a href="#" class="hover:underline">Syarat & Ketentuan</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Consultation Modal (Popup) -->
+    <div id="consultationModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-blur overflow-y-auto">
+        <div class="glass-panel bg-white w-full max-w-lg rounded-2xl p-6 sm:p-8 shadow-2xl relative border border-neutral-200 my-8">
+            
+            <!-- Close Button -->
+            <button onclick="closeConsultationModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-neutral-700 transition-colors p-1">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Modal Header -->
+            <div class="mb-6">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-bold mb-2">
+                    <i data-lucide="sparkles" class="w-3 h-3"></i>
+                    Konsultasi Gratis
+                </div>
+                <h3 class="text-xl font-bold text-ink-primary">Jadwalkan Konsultasi Sistem</h3>
+                <p class="text-xs text-ink-secondary mt-1">Ceritakan kebutuhan bisnis Anda. Tim konsultan kami akan menyiapkan demo yang relevan.</p>
+            </div>
+
+            <!-- Consultation Form -->
+            <form id="consultationForm" onsubmit="handleConsultationSubmit(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-primary mb-1">Nama Lengkap *</label>
+                        <input type="text" id="c_name" required placeholder="Contoh: Budi Santoso" class="w-full px-3 py-2 rounded-xl border border-surface-border text-xs focus:outline-none focus:border-blue-500 bg-neutral-50/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-primary mb-1">Nomor WhatsApp *</label>
+                        <input type="tel" id="c_phone" required placeholder="08xxxxxxxxxx" class="w-full px-3 py-2 rounded-xl border border-surface-border text-xs focus:outline-none focus:border-blue-500 bg-neutral-50/50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-primary mb-1">Nama Perusahaan / Bisnis *</label>
+                        <input type="text" id="c_company" required placeholder="PT / CV / Toko Anda" class="w-full px-3 py-2 rounded-xl border border-surface-border text-xs focus:outline-none focus:border-blue-500 bg-neutral-50/50">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-primary mb-1">Jabatan Anda *</label>
+                        <select id="c_position" required class="w-full px-3 py-2 rounded-xl border border-surface-border text-xs focus:outline-none focus:border-blue-500 bg-neutral-50/50">
+                            <option value="">Pilih Jabatan</option>
+                            <option value="Owner / Pemilik">Owner / Pemilik</option>
+                            <option value="Direktur / C-Level">Direktur / C-Level</option>
+                            <option value="Manager Operasional / IT">Manager Operasional / IT</option>
+                            <option value="Finance & Accounting">Finance & Accounting</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-primary mb-1">Bidang Usaha *</label>
+                        <select id="c_industry" required class="w-full px-3 py-2 rounded-xl border border-surface-border text-xs focus:outline-none focus:border-blue-500 bg-neutral-50/50">
+                            <option value="">Pilih Bidang</option>
+                            <option value="Perkayuan & Sawmill">Perkayuan & Sawmill</option>
+                            <option value="Perikanan & Cold Storage">Perikanan & Cold Storage</option>
+                            <option value="Manufaktur & Pabrikasi">Manufaktur & Pabrikasi</option>
+                            <option value="Retail & Toko Multi-Cabang">Retail & Toko Multi-Cabang</option>
+                            <option value="Distributor & Grosir">Distributor & Grosir</option>
+                            <option value="Jasa & Proyek">Jasa & Proyek</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-ink-primary mb-1">Estimasi Budget Implementasi</label>
+                        <select id="c_budget" class="w-full px-3 py-2 rounded-xl border border-surface-border text-xs focus:outline-none focus:border-blue-500 bg-neutral-50/50">
+                            <option value="Belum Ditentukan">Belum Ditentukan</option>
+                            <option value="< Rp 10 Juta">&lt; Rp 10 Juta</option>
+                            <option value="Rp 10 - 25 Juta">Rp 10 - 25 Juta</option>
+                            <option value="Rp 25 - 50 Juta">Rp 25 - 50 Juta</option>
+                            <option value="> Rp 50 Juta">&gt; Rp 50 Juta</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-ink-primary mb-1">Kendala Operasional Saat Ini (Opsional)</label>
+                    <textarea id="c_notes" rows="2" placeholder="Contoh: Stok sering selisih, pembuatan invoice lambat..." class="w-full px-3 py-2 rounded-xl border border-surface-border text-xs focus:outline-none focus:border-blue-500 bg-neutral-50/50"></textarea>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="btnSubmitConsultation" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all">
+                        <span>Kirim & Buka WhatsApp Konsultasi</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                    <p class="text-[10px] text-center text-ink-muted mt-2">Data Anda aman dan otomatis terhubung langsung ke WhatsApp Konsultan kami.</p>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Init Lucide Icons
+        lucide.createIcons();
+
+        // Modal Handlers
+        function openConsultationModal() {
+            const modal = document.getElementById('consultationModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeConsultationModal() {
+            const modal = document.getElementById('consultationModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close on backdrop click
+        document.getElementById('consultationModal').addEventListener('click', function(e) {
+            if (e.target === this) closeConsultationModal();
+        });
+
+        // Billing Toggle Logic
+        let currentBilling = 'monthly';
+        function setBilling(mode) {
+            currentBilling = mode;
+            const btnM = document.getElementById('btnMonthly');
+            const btnA = document.getElementById('btnAnnual');
+            const priceStarter = document.querySelector('.price-starter');
+            const priceBusiness = document.querySelector('.price-business');
+
+            if (mode === 'monthly') {
+                btnM.className = "px-5 py-2 rounded-full text-xs font-bold bg-white text-ink-primary shadow-xs transition-all";
+                btnA.className = "px-5 py-2 rounded-full text-xs font-bold text-ink-secondary hover:text-ink-primary transition-all flex items-center gap-1.5";
+                priceStarter.textContent = "Rp 299.000";
+                priceBusiness.textContent = "Rp 599.000";
+            } else {
+                btnA.className = "px-5 py-2 rounded-full text-xs font-bold bg-white text-ink-primary shadow-xs transition-all flex items-center gap-1.5";
+                btnM.className = "px-5 py-2 rounded-full text-xs font-bold text-ink-secondary hover:text-ink-primary transition-all";
+                priceStarter.textContent = "Rp 239.000";
+                priceBusiness.textContent = "Rp 479.000";
+            }
+        }
+
+        // Handle Consultation Form Submit
+        async function handleConsultationSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitConsultation');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Menghubungkan...</span>';
+
+            const payload = {
+                name: document.getElementById('c_name').value.trim(),
+                phone: document.getElementById('c_phone').value.trim(),
+                company_name: document.getElementById('c_company').value.trim(),
+                position: document.getElementById('c_position').value,
+                industry: document.getElementById('c_industry').value,
+                budget: document.getElementById('c_budget').value,
+                notes: document.getElementById('c_notes').value.trim()
+            };
+
+            // Send to backend public API
+            try {
+                await fetch('https://api.tatalora.com/public/consultation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                console.warn('API sync warning:', err);
+            }
+
+            // Construct WhatsApp Redirect Message
+            const waNotes = payload.notes ? payload.notes : 'Ingin konsultasi alur sistem ERP';
+            const message = `Halo Tim TATALORA, saya ingin konsultasi mengenai implementasi sistem ERP untuk bisnis saya.%0A%0A📋 *Detail Bisnis & Kebutuhan:*%0A• Nama: ${encodeURIComponent(payload.name)} (${encodeURIComponent(payload.position)})%0A• Perusahaan: ${encodeURIComponent(payload.company_name)}%0A• Bidang Usaha: ${encodeURIComponent(payload.industry)}%0A• Estimasi Budget: ${encodeURIComponent(payload.budget)}%0A• Kebutuhan / Kendala: ${encodeURIComponent(waNotes)}%0A%0AMohon informasi lebih lanjut mengenai jadwal demo dan konsultasinya. Terima kasih!`;
+            
+            const waUrl = `https://wa.me/6287785876197?text=${message}`;
+
+            window.open(waUrl, '_blank');
+
+            btn.disabled = false;
+            btn.innerHTML = '<span>Terkirim! Membuka WhatsApp...</span>';
+
+            setTimeout(() => {
+                closeConsultationModal();
+                document.getElementById('consultationForm').reset();
+                btn.innerHTML = '<span>Kirim & Buka WhatsApp Konsultasi</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+                lucide.createIcons();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
