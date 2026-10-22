@@ -23,7 +23,7 @@ export default function ReportsHubPage() {
       title: "Laporan Pembelian",
       description: "Ringkasan pengadaan barang, performa pemasok, dan utang.",
       icon: <ShoppingCart className="w-8 h-8 text-emerald-500" />,
-      href: "/purchasing/overview", // Or /reports/purchasing
+      href: "/reports/purchasing",
       color: "bg-emerald-50 border-emerald-200"
     },
     {
