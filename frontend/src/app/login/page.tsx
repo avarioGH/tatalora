@@ -49,7 +49,7 @@ export default function LoginPage() {
 
         {/* Top Logo */}
         <div className="relative z-10">
-          <Link href="https://tatalora.com" class="inline-flex items-center gap-3 group">
+          <Link href="https://tatalora.com" className="inline-flex items-center gap-3 group">
             <img 
               src="/logo.png" 
               alt="TATALORA Logo" 
