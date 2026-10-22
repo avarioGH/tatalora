@@ -3999,3 +3999,12 @@ model ConsultationLead {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 }
+
+model PasswordResetToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  email      String
+  token      String   @unique
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+}
