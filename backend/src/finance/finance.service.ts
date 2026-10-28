@@ -622,4 +622,103 @@ export class FinanceService {
 
     return results;
   }
+
+  async transferCash(companyId: string, userId: string, data: {
+    fromAccountId: string;
+    toAccountId: string;
+    amount: number;
+    transactionDate?: Date;
+    description?: string;
+  }) {
+    return this.prisma.$transaction(async (tx) => {
+      const { fromAccountId, toAccountId, amount, description } = data;
+      const transactionDate = data.transactionDate ? new Date(data.transactionDate) : new Date();
+
+      if (fromAccountId === toAccountId) {
+        throw new BadRequestException('Rekening asal dan tujuan tidak boleh sama');
+      }
+
+      if (amount <= 0) {
+        throw new BadRequestException('Nominal transfer harus lebih besar dari 0');
+      }
+
+      const fromAccount = await tx.cashAccount.findFirst({
+        where: { id: fromAccountId, company_id: companyId },
+      });
+      if (!fromAccount) {
+        throw new BadRequestException('Rekening asal tidak ditemukan');
+      }
+
+      const toAccount = await tx.cashAccount.findFirst({
+        where: { id: toAccountId, company_id: companyId },
+      });
+      if (!toAccount) {
+        throw new BadRequestException('Rekening tujuan tidak ditemukan');
+      }
+
+      // 1. Update balances
+      await tx.cashAccount.update({
+        where: { id: fromAccountId },
+        data: { current_balance: { decrement: amount } },
+      });
+
+      await tx.cashAccount.update({
+        where: { id: toAccountId },
+        data: { current_balance: { increment: amount } },
+      });
+
+      // 2. Create outgoing & incoming FinanceTransaction
+      const transferOutNo = `TRF-OUT-${Date.now()}`;
+      const transferInNo = `TRF-IN-${Date.now()}`;
+
+      const outTx = await tx.financeTransaction.create({
+        data: {
+          company_id: companyId,
+          cash_account_id: fromAccountId,
+          transaction_no: transferOutNo,
+          transaction_date: transactionDate,
+          transaction_type: 'Transfer Out',
+          total_amount: amount,
+          description: description || `Transfer dana ke ${toAccount.name}`,
+          status: 'COMPLETED',
+          user_id: userId,
+        },
+      });
+
+      const inTx = await tx.financeTransaction.create({
+        data: {
+          company_id: companyId,
+          cash_account_id: toAccountId,
+          transaction_no: transferInNo,
+          transaction_date: transactionDate,
+          transaction_type: 'Transfer In',
+          total_amount: amount,
+          description: description || `Terima transfer dari ${fromAccount.name}`,
+          status: 'COMPLETED',
+          user_id: userId,
+        },
+      });
+
+      // 3. GL Double Entry if Chart of Accounts are mapped
+      if (fromAccount.chart_of_account_id && toAccount.chart_of_account_id) {
+        await this.glService.createJournalEntryWithinTx(tx as any, {
+          companyId,
+          entryDate: transactionDate,
+          referenceType: 'FINANCE',
+          referenceId: outTx.id,
+          description: `Transfer Dana: ${fromAccount.name} -> ${toAccount.name}`,
+          items: [
+            { accountId: toAccount.chart_of_account_id, debit: amount, credit: 0 },
+            { accountId: fromAccount.chart_of_account_id, debit: 0, credit: amount },
+          ],
+        });
+      }
+
+      return {
+        success: true,
+        transferOut: outTx,
+        transferIn: inTx,
+      };
+    });
+  }
 }

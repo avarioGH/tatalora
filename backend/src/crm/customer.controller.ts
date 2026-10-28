@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -50,13 +50,18 @@ export class CustomerController {
   @Permissions('crm.customer.create')
   @Post()
   async createCustomer(@Request() req, @Body() data: any) {
+    const role = data.type?.toUpperCase() || (Array.isArray(data.roles) && data.roles.length > 0 ? data.roles[0].toUpperCase() : 'CUSTOMER');
     return this.prisma.customer.create({
       data: {
         company_id: req.user.company_id || req.user.companyId,
-        code: data.code || `CUST-${Date.now()}`,
+        code: data.code || `${role === 'VENDOR' || role === 'SUPPLIER' ? 'VEND' : 'CUST'}-${Date.now()}`,
         name: data.name,
         phone: data.phone,
-        email: data.email, address: data.address, warehouse_id: data.warehouse_id || undefined,
+        email: data.email,
+        address: data.address,
+        company_name: data.company_name || data.company,
+        roles: Array.isArray(data.roles) ? data.roles : [role],
+        warehouse_id: data.warehouse_id || undefined,
       },
     });
   }

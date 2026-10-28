@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useEffect, useState } from 'react'
 import { B2BApi } from '@/lib/api'
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Loader2, Plus, Printer, Search, Filter, ChevronLeft, Send, CheckCircle2, FileText, Download, Truck, FileOutput } from 'lucide-react'
+import { Loader2, Plus, Printer, Search, Filter, ChevronLeft, Send, CheckCircle2, FileText, Download, Truck, FileOutput, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 export default function SalesOrdersPage() {
@@ -76,6 +76,17 @@ export default function SalesOrdersPage() {
  }
  }
 
+ const handleDelete = async (id: string, number: string) => {
+   if (!confirm(`Apakah Anda yakin ingin menghapus pesanan ${number}?`)) return
+   try {
+     await B2BApi.deleteOrder(id)
+     setSelectedDoc(null)
+     fetchOrders()
+   } catch (err: any) {
+     alert("Gagal menghapus pesanan: " + (err.response?.data?.message || err.message))
+   }
+ }
+
  const getStatusBadge = (status: string) => {
  switch (status) {
  case 'PENDING': return <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300">Pending</Badge>
@@ -124,6 +135,7 @@ export default function SalesOrdersPage() {
  <FileOutput className="w-4 h-4 mr-2" /> Create Invoice
  </Button>
  )}
+  <Button onClick={() => handleDelete(details.id, details.order_number)} variant="outline" className="border-red-200 text-red-600 hover:bg-red-50"><Trash2 className="w-4 h-4 mr-2" /> Hapus</Button>
  </div>
  </div>
 
@@ -287,10 +299,8 @@ export default function SalesOrdersPage() {
  <td className="p-4 px-6 text-muted-foreground">{new Date(item.order_date || item.createdAt).toLocaleDateString('id-ID')}</td>
  <td className="p-4 px-6 text-right font-medium">Rp {Number(item.total_amount || 0).toLocaleString('id-ID')}</td>
  <td className="py-3.5 px-6 text-center text-[13px]">{getStatusBadge(item.status)}</td>
- <td className="py-3.5 px-6 text-center text-[13px]">
- <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
- View
- </Button>
+ <td className="py-3.5 px-6 text-center text-[13px]" onClick={(e) => e.stopPropagation()}>
+ <div className="flex items-center justify-center gap-1"><Button variant="ghost" size="sm" onClick={() => viewDetails(item)}>View</Button><Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDelete(item.id, item.order_number)}><Trash2 className="w-3.5 h-3.5" /></Button></div>
  </td>
  </tr>
  ))}

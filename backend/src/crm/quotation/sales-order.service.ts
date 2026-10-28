@@ -219,4 +219,92 @@ export class SalesOrderService {
       return order;
     });
   }
+
+  async update(companyId: string, id: string, data: any) {
+    const existing = await this.prisma.salesOrder.findFirst({
+      where: { id, company_id: companyId },
+      include: { items: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Sales order ${id} not found`);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // If items are provided in update
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        await tx.salesOrderItem.deleteMany({
+          where: { sales_order_id: id },
+        });
+
+        let subtotal = 0;
+        const newItems: any[] = [];
+        for (const item of data.items) {
+          const productId = item.product_id || item.productId;
+          const qty = Number(item.qty || item.quantity) || 1;
+          const unitPrice = Number(item.unit_price || item.unitPrice || item.price) || 0;
+          const lineSubtotal = qty * unitPrice;
+          subtotal += lineSubtotal;
+
+          newItems.push({
+            sales_order_id: id,
+            product_id: productId,
+            description: item.description || '',
+            qty,
+            unit_price: unitPrice,
+            subtotal: lineSubtotal,
+            tax: Number(item.tax) || 0,
+            discount: Number(item.discount) || 0,
+          });
+        }
+
+        await tx.salesOrderItem.createMany({
+          data: newItems,
+        });
+
+        data.total_amount = subtotal;
+      }
+
+      return tx.salesOrder.update({
+        where: { id },
+        data: {
+          customer_id: data.customer_id || data.customerId || existing.customer_id,
+          warehouse_id: data.warehouse_id || data.warehouseId || existing.warehouse_id,
+          status: data.status || existing.status,
+          delivery_status: data.delivery_status || existing.delivery_status,
+          invoice_status: data.invoice_status || existing.invoice_status,
+          notes: data.notes !== undefined ? data.notes : existing.notes,
+          payment_terms: data.payment_terms || existing.payment_terms,
+          total_amount: data.total_amount !== undefined ? Number(data.total_amount) : existing.total_amount,
+        },
+        include: {
+          items: { include: { product: true } },
+          customer: true,
+        },
+      });
+    });
+  }
+
+  async delete(companyId: string, id: string) {
+    const existing = await this.prisma.salesOrder.findFirst({
+      where: { id, company_id: companyId },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Sales order ${id} not found`);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.salesOrderItem.deleteMany({
+        where: { sales_order_id: id },
+      });
+      await tx.paymentAllocation.deleteMany({
+        where: { sales_order_id: id },
+      });
+      await tx.salesOrder.delete({
+        where: { id },
+      });
+      return { success: true, message: `Sales order ${existing.order_number} deleted successfully` };
+    });
+  }
 }

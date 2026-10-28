@@ -21,7 +21,7 @@ import {
 import { 
  LayoutDashboard, ShoppingCart, ShoppingBag, Receipt, Box, Database, 
  BarChart3, Wallet, FileText, Building, Users, BadgeDollarSign, 
- HeartHandshake, MonitorSmartphone, Truck, Store, Star, Settings, HelpCircle, LogOut, Hexagon
+ HeartHandshake, MonitorSmartphone, Truck, Store, Star, Settings, HelpCircle, LogOut, Hexagon, ShieldCheck
 } from "lucide-react"
 
 type MenuItem = {
@@ -71,6 +71,7 @@ const items: MenuItem[] = [
 ]
 
 const settings: MenuItem[] = [
+ { title: "Admin Portal", url: "/admin", icon: ShieldCheck, id: "admin", badge: "★" },
  { title: "Pengaturan", url: "/settings", icon: Settings, id: "settings" },
  { title: "FAQ", url: "/faq", icon: HelpCircle, id: "faq" },
 ]

@@ -4,6 +4,8 @@ import {
   Controller,
   Get,
   Post,
+  Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -92,6 +94,18 @@ export class PurchasingController {
   @Get('orders/:id')
   findOrder(@Request() req: any, @Param('id') id: string) {
     return this.service.findOrder(req.user.companyId, id);
+  }
+
+  @Permissions('purchasing.order.create')
+  @Put('orders/:id')
+  updateOrder(@Request() req: any, @Param('id') id: string, @Body() data: any) {
+    return this.service.updateOrder(req.user.companyId, id, data);
+  }
+
+  @Permissions('purchasing.order.create')
+  @Delete('orders/:id')
+  deleteOrder(@Request() req: any, @Param('id') id: string) {
+    return this.service.deleteOrder(req.user.companyId, id);
   }
 
   @Permissions('purchasing.order.create')

@@ -53,6 +53,7 @@ export default function CreateOrderPage() {
     try {
       const payload = {
         ...form,
+        supplierId: form.partnerId,
         orderDate: new Date(form.orderDate),
         expectedReceipt: form.expectedReceipt ? new Date(form.expectedReceipt) : null,
         items: items.map(i => ({

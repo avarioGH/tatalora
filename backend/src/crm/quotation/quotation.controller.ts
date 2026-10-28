@@ -1,10 +1,12 @@
-﻿import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { PermissionsGuard } from '../../auth/permissions.guard';
 import { Permissions } from '../../auth/permissions.decorator';
 import {
   Controller,
   Get,
   Post,
+  Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -46,5 +48,14 @@ export class QuotationController {
   cancel(@Request() req, @Param('id') id: string) {
     return this.service.cancel(req.user.company_id, id);
   }
+  @Permissions('quotation.create')
+  @Put(':id')
+  update(@Request() req, @Param('id') id: string, @Body() data: any) {
+    return this.service.update(req.user.company_id, id, data);
+  }
+  @Permissions('quotation.create')
+  @Delete(':id')
+  delete(@Request() req, @Param('id') id: string) {
+    return this.service.delete(req.user.company_id, id);
+  }
 }
-

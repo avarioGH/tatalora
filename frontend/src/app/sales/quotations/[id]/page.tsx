@@ -63,7 +63,13 @@ export default function QuotationDetailPage() {
 
   const handleDelete = async () => {
     if(confirm('Apakah Anda yakin ingin menghapus penawaran ini?')) {
-      alert('Fitur hapus belum tersedia di API, tapi UI sudah siap!');
+      try {
+        await B2BApi.deleteQuotation(data.id)
+        alert('Penawaran berhasil dihapus')
+        router.push('/sales')
+      } catch (err: any) {
+        alert('Gagal menghapus penawaran: ' + (err.response?.data?.message || err.message))
+      }
     }
   }
 

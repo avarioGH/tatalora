@@ -12,7 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { 
-  Search, ChevronDown, Download, CheckCircle2, X
+  Search, ChevronDown, Download, CheckCircle2, X, Eye, Edit, Trash2, MoreHorizontal
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -21,6 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { B2BApi, api } from "@/lib/api"
+import { ReceivePaymentModal } from "@/components/sales/receive-payment-modal"
+import { Wallet } from "lucide-react"
 
 export default function UnifiedSalesPage() {
   const router = useRouter()
@@ -32,6 +34,38 @@ export default function UnifiedSalesPage() {
   const [quotations, setQuotations] = useState<any[]>([])
   const [deliveries, setDeliveries] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
+  const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<any | null>(null)
+
+  const handleDeleteInvoice = async (id: string, number: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus tagihan ${number}?`)) return
+    try {
+      await api.delete(`/finance/invoices/${id}`)
+      fetchData()
+    } catch (err: any) {
+      alert("Gagal menghapus tagihan: " + (err.response?.data?.message || err.message))
+    }
+  }
+
+  const handleDeleteOrder = async (id: string, number: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus pesanan ${number}?`)) return
+    try {
+      await B2BApi.deleteOrder(id)
+      fetchData()
+    } catch (err: any) {
+      alert("Gagal menghapus pesanan: " + (err.response?.data?.message || err.message))
+    }
+  }
+
+  const handleDeleteQuotation = async (id: string, number: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus penawaran ${number}?`)) return
+    try {
+      await B2BApi.deleteQuotation(id)
+      fetchData()
+    } catch (err: any) {
+      alert("Gagal menghapus penawaran: " + (err.response?.data?.message || err.message))
+    }
+  }
 
   useEffect(() => {
     fetchData()
@@ -101,8 +135,32 @@ export default function UnifiedSalesPage() {
                 <TableCell className="text-right">{formatIDR(inv.remaining_amount)}</TableCell>
                 <TableCell className="text-right">{formatIDR(inv.total)}</TableCell>
                 <TableCell></TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm" className="h-8">Tindakan <ChevronDown className="w-3 h-3 ml-1" /></Button>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1">
+                        Tindakan <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40 bg-card">
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setSelectedInvoiceForPayment(inv);
+                          setPaymentModalOpen(true);
+                        }} 
+                        disabled={inv.status === 'PAID'}
+                        className="cursor-pointer text-emerald-600 focus:text-emerald-700 focus:bg-emerald-50 font-medium"
+                      >
+                        <Wallet className="w-3.5 h-3.5 mr-2" /> Terima Pembayaran
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push(`/sales/invoices/${inv.id}`)} className="cursor-pointer">
+                        <Eye className="w-3.5 h-3.5 mr-2" /> Detail
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeleteInvoice(inv.id, inv.invoice_number)} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
+                        <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -141,8 +199,22 @@ export default function UnifiedSalesPage() {
                 <TableCell><Badge variant="outline">{o.delivery_status}</Badge></TableCell>
                 <TableCell><Badge variant="outline">{o.invoice_status}</Badge></TableCell>
                 <TableCell className="text-right">{formatIDR(o.total_amount)}</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm" className="h-8" onClick={() => router.push(`/sales/orders`)}>Detail</Button>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1">
+                        Tindakan <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40 bg-card">
+                      <DropdownMenuItem onClick={() => router.push(`/sales/orders`)} className="cursor-pointer">
+                        <Eye className="w-3.5 h-3.5 mr-2" /> Detail
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeleteOrder(o.id, o.order_number)} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
+                        <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -177,8 +249,22 @@ export default function UnifiedSalesPage() {
                 <TableCell className="text-indigo-600 font-medium">{q.customer?.name || '-'}</TableCell>
                 <TableCell><Badge variant="outline">{q.status}</Badge></TableCell>
                 <TableCell className="text-right">{formatIDR(q.total_amount)}</TableCell>
-                <TableCell>
-                  <Button variant="outline" size="sm" className="h-8" onClick={() => router.push(`/sales/quotations`)}>Detail</Button>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1">
+                        Tindakan <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-40 bg-card">
+                      <DropdownMenuItem onClick={() => router.push(`/sales/quotations/${q.id}`)} className="cursor-pointer">
+                        <Eye className="w-3.5 h-3.5 mr-2" /> Detail
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleDeleteQuotation(q.id, q.quotation_number)} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
+                        <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -269,6 +355,13 @@ export default function UnifiedSalesPage() {
           </DropdownMenu>
         </div>
       </div>
+      {/* Receive Payment Modal */}
+      <ReceivePaymentModal
+        open={paymentModalOpen}
+        onOpenChange={setPaymentModalOpen}
+        invoice={selectedInvoiceForPayment}
+        onSuccess={() => fetchData()}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-t-4 border-t-amber-500 shadow-sm rounded-md">

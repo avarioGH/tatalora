@@ -643,4 +643,142 @@ export class InvoiceService {
       return tx.invoice.findUnique({ where: { id: invoiceId } });
     });
   }
+
+  async create(companyId: string, data: any) {
+    return this.prisma.$transaction(async (tx) => {
+      const invoiceNumber = data.invoice_number || `INV-${Date.now()}`;
+      const rawItems = data.items || [];
+      let subtotal = 0;
+      let tax = 0;
+
+      for (const it of rawItems) {
+        const qty = Number(it.qty || it.quantity) || 1;
+        const price = Number(it.unit_price || it.unitPrice || it.price) || 0;
+        const lineTax = Number(it.tax) || 0;
+        subtotal += qty * price;
+        tax += lineTax;
+      }
+
+      const total = subtotal + tax;
+
+      const invoice = await tx.invoice.create({
+        data: {
+          company_id: companyId,
+          type: data.type || 'SALES',
+          invoice_number: invoiceNumber,
+          invoice_date: data.invoice_date ? new Date(data.invoice_date) : new Date(),
+          due_date: data.due_date ? new Date(data.due_date) : null,
+          customer_id: data.customer_id || data.customerId || null,
+          supplier_id: data.supplier_id || data.supplierId || null,
+          sales_order_id: data.sales_order_id || data.salesOrderId || null,
+          status: data.status || 'POSTED',
+          subtotal,
+          tax,
+          total,
+          paid_amount: Number(data.paid_amount) || 0,
+          remaining_amount: total - (Number(data.paid_amount) || 0),
+          memo: data.notes || data.memo || null,
+          message: data.message || null,
+          items: {
+            create: rawItems.map((it: any) => {
+              const qty = Number(it.qty || it.quantity) || 1;
+              const unit_price = Number(it.unit_price || it.unitPrice || it.price) || 0;
+              return {
+                product_id: it.product_id || it.productId || null,
+                description: it.description || '',
+                qty,
+                unit_price,
+                subtotal: qty * unit_price,
+                tax: Number(it.tax) || 0,
+                discount: Number(it.discount) || 0,
+              };
+            }),
+          },
+        },
+        include: { items: true, customer: true, supplier: true },
+      });
+
+      return invoice;
+    });
+  }
+
+  async update(companyId: string, id: string, data: any) {
+    const existing = await this.prisma.invoice.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!existing) throw new NotFoundException('Invoice not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        await tx.invoiceItem.deleteMany({
+          where: { invoice_id: id },
+        });
+
+        let subtotal = 0;
+        let tax = 0;
+        const newItems: any[] = [];
+        for (const it of data.items) {
+          const qty = Number(it.qty || it.quantity) || 1;
+          const price = Number(it.unit_price || it.unitPrice || it.price) || 0;
+          const lineTax = Number(it.tax) || 0;
+          subtotal += qty * price;
+          tax += lineTax;
+
+          newItems.push({
+            invoice_id: id,
+            product_id: it.product_id || it.productId || null,
+            description: it.description || '',
+            qty,
+            unit_price: price,
+            subtotal: qty * price,
+            tax: lineTax,
+            discount: Number(it.discount) || 0,
+          });
+        }
+
+        await tx.invoiceItem.createMany({
+          data: newItems,
+        });
+
+        data.subtotal = subtotal;
+        data.tax = tax;
+        data.total = subtotal + tax;
+        data.remaining_amount = (subtotal + tax) - (existing.paid_amount || 0);
+      }
+
+      return tx.invoice.update({
+        where: { id },
+        data: {
+          due_date: data.due_date ? new Date(data.due_date) : existing.due_date,
+          status: data.status || existing.status,
+          memo: data.notes !== undefined ? data.notes : (data.memo !== undefined ? data.memo : existing.memo),
+          subtotal: data.subtotal !== undefined ? Number(data.subtotal) : existing.subtotal,
+          tax: data.tax !== undefined ? Number(data.tax) : existing.tax,
+          total: data.total !== undefined ? Number(data.total) : existing.total,
+          remaining_amount: data.remaining_amount !== undefined ? Number(data.remaining_amount) : existing.remaining_amount,
+        },
+        include: { items: true, customer: true, supplier: true },
+      });
+    });
+  }
+
+  async delete(companyId: string, id: string) {
+    const existing = await this.prisma.invoice.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!existing) throw new NotFoundException('Invoice not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.invoiceItem.deleteMany({
+        where: { invoice_id: id },
+      });
+      await tx.paymentAllocation.deleteMany({
+        where: { invoice_id: id },
+      });
+      await tx.invoice.delete({
+        where: { id },
+      });
+      return { success: true, message: `Invoice ${existing.invoice_number} deleted successfully` };
+    });
+  }
 }

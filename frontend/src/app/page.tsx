@@ -108,10 +108,13 @@ export default function HomeLauncher() {
   return (
     <div className="w-full flex flex-col items-center pt-2 sm:pt-6 pb-12 px-2 sm:px-6">
       
-      <div className="text-center mb-8 max-w-2xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-2 sm:mb-3">
-          TATALORA Workspace
-        </h1>
+      <div className="text-center mb-8 max-w-2xl mx-auto flex flex-col items-center">
+        <div className="flex items-center gap-3 mb-3">
+          <img src="/logo.png" alt="TATALORA" className="w-10 h-10 object-contain drop-shadow-sm" />
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
+            TATALORA Workspace
+          </h1>
+        </div>
         <p className="text-sm sm:text-base text-muted-foreground">
           Selamat datang kembali, <span className="font-semibold text-foreground">{userName}</span>. Apa yang ingin Anda kerjakan hari ini?
         </p>

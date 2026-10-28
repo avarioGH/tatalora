@@ -217,6 +217,20 @@ export class FinanceController {
     return this.financeService.getBalanceSheetReport(req.user.company_id);
   }
 
+  @Permissions('finance.create')
+  @Post('transfer')
+  async createTransfer(@Request() req: any, @Body() data: any) {
+    const compId = req.user.company_id || req.user.companyId;
+    const userId = req.user.userId || req.user.id;
+    return this.financeService.transferCash(compId, userId, {
+      fromAccountId: data.fromAccountId || data.fromAccount,
+      toAccountId: data.toAccountId || data.toAccount,
+      amount: Number(data.amount),
+      transactionDate: data.date || data.transactionDate,
+      description: data.description,
+    });
+  }
+
   @Permissions('finance.view')
   @Get('cash-reconciliation')
   async getCashReconciliation(@Request() req: any) {

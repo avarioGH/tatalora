@@ -1,6 +1,7 @@
-﻿"use client"
+"use client"
 
-import { useState, useEffect } from"react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { 
  Card, CardContent, CardDescription, CardHeader, CardTitle 
 } from"@/components/ui/card"
@@ -35,6 +36,7 @@ import {
 } from"@/components/ui/dropdown-menu"
 
 export default function ProductInventory() {
+  const router = useRouter()
  const [searchQuery, setSearchQuery] = useState("")
  const [showForm, setShowForm] = useState(false)
  const [isSubmitting, setIsSubmitting] = useState(false)
@@ -302,21 +304,32 @@ export default function ProductInventory() {
           <Button variant="outline" size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white border-transparent">Aturan Harga</Button>
           
           <DropdownMenu>
-            <div className="flex shadow-md shadow-indigo-600/20 rounded-md">
-              <Button size="sm" onClick={() => { setShowForm(!showForm); if (!showForm) { setEditingId(null); setFormData({code: "", barcode: "", name: "", description: "", purchasePrice: "", sellingPrice: "", weight: "", categoryId: ""}); } }} className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-r-none border-r border-indigo-500">
-                <Plus className="w-4 h-4 mr-1" /> {showForm ? "Batal" : "Tambah"}
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20 gap-1.5 h-9 px-3.5 cursor-pointer">
+                <Plus className="w-4 h-4" />
+                <span>Tambah</span>
+                <ChevronDown className="w-3.5 h-3.5 ml-0.5 opacity-80" />
               </Button>
-              <DropdownMenuTrigger className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 text-white rounded-l-none px-2 h-9">
-    <ChevronDown className="w-4 h-4" />
-  </DropdownMenuTrigger>
-            </div>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuItem onClick={() => { setShowForm(!showForm); if (!showForm) { setEditingId(null); setFormData({code: "", barcode: "", name: "", description: "", purchasePrice: "", sellingPrice: "", weight: "", categoryId: ""}); } }} className="cursor-pointer py-2"><Box className="w-4 h-4 mr-3 text-muted-foreground" /> Tambah Produk</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer py-2"><PackageOpen className="w-4 h-4 mr-3 text-muted-foreground" /> Tambah Produk Paket</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer py-2"><LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" /> Tambah Produk Manufaktur</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer py-2"><LayoutGrid className="w-4 h-4 mr-3 text-muted-foreground" /> Tambah Produk Varian</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer py-2"><RefreshCcw className="w-4 h-4 mr-3 text-muted-foreground" /> Tambah Konversi Produk</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer py-2"><Store className="w-4 h-4 mr-3 text-muted-foreground" /> Tambah Produk dari Marketplace</DropdownMenuItem>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 bg-card shadow-lg border border-border">
+              <DropdownMenuItem onClick={() => router.push('/inventory/products/create')} className="cursor-pointer py-2.5 font-medium">
+                <Box className="w-4 h-4 mr-3 text-indigo-600" /> Tambah Produk
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/inventory/products/create/bundle')} className="cursor-pointer py-2.5 font-medium">
+                <PackageOpen className="w-4 h-4 mr-3 text-indigo-600" /> Tambah Produk Paket
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/inventory/products/create/manufacture')} className="cursor-pointer py-2.5 font-medium">
+                <LayoutGrid className="w-4 h-4 mr-3 text-indigo-600" /> Tambah Produk Manufaktur
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/inventory/products/create/variant')} className="cursor-pointer py-2.5 font-medium">
+                <LayoutGrid className="w-4 h-4 mr-3 text-indigo-600" /> Tambah Produk Varian
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/inventory/products/create/conversion')} className="cursor-pointer py-2.5 font-medium">
+                <RefreshCcw className="w-4 h-4 mr-3 text-indigo-600" /> Tambah Konversi Produk
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/inventory/products/create/marketplace')} className="cursor-pointer py-2.5 font-medium">
+                <Store className="w-4 h-4 mr-3 text-indigo-600" /> Tambah Produk dari Marketplace
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -609,8 +622,8 @@ export default function ProductInventory() {
           <div className="m-4 p-4 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-rose-500 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-rose-700">Koneksi Database Terputus</h4>
-              <p className="text-sm text-rose-600">Saat ini menampilkan data dummy karena server MongoDB tidak dapat dihubungi.</p>
+              <h4 className="font-semibold text-rose-700">Gagal Memuat Produk</h4>
+              <p className="text-sm text-rose-600">Tidak dapat terhubung ke server database. Silakan muat ulang halaman.</p>
             </div>
           </div>
         )}

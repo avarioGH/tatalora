@@ -82,4 +82,14 @@ export class GlController {
   ) {
     return this.glService.getSupplierStatement(req.user.company_id, supplierId);
   }
+
+  @Permissions('gl.view')
+  @Get('accounts')
+  async getAccounts(@Request() req: any) {
+    return this.prisma.chartOfAccount.findMany({
+      where: { company_id: req.user.company_id, status: true },
+      include: { account_type: true },
+      orderBy: { account_code: 'asc' },
+    });
+  }
 }

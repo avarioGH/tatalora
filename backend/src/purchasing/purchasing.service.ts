@@ -562,4 +562,79 @@ export class PurchasingService {
       },
     });
   }
+
+  async updateOrder(companyId: string, id: string, data: any) {
+    const existing = await this.prisma.purchaseOrder.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!existing) throw new NotFoundException('Purchase order not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        await tx.purchaseOrderItem.deleteMany({
+          where: { purchase_order_id: id },
+        });
+
+        let total = 0;
+        const newItems: any[] = [];
+        for (const it of data.items) {
+          const qty = Number(it.qty || it.quantity) || 1;
+          const price = Number(it.unit_price || it.unitPrice || it.price) || 0;
+          const subtotal = qty * price;
+          total += subtotal;
+
+          newItems.push({
+            purchase_order_id: id,
+            product_id: it.product_id || it.productId,
+            qty,
+            unit_price: price,
+            subtotal,
+            tax: Number(it.tax) || 0,
+            discount: Number(it.discount) || 0,
+          });
+        }
+
+        await tx.purchaseOrderItem.createMany({
+          data: newItems,
+        });
+
+        data.total_amount = total;
+      }
+
+      return tx.purchaseOrder.update({
+        where: { id },
+        data: {
+          supplier_id: data.supplier_id || data.supplierId || existing.supplier_id,
+          warehouse_id: data.warehouse_id || data.warehouseId || existing.warehouse_id,
+          status: data.status || existing.status,
+          receipt_status: data.receipt_status || existing.receipt_status,
+          bill_status: data.bill_status || existing.bill_status,
+          notes: data.notes !== undefined ? data.notes : existing.notes,
+          payment_terms: data.payment_terms || existing.payment_terms,
+          total_amount: data.total_amount !== undefined ? Number(data.total_amount) : existing.total_amount,
+        },
+        include: {
+          items: { include: { product: true } },
+          supplier: true,
+        },
+      });
+    });
+  }
+
+  async deleteOrder(companyId: string, id: string) {
+    const existing = await this.prisma.purchaseOrder.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!existing) throw new NotFoundException('Purchase order not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.purchaseOrderItem.deleteMany({
+        where: { purchase_order_id: id },
+      });
+      await tx.purchaseOrder.delete({
+        where: { id },
+      });
+      return { success: true, message: `Purchase order ${existing.order_number} deleted successfully` };
+    });
+  }
 }

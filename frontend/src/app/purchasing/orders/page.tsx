@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { 
   Card, CardContent
 } from "@/components/ui/card"
@@ -12,36 +13,70 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { 
-  Search, Filter, Plus, ShoppingCart, FileText, ChevronDown, Calendar, FolderOpen, Printer, Upload
+  Search, Filter, Plus, ShoppingCart, FileText, ChevronDown, Calendar, FolderOpen, Printer, Loader2, Trash2, Edit
 } from "lucide-react"
-
-const mockData = [
-  { id: "PO-2026-001", vendor: "PT Surya Kayu", ref: "PR-001", qty: 150, undelivered: 0, warehouse: "Gudang Utama", date: "10 Okt 2026", due: "10 Nov 2026", term: "Net 30", status: "Selesai", payment: "Lunas" },
-  { id: "PO-2026-002", vendor: "CV Logam Abadi", ref: "PR-002", qty: 45, undelivered: 45, warehouse: "Gudang Cabang", date: "12 Okt 2026", due: "12 Nov 2026", term: "Net 30", status: "Disetujui", payment: "Belum Dibayar" },
-]
+import { api, PurchasingAPI } from "@/lib/api"
+import { useToast } from "@/hooks/use-toast"
 
 export default function PurchaseOrdersPage() {
+  const router = useRouter()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState("Semua")
   const [search, setSearch] = useState("")
-  const [hasData, setHasData] = useState(false) 
+  const [orders, setOrders] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const tabs = ["Semua", "Draft", "Disetujui", "Dikirim Sebagian", "Selesai", "Lainnya"]
+  const tabs = ["Semua", "DRAFT", "CONFIRMED", "COMPLETED", "CANCELLED"]
+
+  useEffect(() => {
+    fetchOrders()
+  }, [])
+
+  const fetchOrders = async () => {
+    setLoading(true)
+    try {
+      const res = await PurchasingAPI.getOrders({ limit: 100 })
+      setOrders(res?.data || [])
+    } catch (err) {
+      console.error("Failed to load PO", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (e: React.MouseEvent, id: string, orderNumber: string) => {
+    e.stopPropagation()
+    if (!confirm(`Hapus Purchase Order ${orderNumber}?`)) return
+    try {
+      await api.delete(`/purchasing/orders/${id}`)
+      toast({ title: "Purchase Order berhasil dihapus" })
+      fetchOrders()
+    } catch (err: any) {
+      toast({ title: "Gagal menghapus", description: err.message, variant: "destructive" })
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     switch(status) {
-      case "Disetujui": return <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/10 border-0 shadow-none font-medium px-2.5 py-0.5">Disetujui</Badge>
-      case "Selesai": return <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 border-0 shadow-none font-medium px-2.5 py-0.5">Selesai</Badge>
+      case "CONFIRMED": return <Badge className="bg-blue-500/10 text-blue-600 border-0 shadow-none font-medium px-2.5 py-0.5">Disetujui</Badge>
+      case "COMPLETED": return <Badge className="bg-emerald-500/10 text-emerald-600 border-0 shadow-none font-medium px-2.5 py-0.5">Selesai</Badge>
+      case "DRAFT": return <Badge className="bg-amber-500/10 text-amber-600 border-0 shadow-none font-medium px-2.5 py-0.5">Draft</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }
 
-  const getPaymentBadge = (status: string) => {
-    switch(status) {
-      case "Belum Dibayar": return <span className="text-rose-500 font-medium text-xs">{status}</span>
-      case "Lunas": return <span className="text-emerald-500 font-medium text-xs">{status}</span>
-      default: return <span className="text-muted-foreground font-medium text-xs">{status}</span>
-    }
+  const formatIDR = (val: number) => {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
   }
+
+  const filteredOrders = orders.filter(item => {
+    const matchSearch = 
+      item.order_number?.toLowerCase().includes(search.toLowerCase()) ||
+      item.supplier?.name?.toLowerCase().includes(search.toLowerCase())
+    
+    if (activeTab === "Semua") return matchSearch
+    return matchSearch && item.status === activeTab
+  })
 
   return (
     <div className="p-6 md:p-8 space-y-6 bg-background min-h-screen">
@@ -53,51 +88,41 @@ export default function PurchaseOrdersPage() {
             <div className="p-2 bg-blue-500/10 rounded-lg">
               <ShoppingCart className="h-6 w-6 text-blue-600" />
             </div>
-            Pesanan Pembelian
+            Pesanan Pembelian (PO)
           </h1>
-          <p className="text-muted-foreground mt-1">Kelola pesanan ke supplier (Purchase Order).</p>
+          <p className="text-muted-foreground mt-1">Kelola pesanan ke supplier langsung terhubung ke database riil.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border">
-            <FileText className="h-4 w-4" /> Laporan <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground" />
+          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border" onClick={() => router.push("/reports/purchasing")}>
+            <FileText className="h-4 w-4" /> Laporan Pembelian
           </Button>
-          <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-sm">
-            <Plus className="h-4 w-4" /> Tambah
+          <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-sm" onClick={() => router.push("/purchasing/orders/create")}>
+            <Plus className="h-4 w-4" /> Tambah PO
           </Button>
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border hidden md:flex">
-            <Upload className="h-4 w-4" /> Import <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground" />
-          </Button>
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border hidden lg:flex">
+          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border" onClick={() => window.print()}>
             <Printer className="h-4 w-4" /> Print
           </Button>
         </div>
       </div>
 
-      <Card className="border-0 shadow-sm ring-1 ring-border overflow-hidden bg-card">
+      <Card className="border shadow-sm overflow-hidden bg-card">
         {/* Filter Bar */}
         <div className="p-4 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <Button variant="outline" className="gap-2 text-foreground border-border bg-card">
-              <Filter className="h-4 w-4 text-muted-foreground" /> Filter
+            <Button variant="outline" className="gap-2 text-foreground border-border bg-card" onClick={fetchOrders} disabled={loading}>
+              <Filter className={`h-4 w-4 text-muted-foreground ${loading ? 'animate-spin' : ''}`} /> Segarkan
             </Button>
-            <div className="h-9 px-3 flex items-center border border-border rounded-md bg-muted text-sm font-medium text-foreground cursor-pointer">
-              Pesanan Pembelian <ChevronDown className="h-3 w-3 ml-2 text-muted-foreground" />
-            </div>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Cari pesanan..." 
+                placeholder="Cari nomor atau vendor..." 
                 className="pl-9 bg-muted border-border h-9 text-sm"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-            </div>
-            <div className="hidden lg:flex h-9 px-3 items-center border border-border rounded-md bg-muted text-sm text-foreground cursor-pointer whitespace-nowrap">
-              <Calendar className="h-4 w-4 text-muted-foreground mr-2" />
-              10 Okt 2025 - 10 Okt 2026
             </div>
           </div>
         </div>
@@ -116,25 +141,28 @@ export default function PurchaseOrdersPage() {
                 }
               `}
             >
-              {tab}
+              {tab === "Semua" ? "Semua Status" : tab}
             </button>
           ))}
         </div>
 
         <CardContent className="p-0">
-          {!hasData ? (
-            <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-              <div className="w-24 h-24 mb-6 rounded-full bg-blue-500/10 flex items-center justify-center relative">
-                <FolderOpen className="h-10 w-10 text-blue-500 absolute" />
-                <div className="w-4 h-4 bg-emerald-400 rounded-full absolute -top-1 -right-1 border-2 border-card"></div>
-                <div className="w-3 h-3 bg-amber-400 rounded-full absolute bottom-2 -left-2 border-2 border-card"></div>
+          {loading ? (
+            <div className="p-16 text-center text-muted-foreground flex flex-col items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600 mb-2" />
+              <span>Memuat data Purchase Order...</span>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+              <div className="w-20 h-20 mb-4 rounded-full bg-blue-500/10 flex items-center justify-center relative">
+                <FolderOpen className="h-10 w-10 text-blue-500" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Belum ada Pesanan Pembelian di sini</h3>
-              <p className="text-muted-foreground max-w-sm mb-6 text-sm">
-                Mulai dengan membuat Purchase Order (PO) untuk dikirim ke vendor Anda.
+              <h3 className="text-lg font-bold text-foreground mb-1">Belum ada Purchase Order</h3>
+              <p className="text-muted-foreground max-w-sm mb-4 text-xs">
+                Mulai dengan membuat Purchase Order (PO) untuk dikirim ke supplier.
               </p>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm" onClick={() => setHasData(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Tambah Pesanan Pembelian
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm" onClick={() => router.push("/purchasing/orders/create")}>
+                <Plus className="h-4 w-4 mr-2" /> Buat Purchase Order
               </Button>
             </div>
           ) : (
@@ -142,39 +170,42 @@ export default function PurchaseOrdersPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50 border-border">
-                    <TableHead className="w-12 text-center">
-                      <input type="checkbox" className="rounded border-border text-blue-600 focus:ring-blue-600 bg-card" />
-                    </TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Nomor</TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Vendor</TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Referensi</TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap text-center">Kuantitas</TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap text-center">Belum Dikirim</TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Nama Gudang</TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Nomor PO</TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Vendor / Supplier</TableHead>
                     <TableHead className="font-semibold text-foreground whitespace-nowrap">Tanggal</TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Tgl. Jatuh Tempo</TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap">Termin</TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap text-center">Penerimaan (GRN)</TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap text-center">Tagihan (Bill)</TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap text-right">Total Nilai</TableHead>
                     <TableHead className="font-semibold text-foreground whitespace-nowrap text-center">Status</TableHead>
-                    <TableHead className="font-semibold text-foreground whitespace-nowrap text-center">Status Pembayaran</TableHead>
+                    <TableHead className="font-semibold text-foreground whitespace-nowrap text-center">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockData.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-muted/30 border-border group cursor-pointer">
+                  {filteredOrders.map((item) => (
+                    <TableRow key={item.id} className="hover:bg-muted/30 border-border group cursor-pointer" onClick={() => router.push(`/purchasing/orders/${item.id}`)}>
+                      <TableCell className="font-semibold text-blue-600">{item.order_number}</TableCell>
+                      <TableCell className="font-medium text-foreground">{item.supplier?.name || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground text-xs">{item.order_date ? new Date(item.order_date).toLocaleDateString('id-ID') : '-'}</TableCell>
                       <TableCell className="text-center">
-                        <input type="checkbox" className="rounded border-border text-blue-600 focus:ring-blue-600 bg-card opacity-0 group-hover:opacity-100 data-[state=checked]:opacity-100 transition-opacity" />
+                        <Badge variant="secondary" className="text-[10px]">{item.receipt_status || 'PENDING'}</Badge>
                       </TableCell>
-                      <TableCell className="font-semibold text-blue-600">{item.id}</TableCell>
-                      <TableCell className="font-medium text-foreground">{item.vendor}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.ref}</TableCell>
-                      <TableCell className="text-muted-foreground text-center">{item.qty}</TableCell>
-                      <TableCell className="text-muted-foreground text-center">{item.undelivered}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.warehouse}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.date}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.due}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.term}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="secondary" className="text-[10px]">{item.bill_status || 'PENDING'}</Badge>
+                      </TableCell>
+                      <TableCell className="font-bold text-right text-foreground">{formatIDR(Number(item.total_amount) || 0)}</TableCell>
                       <TableCell className="text-center">{getStatusBadge(item.status)}</TableCell>
-                      <TableCell className="text-center">{getPaymentBadge(item.payment)}</TableCell>
+                      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0 text-rose-600 hover:bg-rose-50"
+                            onClick={(e) => handleDelete(e, item.id, item.order_number)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

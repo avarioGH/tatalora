@@ -1,44 +1,75 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import { 
-  Card, CardContent
-} from "@/components/ui/card"
+import { useRouter } from "next/navigation"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { 
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
-} from "@/components/ui/table"
-import { 
-  Search, Filter, Plus, FileText, ChevronDown, Calendar, FolderOpen, Printer, Upload
+  Search, Filter, Plus, FileText, ChevronDown, Calendar, Printer, Loader2, ArrowRight
 } from "lucide-react"
-
-const mockData = [
-  { id: "RFQ-2026-001", vendor: "PT Surya Kayu", ref: "REQ-001", due: "10 Okt 2026", total: "Rp 15.000.000", status: "Selesai" },
-  { id: "RFQ-2026-002", vendor: "CV Logam Abadi", ref: "REQ-002", due: "12 Okt 2026", total: "Rp 8.500.000", status: "Dipesan Sebagian" },
-]
+import { PurchasingAPI } from "@/lib/api"
 
 export default function PurchaseRfqsPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("Semua")
   const [search, setSearch] = useState("")
-  const [hasData, setHasData] = useState(false) 
+  const [requests, setRequests] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const tabs = ["Semua", "Open", "Selesai", "Dipesan Sebagian", "Ditolak Vendor"]
+  const tabs = ["Semua", "SUBMITTED", "APPROVED", "CONVERTED", "REJECTED"]
 
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case "Dipesan Sebagian": return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/10 border-0 shadow-none font-medium px-2.5 py-0.5">Dipesan Sebagian</Badge>
-      case "Selesai": return <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 border-0 shadow-none font-medium px-2.5 py-0.5">Selesai</Badge>
-      case "Ditolak Vendor": return <Badge className="bg-rose-500/10 text-rose-600 hover:bg-rose-500/10 border-0 shadow-none font-medium px-2.5 py-0.5">Ditolak Vendor</Badge>
-      default: return <Badge variant="outline">{status}</Badge>
+  const fetchRfqs = async () => {
+    setLoading(true)
+    try {
+      const res = await PurchasingAPI.getRequests().catch(() => ({ data: [] }))
+      const data = res?.data || res || []
+      setRequests(data)
+    } catch (err) {
+      console.error("Error loading RFQ requests:", err)
+    } finally {
+      setLoading(false)
     }
   }
 
+  useEffect(() => {
+    fetchRfqs()
+  }, [])
+
+  const getStatusBadge = (status: string) => {
+    switch(status) {
+      case "CONVERTED": 
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-0 font-medium px-2.5 py-0.5">Dikonversi ke PO</Badge>
+      case "APPROVED": 
+        return <Badge className="bg-blue-500/10 text-blue-600 border-0 font-medium px-2.5 py-0.5">Disetujui</Badge>
+      case "SUBMITTED": 
+        return <Badge className="bg-amber-500/10 text-amber-600 border-0 font-medium px-2.5 py-0.5">Menunggu Approval</Badge>
+      case "REJECTED": 
+        return <Badge className="bg-rose-500/10 text-rose-600 border-0 font-medium px-2.5 py-0.5">Ditolak</Badge>
+      default: 
+        return <Badge variant="outline">{status || 'Draft'}</Badge>
+    }
+  }
+
+  const formatIDR = (val: number) => {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
+  }
+
+  const filtered = requests.filter(item => {
+    const matchSearch = 
+      item.request_number?.toLowerCase().includes(search.toLowerCase()) ||
+      item.reason?.toLowerCase().includes(search.toLowerCase()) ||
+      item.creator?.name?.toLowerCase().includes(search.toLowerCase())
+    
+    if (activeTab === "Semua") return matchSearch
+    return matchSearch && (item.status === activeTab)
+  })
+
   return (
     <div className="p-6 md:p-8 space-y-6 bg-background min-h-screen">
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -46,51 +77,38 @@ export default function PurchaseRfqsPage() {
             <div className="p-2 bg-amber-500/10 rounded-lg">
               <FileText className="h-6 w-6 text-amber-600" />
             </div>
-            Penawaran Pembelian
+            Permintaan & Penawaran Pembelian (RFQ)
           </h1>
-          <p className="text-muted-foreground mt-1">Kelola permohonan penawaran harga (RFQ) ke supplier.</p>
+          <p className="text-muted-foreground mt-1">Kelola kebutuhan barang internal dan penawaran dari vendor sebelum diterbitkan menjadi Purchase Order.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border">
-            <FileText className="h-4 w-4" /> Laporan <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground" />
+          <Button className="bg-amber-500 hover:bg-amber-600 text-white shadow-sm gap-2" onClick={() => router.push("/purchasing/orders/create")}>
+            <Plus className="h-4 w-4" /> Buat Pesanan Langsung (PO)
           </Button>
-          <Button className="gap-2 bg-amber-500 hover:bg-amber-600 text-white shadow-sm">
-            <Plus className="h-4 w-4" /> Tambah
-          </Button>
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border hidden md:flex">
-            <Upload className="h-4 w-4" /> Import <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground" />
-          </Button>
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border hidden lg:flex">
+          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border" onClick={() => window.print()}>
             <Printer className="h-4 w-4" /> Print
           </Button>
         </div>
       </div>
 
-      <Card className="border-0 shadow-sm ring-1 ring-border overflow-hidden bg-card">
+      <Card className="border shadow-sm overflow-hidden bg-card">
         {/* Filter Bar */}
         <div className="p-4 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
           <div className="flex items-center gap-2 w-full md:w-auto">
-            <Button variant="outline" className="gap-2 text-foreground border-border bg-card">
-              <Filter className="h-4 w-4 text-muted-foreground" /> Filter
+            <Button variant="outline" className="gap-2 text-foreground border-border bg-card" onClick={fetchRfqs} disabled={loading}>
+              <Filter className={`h-4 w-4 text-muted-foreground ${loading ? 'animate-spin' : ''}`} /> Segarkan
             </Button>
-            <div className="h-9 px-3 flex items-center border border-border rounded-md bg-muted text-sm font-medium text-foreground cursor-pointer">
-              Penawaran Pembelian <ChevronDown className="h-3 w-3 ml-2 text-muted-foreground" />
-            </div>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="relative w-full md:w-64">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Cari penawaran..." 
+                placeholder="Cari nomor permintaan atau alasan..." 
                 className="pl-9 bg-muted border-border h-9 text-sm"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-            </div>
-            <div className="hidden lg:flex h-9 px-3 items-center border border-border rounded-md bg-muted text-sm text-foreground cursor-pointer whitespace-nowrap">
-              <Calendar className="h-4 w-4 text-muted-foreground mr-2" />
-              10 Okt 2025 - 10 Okt 2026
             </div>
           </div>
         </div>
@@ -104,60 +122,59 @@ export default function PurchaseRfqsPage() {
               className={`
                 px-4 py-2 text-sm font-medium rounded-t-lg transition-all border-b-2 whitespace-nowrap
                 ${activeTab === tab 
-                  ? 'border-amber-500 text-amber-600 bg-amber-500/10' 
+                  ? 'border-amber-600 text-amber-600 bg-amber-500/10' 
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }
               `}
             >
-              {tab}
+              {tab === "SUBMITTED" ? "Diajukan" : tab === "APPROVED" ? "Disetujui" : tab === "CONVERTED" ? "Dikonversi ke PO" : tab === "REJECTED" ? "Ditolak" : tab}
             </button>
           ))}
         </div>
 
         <CardContent className="p-0">
-          {!hasData ? (
-            <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-              <div className="w-24 h-24 mb-6 rounded-full bg-amber-500/10 flex items-center justify-center relative">
-                <FolderOpen className="h-10 w-10 text-amber-500 absolute" />
-                <div className="w-4 h-4 bg-emerald-400 rounded-full absolute -top-1 -right-1 border-2 border-card"></div>
-                <div className="w-3 h-3 bg-blue-400 rounded-full absolute bottom-2 -left-2 border-2 border-card"></div>
+          {loading ? (
+            <div className="py-20 text-center flex flex-col items-center justify-center gap-3 text-muted-foreground">
+              <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+              <span>Memuat data permintaan pembelian...</span>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+              <div className="w-20 h-20 mb-4 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <FileText className="h-9 w-9 text-amber-500" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Belum ada Penawaran Pembelian di sini</h3>
+              <h3 className="text-lg font-bold text-foreground mb-1">Belum Ada Permintaan Pembelian</h3>
               <p className="text-muted-foreground max-w-sm mb-6 text-sm">
-                Mulai dengan menambahkan Penawaran Pembelian baru untuk vendor Anda.
+                Permintaan pembelian diajukan sebelum pesanan resmi diterbitkan ke supplier.
               </p>
-              <Button className="bg-amber-500 hover:bg-amber-600 text-white shadow-sm" onClick={() => setHasData(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Tambah Penawaran Pembelian
+              <Button className="bg-amber-500 hover:bg-amber-600 text-white shadow-sm gap-2" onClick={() => router.push("/purchasing/orders/create")}>
+                Buat Pesanan Pembelian (PO) <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50 hover:bg-muted/50 border-border">
-                    <TableHead className="w-12 text-center">
-                      <input type="checkbox" className="rounded border-border text-amber-500 focus:ring-amber-500 bg-card" />
-                    </TableHead>
-                    <TableHead className="font-semibold text-foreground">Nomor</TableHead>
-                    <TableHead className="font-semibold text-foreground">Vendor</TableHead>
-                    <TableHead className="font-semibold text-foreground">Referensi</TableHead>
-                    <TableHead className="font-semibold text-foreground">Tgl. Jatuh Tempo</TableHead>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="font-semibold text-foreground">Nomor Dokumen</TableHead>
+                    <TableHead className="font-semibold text-foreground">Pemohon</TableHead>
+                    <TableHead className="font-semibold text-foreground">Keperluan / Alasan</TableHead>
+                    <TableHead className="font-semibold text-foreground">Tanggal Pengajuan</TableHead>
                     <TableHead className="font-semibold text-foreground">Status</TableHead>
-                    <TableHead className="font-semibold text-foreground text-right px-6">Total</TableHead>
+                    <TableHead className="font-semibold text-foreground text-center">Jumlah Item</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockData.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-muted/30 border-border group cursor-pointer">
-                      <TableCell className="text-center">
-                        <input type="checkbox" className="rounded border-border text-amber-500 focus:ring-amber-500 bg-card opacity-0 group-hover:opacity-100 data-[state=checked]:opacity-100 transition-opacity" />
+                  {filtered.map((item) => (
+                    <TableRow key={item.id} className="hover:bg-muted/30 border-border">
+                      <TableCell className="font-semibold text-amber-600">{item.request_number}</TableCell>
+                      <TableCell className="font-medium text-foreground">{item.creator?.name || 'Staf Internal'}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.reason || '-'}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-'}
                       </TableCell>
-                      <TableCell className="font-semibold text-amber-600">{item.id}</TableCell>
-                      <TableCell className="font-medium text-foreground">{item.vendor}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.ref}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.due}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
-                      <TableCell className="text-foreground font-medium text-right px-6">{item.total}</TableCell>
+                      <TableCell className="text-center font-medium">{item.items?.length || 0} Item</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

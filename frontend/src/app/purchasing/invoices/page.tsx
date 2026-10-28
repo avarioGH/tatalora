@@ -1,47 +1,83 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
-import { 
-  Card, CardContent
-} from "@/components/ui/card"
+import { useRouter } from "next/navigation"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { 
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
-} from "@/components/ui/table"
-import { 
-  Search, Filter, Download, Plus, Receipt, FileText, ChevronDown, Calendar, FolderOpen, Printer, Upload
+  Search, Filter, Plus, Receipt, FileText, ChevronDown, Calendar, FolderOpen, Send, Eye, Trash2
 } from "lucide-react"
-
-// Mock Data
-const mockInvoices = [
-  { id: "PI-2026-001", vendor: "PT Surya Kayu", ref: "DO-001", po: "PO-2026-001", warehouse: "Gudang Utama", qty: 150, date: "10 Okt 2026", due: "10 Nov 2026", status: "Belum Dibayar" },
-  { id: "PI-2026-002", vendor: "CV Logam Abadi", ref: "DO-002", po: "PO-2026-003", warehouse: "Gudang Cabang", qty: 45, date: "12 Okt 2026", due: "12 Nov 2026", status: "Lunas" },
-  { id: "PI-2026-003", vendor: "Toko Elektronik Jaya", ref: "-", po: "PO-2026-005", warehouse: "Gudang Utama", qty: 10, date: "15 Okt 2026", due: "30 Okt 2026", status: "Dibayar Sebagian" },
-]
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { api } from "@/lib/api"
+import { PayVendorBillModal } from "@/components/purchasing/pay-vendor-bill-modal"
 
 export default function PurchaseInvoicesPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("Semua")
   const [search, setSearch] = useState("")
-  // Change to true to see data, false to see empty state
-  const [hasData, setHasData] = useState(false) 
+  const [invoices, setInvoices] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const tabs = ["Semua", "Belum Dibayar", "Dibayar Sebagian", "Lunas", "Lainnya"]
+  // Payment modal state
+  const [payModalOpen, setPayModalOpen] = useState(false)
+  const [selectedBill, setSelectedBill] = useState<any | null>(null)
 
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case "Belum Dibayar": return <Badge className="bg-rose-500/10 text-rose-600 hover:bg-rose-500/10 border-0 shadow-none font-medium px-2.5 py-0.5">Belum Dibayar</Badge>
-      case "Dibayar Sebagian": return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/10 border-0 shadow-none font-medium px-2.5 py-0.5">Dibayar Sebagian</Badge>
-      case "Lunas": return <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 border-0 shadow-none font-medium px-2.5 py-0.5">Lunas</Badge>
-      default: return <Badge variant="outline">{status}</Badge>
+  const tabs = ["Semua", "Belum Dibayar", "Dibayar Sebagian", "Lunas"]
+
+  const fetchInvoices = async () => {
+    setLoading(true)
+    try {
+      const res = await api.get('/finance/invoices?type=AP&limit=100').catch(() => ({ data: { data: [] } }))
+      const data = res?.data?.data || res?.data || []
+      setInvoices(data)
+    } catch (err) {
+      console.error("Error loading purchase invoices:", err)
+    } finally {
+      setLoading(false)
     }
   }
 
+  useEffect(() => {
+    fetchInvoices()
+  }, [])
+
+  const handleDelete = async (id: string, no: string) => {
+    if (!confirm(`Hapus tagihan pembelian ${no}?`)) return
+    try {
+      await api.delete(`/finance/invoices/${id}`)
+      fetchInvoices()
+    } catch (e: any) {
+      alert("Gagal menghapus tagihan: " + (e.response?.data?.message || e.message))
+    }
+  }
+
+  const formatIDR = (val: number) => {
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
+  }
+
+  const filteredInvoices = invoices.filter(inv => {
+    const matchesSearch = inv.invoice_number?.toLowerCase().includes(search.toLowerCase()) ||
+      inv.supplier?.name?.toLowerCase().includes(search.toLowerCase())
+
+    if (!matchesSearch) return false
+
+    if (activeTab === "Belum Dibayar") return inv.status !== 'PAID' && inv.paid_amount === 0
+    if (activeTab === "Dibayar Sebagian") return inv.status === 'PARTIALLY_PAID' || (inv.paid_amount > 0 && inv.status !== 'PAID')
+    if (activeTab === "Lunas") return inv.status === 'PAID'
+    return true
+  })
+
   return (
     <div className="p-6 md:p-8 space-y-6 bg-background min-h-screen">
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -49,142 +85,139 @@ export default function PurchaseInvoicesPage() {
             <div className="p-2 bg-indigo-500/10 rounded-lg">
               <Receipt className="h-6 w-6 text-indigo-600" />
             </div>
-            Tagihan Pembelian
+            Tagihan Pembelian (Vendor Bills)
           </h1>
-          <p className="text-muted-foreground mt-1">Kelola faktur tagihan dari vendor dan pantau status pembayaran.</p>
+          <p className="text-muted-foreground mt-1">Kelola faktur tagihan dari vendor, utang usaha, dan pelunasan supplier.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border">
-            <FileText className="h-4 w-4" /> Laporan <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground" />
-          </Button>
           <Link href="/purchasing/invoices/create">
             <Button className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
-              <Plus className="h-4 w-4" /> Tambah
+              <Plus className="h-4 w-4" /> Buat Tagihan Baru
             </Button>
           </Link>
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border hidden md:flex">
-            <Upload className="h-4 w-4" /> Import <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground" />
-          </Button>
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border hidden lg:flex">
-            <Printer className="h-4 w-4" /> Print
-          </Button>
         </div>
       </div>
 
       <Card className="border-0 shadow-sm ring-1 ring-border overflow-hidden bg-card">
         {/* Filter Bar */}
         <div className="p-4 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
-          
-          {/* Action Left */}
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <Button variant="outline" className="gap-2 text-foreground border-border bg-card">
-              <Filter className="h-4 w-4 text-muted-foreground" /> Filter
-            </Button>
-            <div className="h-9 px-3 flex items-center border border-border rounded-md bg-muted text-sm font-medium text-foreground cursor-pointer">
-              Tagihan Pembelian <ChevronDown className="h-3 w-3 ml-2 text-muted-foreground" />
-            </div>
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Cari no tagihan atau nama vendor..." 
+              className="pl-9 bg-muted border-border h-9 text-sm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          {/* Search & Date Right */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Cari tagihan..." 
-                className="pl-9 bg-muted border-border h-9 text-sm"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="hidden lg:flex h-9 px-3 items-center border border-border rounded-md bg-muted text-sm text-foreground cursor-pointer whitespace-nowrap">
-              <Calendar className="h-4 w-4 text-muted-foreground mr-2" />
-              10 Okt 2025 - 10 Okt 2026
-            </div>
+          <div className="flex gap-1 overflow-x-auto">
+            {tabs.map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`
+                  px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap
+                  ${activeTab === tab 
+                    ? 'bg-indigo-600 text-white shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }
+                `}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
-        </div>
-
-        {/* Custom Tabs */}
-        <div className="bg-muted/30 px-4 pt-3 border-b border-border flex gap-1 overflow-x-auto custom-scrollbar">
-          {tabs.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`
-                px-4 py-2 text-sm font-medium rounded-t-lg transition-all border-b-2 whitespace-nowrap
-                ${activeTab === tab 
-                  ? 'border-indigo-600 text-indigo-600 bg-indigo-500/10' 
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }
-              `}
-            >
-              {tab}
-            </button>
-          ))}
         </div>
 
         <CardContent className="p-0">
-          {!hasData ? (
-            
-            /* Empty State */
-            <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
-              <div className="w-24 h-24 mb-6 rounded-full bg-indigo-500/10 flex items-center justify-center relative">
-                <FolderOpen className="h-10 w-10 text-indigo-500 absolute" />
-                <div className="w-4 h-4 bg-emerald-400 rounded-full absolute -top-1 -right-1 border-2 border-card"></div>
-                <div className="w-3 h-3 bg-amber-400 rounded-full absolute bottom-2 -left-2 border-2 border-card"></div>
+          {loading ? (
+            <div className="p-12 text-center text-muted-foreground">Memuat tagihan pembelian...</div>
+          ) : filteredInvoices.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+              <div className="w-16 h-16 mb-4 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-600">
+                <FolderOpen className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">Belum ada Tagihan Pembelian di sini</h3>
-              <p className="text-muted-foreground max-w-sm mb-6 text-sm">
-                Mulai dengan menambahkan Tagihan Pembelian baru dari vendor Anda.
+              <h3 className="text-lg font-bold text-foreground mb-1">Tidak ada tagihan pembelian</h3>
+              <p className="text-muted-foreground max-w-sm mb-4 text-xs">
+                Catat tagihan pembelian baru dari supplier untuk memantau jatuh tempo utang usaha.
               </p>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm" onClick={() => setHasData(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Tambah Tagihan Pembelian
-              </Button>
+              <Link href="/purchasing/invoices/create">
+                <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm">
+                  + Buat Tagihan Pembelian
+                </Button>
+              </Link>
             </div>
-
           ) : (
-
-            /* Data Table */
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50 hover:bg-muted/50 border-border">
-                    <TableHead className="w-12 text-center">
-                      <input type="checkbox" className="rounded border-border text-indigo-600 focus:ring-indigo-600 bg-card" />
-                    </TableHead>
-                    <TableHead className="font-semibold text-foreground">Nomor</TableHead>
-                    <TableHead className="font-semibold text-foreground">Vendor</TableHead>
-                    <TableHead className="font-semibold text-foreground">Referensi</TableHead>
-                    <TableHead className="font-semibold text-foreground">Nomor PO</TableHead>
-                    <TableHead className="font-semibold text-foreground">Kuantitas</TableHead>
-                    <TableHead className="font-semibold text-foreground">Tanggal</TableHead>
-                    <TableHead className="font-semibold text-foreground">Tgl. Jatuh Tempo</TableHead>
-                    <TableHead className="font-semibold text-foreground">Status</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[40px]"><input type="checkbox" className="rounded border-gray-300" /></TableHead>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>No. Tagihan</TableHead>
+                  <TableHead>Vendor / Supplier</TableHead>
+                  <TableHead>Tgl. Jatuh Tempo</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Sisa Utang</TableHead>
+                  <TableHead className="text-right">Total Tagihan</TableHead>
+                  <TableHead className="text-center">Tindakan</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((inv) => (
+                  <TableRow key={inv.id} className="hover:bg-muted/30">
+                    <TableCell><input type="checkbox" className="rounded border-gray-300" /></TableCell>
+                    <TableCell>{new Date(inv.invoice_date).toLocaleDateString('id-ID')}</TableCell>
+                    <TableCell className="font-semibold text-indigo-600">{inv.invoice_number}</TableCell>
+                    <TableCell className="font-medium text-foreground">{inv.supplier?.name || '-'}</TableCell>
+                    <TableCell>{inv.due_date ? new Date(inv.due_date).toLocaleDateString('id-ID') : '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={inv.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'}>
+                        {inv.status === 'PAID' ? 'Lunas' : inv.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold text-rose-600">{formatIDR(inv.remaining_amount)}</TableCell>
+                    <TableCell className="text-right font-semibold text-foreground">{formatIDR(inv.total)}</TableCell>
+                    <TableCell className="text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 gap-1">
+                            Tindakan <ChevronDown className="w-3 h-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44 bg-card">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedBill(inv)
+                              setPayModalOpen(true)
+                            }}
+                            disabled={inv.status === 'PAID'}
+                            className="cursor-pointer text-indigo-600 font-semibold focus:bg-indigo-50"
+                          >
+                            <Send className="w-3.5 h-3.5 mr-2" /> Kirim Pembayaran
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(inv.id, inv.invoice_number)} className="cursor-pointer text-red-600 focus:bg-red-50">
+                            <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockInvoices.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-muted/30 border-border group cursor-pointer">
-                      <TableCell className="text-center">
-                        <input type="checkbox" className="rounded border-border text-indigo-600 focus:ring-indigo-600 bg-card opacity-0 group-hover:opacity-100 data-[state=checked]:opacity-100 transition-opacity" />
-                      </TableCell>
-                      <TableCell className="font-semibold text-indigo-600">{item.id}</TableCell>
-                      <TableCell className="font-medium text-foreground">{item.vendor}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.ref}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.po}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.qty}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.date}</TableCell>
-                      <TableCell className="text-muted-foreground">{item.due}</TableCell>
-                      <TableCell>{getStatusBadge(item.status)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
+
+      {/* Pay Vendor Bill Modal */}
+      <PayVendorBillModal
+        open={payModalOpen}
+        onOpenChange={setPayModalOpen}
+        bill={selectedBill}
+        onSuccess={() => fetchInvoices()}
+      />
     </div>
   )
 }

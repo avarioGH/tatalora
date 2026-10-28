@@ -219,4 +219,74 @@ export class QuotationService {
       data: { status: 'CANCELLED' }
     });
   }
+
+  async update(companyId: string, id: string, data: any) {
+    const existing = await this.prisma.quotation.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!existing) throw new NotFoundException('Quotation not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        await tx.quotationItem.deleteMany({
+          where: { quotation_id: id },
+        });
+
+        let totalAmount = 0;
+        const newItems: any[] = [];
+        for (const it of data.items) {
+          const qty = Number(it.qty || it.quantity) || 1;
+          const unitPrice = Number(it.unit_price || it.unitPrice || it.price) || 0;
+          const subtotal = qty * unitPrice;
+          totalAmount += subtotal;
+
+          newItems.push({
+            quotation_id: id,
+            product_id: it.product_id || it.productId,
+            description: it.description || '',
+            qty,
+            unit_price: unitPrice,
+            subtotal,
+          });
+        }
+
+        await tx.quotationItem.createMany({
+          data: newItems,
+        });
+
+        data.total_amount = totalAmount;
+      }
+
+      return tx.quotation.update({
+        where: { id },
+        data: {
+          customer_id: data.customer_id || data.customerId || existing.customer_id,
+          status: data.status || existing.status,
+          total_amount: data.total_amount !== undefined ? Number(data.total_amount) : existing.total_amount,
+          notes: data.notes !== undefined ? data.notes : existing.notes,
+        },
+        include: {
+          items: { include: { product: true } },
+          customer: true,
+        },
+      });
+    });
+  }
+
+  async delete(companyId: string, id: string) {
+    const existing = await this.prisma.quotation.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!existing) throw new NotFoundException('Quotation not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      await tx.quotationItem.deleteMany({
+        where: { quotation_id: id },
+      });
+      await tx.quotation.delete({
+        where: { id },
+      });
+      return { success: true, message: `Quotation ${existing.quotation_number} deleted successfully` };
+    });
+  }
 }

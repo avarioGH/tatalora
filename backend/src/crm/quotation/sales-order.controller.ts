@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -38,5 +40,19 @@ export class SalesOrderController {
   async findOne(@Request() req, @Param('id') id: string) {
     const compId = req.user.company_id || req.user.companyId;
     return this.salesOrderService.findOne(compId, id);
+  }
+
+  @Permissions('quotation.create')
+  @Put(':id')
+  async updateOrder(@Request() req, @Param('id') id: string, @Body() body: any) {
+    const compId = req.user.company_id || req.user.companyId;
+    return this.salesOrderService.update(compId, id, body);
+  }
+
+  @Permissions('quotation.create')
+  @Delete(':id')
+  async deleteOrder(@Request() req, @Param('id') id: string) {
+    const compId = req.user.company_id || req.user.companyId;
+    return this.salesOrderService.delete(compId, id);
   }
 }

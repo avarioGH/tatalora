@@ -64,21 +64,28 @@ export default function PosNewTransactionPage() {
     const fetchData = async () => {
       try {
         const [prodRes, custRes] = await Promise.all([
-          InventoryAPI.getProducts(),
-          api.get('/crm/customers')
+          InventoryAPI.getProducts().catch(() => []),
+          api.get('/customers?limit=100').catch(() => ({ data: { data: [] } }))
         ])
-        setCustomers(custRes.data)
+        const custList = custRes.data?.data || (Array.isArray(custRes.data) ? custRes.data : [])
+        setCustomers(custList)
 
-        const mapped = prodRes.data.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          category: p.category || "Umum",
-          price: p.base_price,
-          stock: p.stock_quantity,
-          img: "ðŸ“¦" 
-        }))
+        const rawList = Array.isArray(prodRes) ? prodRes : (prodRes?.data || [])
+        const mapped = rawList.map((p: any) => {
+          const totalStock = p.warehouse_stocks?.reduce((sum: number, ws: any) => sum + (ws.current_stock || 0), 0) ?? 0;
+          return {
+            id: p.id,
+            sku: p.code || p.id.substring(0, 8),
+            name: p.name,
+            category: p.category?.name || "Umum",
+            price: Number(p.selling_price || 0),
+            stock: totalStock,
+            barcode: p.barcode || p.code || "",
+            image_url: p.image_url || null,
+          }
+        })
         setProducts(mapped)
-        const uniqueCategories = ["Semua", ...new Set(mapped.map((p: any) => p.category))] as string[]
+        const uniqueCategories = ["Semua", ...Array.from(new Set(mapped.map((p: any) => p.category)))] as string[]
         setCategories(uniqueCategories)
       } catch (error) {
         console.error("Database connection failed:", error)
@@ -218,7 +225,7 @@ export default function PosNewTransactionPage() {
               <AlertTriangle className="w-5 h-5 text-destructive mt-0.5" />
               <div>
                 <h4 className="font-semibold text-destructive">Koneksi Database Terputus</h4>
-                <p className="text-sm text-destructive/80">Saat ini tidak dapat mengambil data dari server MongoDB.</p>
+                <p className="text-sm text-destructive/80">Saat ini tidak dapat mengambil data dari server database.</p>
               </div>
             </div>
           )}
@@ -234,7 +241,12 @@ export default function PosNewTransactionPage() {
                     <h3 className="font-semibold text-sm text-foreground line-clamp-2 leading-tight">{p.name}</h3>
                     <div className="flex flex-col mt-2">
                       <p className="font-bold text-indigo-600 text-sm">{formatIDR(p.price)}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">SKU: {p.id.substring(0,8)}</p>
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-1">
+                        <span>SKU: {p.sku}</span>
+                        <span className={p.stock > 0 ? "text-emerald-600 font-medium" : "text-rose-500 font-medium"}>
+                          Stok: {p.stock}
+                        </span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -244,10 +256,21 @@ export default function PosNewTransactionPage() {
             <div className="flex flex-col gap-2 pb-20">
               {filteredProducts.map(p => (
                 <Card key={p.id} className="cursor-pointer border-border bg-card hover:border-indigo-500 hover:shadow-md transition-all flex items-center p-3" onClick={() => addToCart(p)}>
-                  <div className="w-12 h-12 bg-indigo-50/50 rounded-md flex items-center justify-center text-2xl mr-4">{p.img}</div>
+                  <div className="w-12 h-12 bg-muted/30 rounded-md flex items-center justify-center text-xl mr-4 shrink-0 overflow-hidden">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span>📦</span>
+                    )}
+                  </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-sm text-foreground">{p.name}</h3>
-                    <p className="text-[10px] text-muted-foreground">SKU: {p.id.substring(0,8)}</p>
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span>SKU: {p.sku}</span>
+                      <span className={p.stock > 0 ? "text-emerald-600 font-medium" : "text-rose-500 font-medium"}>
+                        Stok: {p.stock}
+                      </span>
+                    </div>
                   </div>
                   <div className="font-bold text-indigo-600 text-sm">{formatIDR(p.price)}</div>
                 </Card>
@@ -315,7 +338,7 @@ export default function PosNewTransactionPage() {
                 <div key={item.id} className="bg-card border border-border rounded-lg p-3 shadow-sm flex flex-col gap-3">
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-indigo-50 rounded flex items-center justify-center text-xl shrink-0">ðŸ“¦</div>
+                      <div className="w-10 h-10 bg-indigo-50 rounded flex items-center justify-center text-xl shrink-0">📦</div>
                       <div>
                         <h4 className="font-semibold text-sm leading-tight text-foreground">{item.name}</h4>
                         <div className="flex items-center gap-2 mt-1">

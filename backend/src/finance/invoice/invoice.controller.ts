@@ -5,6 +5,8 @@ import {
   Controller,
   Get,
   Post,
+  Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -23,8 +25,8 @@ export class InvoiceController {
   ) {}
   @Permissions('invoice.create')
   @Post()
-  createDirect(@Request() req, @Body() data: any) {
-    return this.service.createDirect(req.user.company_id, data);
+  createStandardInvoice(@Request() req, @Body() data: any) {
+    return this.service.create(req.user.company_id, data);
   }
   @Permissions('invoice.create')
   @Post('from-so')
@@ -51,6 +53,7 @@ export class InvoiceController {
       include: {
         items: { include: { product: true } },
         customer: true,
+        supplier: true,
         payments: true,
         PaymentAllocation: {
           include: {
@@ -70,5 +73,15 @@ export class InvoiceController {
   @Post(':id/cancel')
   cancel(@Request() req, @Param('id') id: string) {
     return this.service.cancel(req.user.company_id, id);
+  }
+  @Permissions('invoice.create')
+  @Put(':id')
+  update(@Request() req, @Param('id') id: string, @Body() data: any) {
+    return this.service.update(req.user.company_id, id, data);
+  }
+  @Permissions('invoice.create')
+  @Delete(':id')
+  delete(@Request() req, @Param('id') id: string) {
+    return this.service.delete(req.user.company_id, id);
   }
 }

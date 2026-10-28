@@ -15,6 +15,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
+import { QuickAddCustomerModal, QuickAddProductModal, QuickAddTaxModal } from "@/components/sales/quick-modals"
 import { 
   Plus, Trash2, ArrowLeft, ShoppingBag, Paperclip, Loader2
 } from "lucide-react"
@@ -48,6 +49,17 @@ export default function CreateSalesOrderPage() {
   const [tag, setTag] = useState("")
   const [currency, setCurrency] = useState("IDR")
   const [taxInclusive, setTaxInclusive] = useState(false)
+  // Quick Modals State
+  const [custModalOpen, setCustModalOpen] = useState(false)
+  const [prodModalOpen, setProdModalOpen] = useState(false)
+  const [taxModalOpen, setTaxModalOpen] = useState(false)
+  const [activeItemTaxIndex, setActiveItemTaxIndex] = useState<number | null>(null)
+  const [availableTaxes, setAvailableTaxes] = useState([
+    { id: 'ppn11', name: 'PPN', rate: 11 },
+    { id: 'ppn12', name: 'PPN 12%', rate: 12 },
+    { id: 'pph23', name: 'PPh 23 (2%)', rate: 2 },
+    { id: 'non', name: 'Bebas Pajak (0%)', rate: 0 }
+  ])
 
   // Items State (Produk, Deskripsi, Kuantitas, Unit, Harga Satuan, Diskon %, Pajak %, Jumlah)
   const [items, setItems] = useState<any[]>([
@@ -168,9 +180,12 @@ export default function CreateSalesOrderPage() {
     const qty = Number(item.qty || 0)
     const price = Number(item.price || 0)
     const discPct = Number(item.discount_percent || 0)
+    const taxPct = Number(item.tax_percent || 0)
     const gross = qty * price
     const lineDiscount = (gross * discPct) / 100
-    item.total = Math.max(0, gross - lineDiscount)
+    const taxableBase = Math.max(0, gross - lineDiscount)
+    const lineTax = (taxableBase * taxPct) / 100
+    item.total = taxableBase + lineTax
 
     updated[index] = item
     setItems(updated)
@@ -200,7 +215,17 @@ export default function CreateSalesOrderPage() {
   }
 
   // Calculations
-  const subtotal = items.reduce((acc, it) => acc + (it.total || 0), 0)
+  const subtotal = items.reduce((acc, it) => {
+    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
+    return acc + Math.max(0, gross - disc)
+  }, 0)
+  const lineTaxTotal = items.reduce((acc, it) => {
+    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
+    const base = Math.max(0, gross - disc)
+    return acc + ((base * (Number(it.tax_percent) || 0)) / 100)
+  }, 0)
   const lineDiscountTotal = items.reduce((acc, it) => {
     const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
     return acc + (gross * (Number(it.discount_percent) || 0) / 100)
@@ -210,7 +235,7 @@ export default function CreateSalesOrderPage() {
     ? (subtotal * Number(globalDiscountVal || 0)) / 100
     : Number(globalDiscountVal || 0)
 
-  const total = Math.max(0, subtotal - globalDiscount)
+  const total = Math.max(0, subtotal - globalDiscount + lineTaxTotal)
   const balanceDue = total
 
   // Format Rupiah
@@ -264,7 +289,7 @@ export default function CreateSalesOrderPage() {
           unit: it.unit,
           unit_price: Number(it.price),
           discount: (Number(it.qty) * Number(it.price) * (Number(it.discount_percent) || 0)) / 100,
-          tax: 0,
+          tax: lineTaxTotal,
           subtotal: it.total
         }))
       }
@@ -318,9 +343,18 @@ export default function CreateSalesOrderPage() {
           {/* Baris 1: Pelanggan & Email */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="text-sm font-semibold flex items-center gap-1">
-                Pelanggan <span className="text-rose-500">*</span>
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold flex items-center gap-1">
+                  Pelanggan <span className="text-rose-500">*</span>
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => setCustModalOpen(true)}
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" /> + Pelanggan Baru
+                </button>
+              </div>
               <Select value={customerId} onValueChange={handleCustomerChange}>
                 <SelectTrigger className="bg-background border-border h-10">
                   <SelectValue placeholder="Pilih pelanggan" />
@@ -750,6 +784,37 @@ export default function CreateSalesOrderPage() {
 
         </CardContent>
       </Card>
+    
+      {/* Quick Add Modals */}
+      <QuickAddCustomerModal 
+        open={custModalOpen} 
+        onOpenChange={setCustModalOpen}
+        onSuccess={(newCust) => {
+          setCustomers(prev => [newCust, ...prev]);
+          handleCustomerChange(newCust.id);
+        }}
+      />
+      <QuickAddProductModal
+        open={prodModalOpen}
+        onOpenChange={setProdModalOpen}
+        onSuccess={(newProd) => {
+          setProducts(prev => [newProd, ...prev]);
+          if (items.length > 0 && !items[0].product_id) {
+            handleItemChange(0, "product_id", newProd.id);
+          }
+        }}
+      />
+      <QuickAddTaxModal
+        open={taxModalOpen}
+        onOpenChange={setTaxModalOpen}
+        onSuccess={(newTax) => {
+          setAvailableTaxes(prev => [...prev, newTax]);
+          if (activeItemTaxIndex !== null) {
+            handleItemChange(activeItemTaxIndex, "tax_percent", newTax.rate);
+            setActiveItemTaxIndex(null);
+          }
+        }}
+      />
     </div>
-  )
+  );
 }
