@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Link from "next/link"
 import { 
   Card, CardContent, CardHeader, CardTitle
@@ -12,18 +12,102 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { 
-  Search, Filter, Package, ChevronDown, Download, Layers, AlertCircle
+  Search, Filter, Package, ChevronDown, Download, Layers, AlertCircle, Loader2
 } from "lucide-react"
-
-const mockStock = [
-  { id: "PRD-001", product: "Besi Beton 10mm", sku: "BB-10-STD", warehouse: "Gudang Utama", qty: 1250, unit: "Btg", status: "Tersedia" },
-  { id: "PRD-002", product: "Semen Portland 50kg", sku: "SM-PT-50", warehouse: "Gudang Utama", qty: 8, unit: "Sak", status: "Hampir Habis" },
-  { id: "PRD-003", product: "Kayu Jati Merah", sku: "KY-JT-MRH", warehouse: "Gudang Cabang", qty: 0, unit: "M3", status: "Habis" },
-  { id: "PRD-004", product: "Pipa PVC 3/4 inch", sku: "PP-PVC-34", warehouse: "Gudang Utama", qty: 450, unit: "Btg", status: "Tersedia" },
-]
+import { InventoryAPI } from "@/lib/api"
 
 export default function StockAvailablePage() {
   const [search, setSearch] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState<any[]>([])
+  const [warehouses, setWarehouses] = useState<any[]>([])
+  const [selectedWarehouse, setSelectedWarehouse] = useState("all")
+
+  useEffect(() => {
+    fetchRealStockData()
+  }, [])
+
+  const fetchRealStockData = async () => {
+    setLoading(true)
+    try {
+      const [prodRes, whRes] = await Promise.all([
+        InventoryAPI.getProducts().catch(() => []),
+        InventoryAPI.getWarehouses().catch(() => [])
+      ])
+
+      const pList = Array.isArray(prodRes) ? prodRes : (prodRes?.data || [])
+      const wList = Array.isArray(whRes) ? whRes : (whRes?.data || [])
+
+      setProducts(pList)
+      setWarehouses(wList)
+    } catch (err) {
+      console.error("Error loading real stock data:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Flatten products with warehouse stock rows
+  const stockRows: any[] = []
+  products.forEach(p => {
+    const totalQty = p.warehouse_stocks?.reduce((s: number, ws: any) => s + (Number(ws.quantity) || 0), 0) || Number(p.stock) || 0
+    const minQty = Number(p.min_stock) || 10
+    
+    let defaultStatus = "Tersedia"
+    if (totalQty === 0) defaultStatus = "Habis"
+    else if (totalQty <= minQty) defaultStatus = "Hampir Habis"
+
+    if (p.warehouse_stocks && p.warehouse_stocks.length > 0) {
+      p.warehouse_stocks.forEach((ws: any) => {
+        const whName = ws.warehouse?.name || 'Gudang Utama'
+        const q = Number(ws.quantity) || 0
+        let st = "Tersedia"
+        if (q === 0) st = "Habis"
+        else if (q <= minQty) st = "Hampir Habis"
+
+        stockRows.push({
+          id: `${p.id}-${ws.warehouse_id}`,
+          productId: p.id,
+          product: p.name,
+          sku: p.code || p.sku || '-',
+          warehouse: whName,
+          warehouseId: ws.warehouse_id,
+          qty: q,
+          unit: p.unit || 'Pcs',
+          status: st
+        })
+      })
+    } else {
+      stockRows.push({
+        id: p.id,
+        productId: p.id,
+        product: p.name,
+        sku: p.code || p.sku || '-',
+        warehouse: 'Gudang Utama',
+        warehouseId: 'default',
+        qty: totalQty,
+        unit: p.unit || 'Pcs',
+        status: defaultStatus
+      })
+    }
+  })
+
+  // Metrics
+  const totalSKUs = products.length
+  const lowStockCount = stockRows.filter(r => r.status === 'Hampir Habis' || r.status === 'Habis').length
+  const totalStockQty = stockRows.reduce((sum, r) => sum + r.qty, 0)
+
+  // Filter
+  const filteredRows = stockRows.filter(r => {
+    const matchesSearch = 
+      r.product.toLowerCase().includes(search.toLowerCase()) ||
+      r.sku.toLowerCase().includes(search.toLowerCase()) ||
+      r.warehouse.toLowerCase().includes(search.toLowerCase())
+
+    if (!matchesSearch) return false
+    if (selectedWarehouse !== "all" && r.warehouseId !== selectedWarehouse) return false
+    return true
+  })
 
   const getStatusBadge = (status: string) => {
     switch(status) {
@@ -63,7 +147,7 @@ export default function StockAvailablePage() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total SKU Aktif</p>
-              <h3 className="text-2xl font-bold text-foreground">142</h3>
+              <h3 className="text-2xl font-bold text-foreground">{totalSKUs}</h3>
             </div>
           </CardContent>
         </Card>
@@ -73,8 +157,8 @@ export default function StockAvailablePage() {
               <AlertCircle className="h-6 w-6 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Stok Menipis</p>
-              <h3 className="text-2xl font-bold text-foreground">18</h3>
+              <p className="text-sm font-medium text-muted-foreground">Stok Menipis / Habis</p>
+              <h3 className="text-2xl font-bold text-foreground">{lowStockCount}</h3>
             </div>
           </CardContent>
         </Card>
@@ -85,7 +169,7 @@ export default function StockAvailablePage() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Kuantitas</p>
-              <h3 className="text-2xl font-bold text-foreground">15,892</h3>
+              <h3 className="text-2xl font-bold text-foreground">{totalStockQty.toLocaleString()}</h3>
             </div>
           </CardContent>
         </Card>
@@ -98,51 +182,82 @@ export default function StockAvailablePage() {
             <div className="h-9 flex items-center px-3 font-semibold text-foreground border-r border-border gap-2">
               <Package className="h-4 w-4" /> Stok Tersedia
             </div>
-            <div className="h-9 px-3 flex items-center border border-border rounded-md bg-card text-sm font-medium text-foreground cursor-pointer ml-2 shadow-sm">
-              Semua Gudang <ChevronDown className="h-3 w-3 ml-2 text-muted-foreground" />
+            
+            <div className="relative">
+              <select 
+                value={selectedWarehouse}
+                onChange={e => setSelectedWarehouse(e.target.value)}
+                className="h-9 bg-background border border-border rounded-md px-3 text-sm text-foreground focus:outline-none"
+              >
+                <option value="all">Semua Gudang</option>
+                {warehouses.map(w => (
+                  <option key={w.id} value={w.id}>{w.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Cari produk atau SKU..." 
-              className="pl-9 bg-card border-border h-9 text-sm shadow-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Cari produk atau SKU..." 
+                className="pl-9 bg-background border-border h-9 text-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50 hover:bg-muted/50 border-border">
-                  <TableHead className="font-semibold text-foreground pl-6">Produk</TableHead>
-                  <TableHead className="font-semibold text-foreground">SKU</TableHead>
-                  <TableHead className="font-semibold text-foreground">Gudang</TableHead>
-                  <TableHead className="font-semibold text-foreground text-right">Stok Saat Ini</TableHead>
-                  <TableHead className="font-semibold text-foreground text-center pr-6">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockStock.map((item) => (
-                  <TableRow key={item.id} className="hover:bg-muted/30 border-border transition-colors">
-                    <TableCell className="font-medium text-foreground pl-6">{item.product}</TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">{item.sku}</TableCell>
-                    <TableCell className="text-muted-foreground">{item.warehouse}</TableCell>
-                    <TableCell className="text-foreground font-semibold text-right">
-                      {item.qty} <span className="text-xs font-normal text-muted-foreground ml-1">{item.unit}</span>
-                    </TableCell>
-                    <TableCell className="text-center pr-6">{getStatusBadge(item.status)}</TableCell>
+            {loading ? (
+              <div className="p-12 text-center text-muted-foreground flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" /> Memuat daftar stok produk dari database...
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border hover:bg-transparent bg-muted/10">
+                    <TableHead className="font-semibold text-foreground pl-6">Produk</TableHead>
+                    <TableHead className="font-semibold text-foreground">SKU / Kode</TableHead>
+                    <TableHead className="font-semibold text-foreground">Gudang</TableHead>
+                    <TableHead className="font-semibold text-foreground text-right">Stok Saat Ini</TableHead>
+                    <TableHead className="font-semibold text-foreground text-center pr-6">Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredRows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-16 text-muted-foreground">
+                        <Package className="w-10 h-10 mx-auto text-muted-foreground/40 mb-2" />
+                        <p className="text-base font-medium">Tidak ada data stok ditemukan di database.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Tambahkan produk baru pada menu Produk untuk melihat stok di sini.</p>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredRows.map((item) => (
+                      <TableRow key={item.id} className="hover:bg-muted/30 border-border transition-colors">
+                        <TableCell className="font-medium text-foreground pl-6">{item.product}</TableCell>
+                        <TableCell className="text-muted-foreground font-mono text-xs">{item.sku}</TableCell>
+                        <TableCell className="text-muted-foreground">{item.warehouse}</TableCell>
+                        <TableCell className="text-foreground font-semibold text-right">
+                          {item.qty.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">{item.unit}</span>
+                        </TableCell>
+                        <TableCell className="text-center pr-6">
+                          {getStatusBadge(item.status)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </CardContent>
       </Card>
+
     </div>
   )
 }
