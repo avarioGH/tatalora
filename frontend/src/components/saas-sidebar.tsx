@@ -21,7 +21,8 @@ import {
 import { 
  LayoutDashboard, ShoppingCart, ShoppingBag, Receipt, Box, Database, 
  BarChart3, Wallet, FileText, Building, Users, BadgeDollarSign, 
- HeartHandshake, MonitorSmartphone, Truck, Store, Star, Settings, HelpCircle, LogOut, Hexagon, ShieldCheck
+ HeartHandshake, MonitorSmartphone, Truck, Store, Star, Settings, HelpCircle, LogOut, Hexagon, ShieldCheck,
+  Calculator, Building2
 } from "lucide-react"
 
 type MenuItem = {
@@ -34,40 +35,20 @@ type MenuItem = {
 }
 
 const items: MenuItem[] = [
- { title: "Beranda", url: "/", icon: LayoutDashboard, id: "dashboard" },
- {
-   title: "Penjualan",
-    url: "/sales",
-    icon: ShoppingBag,
-    id: "sales"
- },
- {
-   title: "Pembelian",
-   url: "/purchasing",
-   icon: ShoppingCart,
-   id: "purchasing",
-   subItems: [
-     { title: "Overview", url: "/purchasing/overview" },
-     { title: "Tagihan Pembelian", url: "/purchasing/invoices" },
-     { title: "Pengiriman Pembelian", url: "/purchasing/receipts" },
-     { title: "Pesanan Pembelian", url: "/purchasing/orders" },
-     { title: "Penawaran Pembelian", url: "/purchasing/rfqs" }
-   ]
- },
- { title: "Biaya", url: "/finance/expenses", icon: Receipt, id: "expenses" },
- { title: "Produk", url: "/inventory/products", icon: Box, id: "products" },
- { title: "Inventori", url: "/inventory/stock", icon: Database, id: "inventory", subItems: [{ title: "Daftar Stok", url: "/inventory/stock" }, { title: "Input Stok Masuk", url: "/inventory/inflow" }, { title: "Pemusnahan Stok", url: "/inventory/disposals" }] },
- { title: "Laporan", url: "/reports", icon: BarChart3, id: "reports" },
- { title: "Kas & Bank", url: "/finance/cash", icon: Wallet, id: "cash" },
- { title: "Buku Besar (GL)", url: "/finance/gl", icon: FileText, id: "accounting" },
- { title: "Aset Tetap", url: "/assets", icon: Building, id: "assets" },
- { title: "Kontak", url: "/crm/partners", icon: Users, id: "contacts" },
- { title: "Payroll", url: "/hr/payroll", icon: BadgeDollarSign, id: "payroll", badge: "★" },
- { title: "CRM", url: "/crm", icon: HeartHandshake, id: "crm", badge: "★" },
- { title: "POS", url: "/pos/new-transaction", icon: MonitorSmartphone, id: "pos", badge: "★" },
- { title: "Distribusi", url: "/distribution", icon: Truck, id: "distribution", badge: "★" },
- { title: "Marketplace", url: "/marketplace", icon: Store, id: "marketplace", badge: "★" },
- { title: "Membership", url: "/membership", icon: Star, id: "membership", badge: "★" },
+  { title: "Beranda", url: "/", icon: LayoutDashboard, id: "dashboard" },
+  { title: "Laporan", url: "/reports", icon: BarChart3, id: "reports" },
+  { title: "Anggaran", url: "/finance/budget", icon: Calculator, id: "budget" },
+  { title: "Kas & Bank", url: "/finance/cash", icon: Wallet, id: "cash" },
+  { title: "Penjualan", url: "/sales", icon: ShoppingBag, id: "sales" },
+  { title: "Pembelian", url: "/purchasing", icon: ShoppingCart, id: "purchasing" },
+  { title: "Biaya", url: "/finance/expenses", icon: Receipt, id: "expenses" },
+  { title: "Kontak", url: "/crm/partners", icon: Users, id: "contacts" },
+  { title: "Produk", url: "/inventory/products", icon: Box, id: "products" },
+  { title: "Aset", url: "/assets", icon: Building, id: "assets" },
+  { title: "Daftar Akun", url: "/finance/gl", icon: FileText, id: "accounting" },
+  { title: "Konsolidasi", url: "/finance/consolidation", icon: Building2, id: "consolidation" },
+  { title: "Payroll", url: "/hr/payroll", icon: BadgeDollarSign, id: "payroll", badge: "★" },
+  { title: "POS Kasir", url: "/pos/new-transaction", icon: MonitorSmartphone, id: "pos", badge: "★" }
 ]
 
 const settings: MenuItem[] = [
