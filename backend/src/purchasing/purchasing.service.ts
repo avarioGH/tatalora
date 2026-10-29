@@ -155,7 +155,7 @@ export class PurchasingService {
       };
     });
 
-    return this.prisma.purchaseOrder.create({
+    const po = await this.prisma.purchaseOrder.create({
       data: {
         company_id: companyId,
         supplier_id: supplierId,
@@ -176,6 +176,30 @@ export class PurchasingService {
       },
       include: { items: true, supplier: true },
     });
+
+    if (data.autoReceive && warehouseId) {
+      try {
+        await this.confirmPO(companyId, po.id);
+        await this.receiveGoods(companyId, po.id, {
+          warehouseId,
+          items: items.map((it: any) => ({ productId: it.productId, qty: Number(it.qty) })),
+        });
+        if (data.autoBill) {
+          const bill = await this.createVendorBill(companyId, po.id, {});
+          if (data.autoPay && bill && bill.id) {
+            await this.payVendorBill(companyId, bill.id, {
+              amount: bill.total_amount,
+              method: data.paymentMethod || 'CASH',
+              notes: 'Auto payment upon purchase order creation',
+            });
+          }
+        }
+      } catch (autoErr) {
+        console.error('Auto receive/bill error:', autoErr);
+      }
+    }
+
+    return (await this.findOrder(companyId, po.id)) || po;
   }
 
   async confirmPO(companyId: string, id: string) {

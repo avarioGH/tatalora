@@ -127,6 +127,7 @@ export class InventoryService {
         unit: true,
         brand: true,
         warehouse_stocks: true,
+        images: true,
       },
       orderBy: { created_at: 'desc' },
     });
@@ -856,6 +857,12 @@ export class InventoryService {
         created_by: params.userId,
         remarks: params.description,
       },
+    });
+
+    // Automatically update latest purchase_price (HPP) on Product
+    await tx.product.update({
+      where: { id: params.productId },
+      data: { purchase_price: params.unitCost },
     });
 
     await createFifoLayer(tx as any, {
