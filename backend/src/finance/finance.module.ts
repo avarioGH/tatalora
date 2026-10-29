@@ -17,11 +17,13 @@ import { ExpenseController } from './expense/expense.controller';
 import { AssetFinanceController } from './asset/asset-finance.controller';
 import { NettingController } from './netting/netting.controller';
 import { NettingService } from './netting/netting.service';
+import { InvoicesController } from './invoices.controller';
 
 @Module({
   imports: [PrismaModule, GlModule, InvoiceModule, PaymentModule],
   controllers: [
     FinanceController,
+    InvoicesController,
     PeriodController,
     BankReconciliationController,
     ExpenseController,

@@ -18,13 +18,22 @@ import {
  TableRow,
 } from"@/components/ui/table"
 import { Search, Plus, Download, Box, LayoutGrid, AlertTriangle, RefreshCcw
-, MoreHorizontal, Trash2, Edit2 } from "lucide-react"
+, MoreHorizontal, Trash2, Edit2, FileSpreadsheet, Loader2 } from "lucide-react"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { BarChart3, PackageOpen, PackageX, FileText, Settings, CreditCard, ChevronRight, Check, HelpCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { InventoryAPI } from "@/lib/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from"@/components/ui/select"
 import imageCompression from"browser-image-compression"
+import { useRef } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
+import { downloadCSV, parseCSV } from "@/lib/csv-helper"
 
 import { Upload, X, QrCode, Edit, ChevronDown, Store } from "lucide-react"
 import Link from"next/link"
@@ -37,10 +46,17 @@ import {
 
 export default function ProductInventory() {
   const router = useRouter()
- const [searchQuery, setSearchQuery] = useState("")
- const [showForm, setShowForm] = useState(false)
- const [isSubmitting, setIsSubmitting] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showForm, setShowForm] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+
+  // CSV Import Modal
+  const [importModalOpen, setImportModalOpen] = useState(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importPreview, setImportPreview] = useState<{ headers: string[]; rows: string[][] } | null>(null)
+  const [importing, setImporting] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
  const [formData, setFormData] = useState({ 
  code:"", barcode:"", name:"", weight:"", purchasePrice:"0", sellingPrice:"", description:"", categoryId:"" 
  })
@@ -291,17 +307,198 @@ export default function ProductInventory() {
   const totalNilai = filteredProducts.reduce((sum, p) => sum + (p.price * warehouses.reduce((s, wh) => s + (p.stockMap[wh.id] || 0), 0)), 0);
   const totalHPP = filteredProducts.reduce((sum, p) => sum + (Number(p.purchase_price || 0) * warehouses.reduce((s, wh) => s + (p.stockMap[wh.id] || 0), 0)), 0);
 
+  const handleExportCSV = () => {
+    const headers = ["Kode SKU", "Barcode", "Nama Produk", "Kategori", "Harga Beli", "Harga Jual", "Total Stok"]
+    const rows = filteredProducts.map(p => {
+      const stock = warehouses.reduce((sum, wh) => sum + (p.stockMap[wh.id] || 0), 0)
+      return [
+        p.sku || '',
+        p.barcode || '',
+        p.name || '',
+        p.category || '-',
+        p.purchase_price || 0,
+        p.price || 0,
+        stock
+      ]
+    })
+    downloadCSV(`daftar_produk_${new Date().toISOString().slice(0, 10)}.csv`, headers, rows)
+  }
+
+  const handleDownloadTemplate = () => {
+    const headers = ["Kode SKU", "Barcode", "Nama Produk", "Harga Beli", "Harga Jual", "Deskripsi"]
+    const sampleRows = [
+      ["PRD-1001", "899123456001", "Kayu Balok Meranti 5x10", "120000", "175000", "Kayu balok kualitas super grade A"],
+      ["PRD-1002", "899123456002", "Papan Jati Perhutani 2x20", "250000", "340000", "Papan jati oven kering standard export"]
+    ]
+    downloadCSV("template_impor_produk.csv", headers, sampleRows)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportFile(file)
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const text = event.target?.result as string
+      if (text) {
+        const parsed = parseCSV(text)
+        setImportPreview(parsed)
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  const handleProcessImport = async () => {
+    if (!importPreview || importPreview.rows.length === 0) return
+    setImporting(true)
+    try {
+      let count = 0
+      for (const row of importPreview.rows) {
+        if (!row[2]) continue
+        const payload = new FormData()
+        payload.append("code", row[0] || `PRD-${Math.floor(100000 + Math.random() * 900000)}`)
+        payload.append("barcode", row[1] || `BAR-${Math.floor(100000 + Math.random() * 900000)}`)
+        payload.append("name", row[2])
+        payload.append("purchasePrice", row[3] || "0")
+        payload.append("sellingPrice", row[4] || "0")
+        payload.append("description", row[5] || "")
+        payload.append("weight", "1000")
+        await InventoryAPI.createProduct(payload).catch(console.error)
+        count++
+      }
+      alert(`Berhasil mengimpor ${count} produk ke database!`)
+      setImportModalOpen(false)
+      setImportFile(null)
+      setImportPreview(null)
+      const dbProducts = await InventoryAPI.getProducts()
+      const mapped = dbProducts.map((p: any) => {
+        const stockMap: Record<string, number> = {}
+        p.warehouse_stocks?.forEach((ws: any) => {
+          stockMap[ws.warehouse_id] = ws.current_stock
+        })
+        return {
+          id: p.id,
+          sku: p.code,
+          name: p.name,
+          category: p.category?.name || "-",
+          price: Number(p.selling_price),
+          weight: p.weight,
+          stockMap,
+          barcode: p.barcode,
+          description: p.description,
+          purchase_price: p.purchase_price,
+          category_id: p.category_id
+        }
+      })
+      setProducts(mapped)
+    } catch (e: any) {
+      alert("Gagal mengimpor produk: " + (e.response?.data?.message || e.message))
+    } finally {
+      setImporting(false)
+    }
+  }
+
   return (
  <div className="space-y-6 animate-in fade-in duration-500 pb-10">
  
+      {/* Import Modal */}
+      <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>
+        <DialogContent className="max-w-2xl bg-card">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 text-indigo-600" />
+              Impor Data Produk
+            </DialogTitle>
+            <DialogDescription>
+              Unggah file CSV untuk mengimpor produk ke database secara massal.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/40">
+              <div>
+                <p className="text-sm font-medium">Format Template CSV Mekari Jurnal</p>
+                <p className="text-xs text-muted-foreground">Unduh format kolom yang sesuai standar sistem</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleDownloadTemplate} className="gap-1.5">
+                <Download className="w-3.5 h-3.5" /> Unduh Template
+              </Button>
+            </div>
+
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:bg-muted/30 transition-colors"
+            >
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                accept=".csv" 
+                className="hidden" 
+              />
+              <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              <p className="text-sm font-medium">Klik untuk memilih file CSV</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {importFile ? importFile.name : "Mendukung format .csv"}
+              </p>
+            </div>
+
+            {importPreview && importPreview.rows.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Pratinjau ({importPreview.rows.length} baris terdeteksi):
+                </p>
+                <div className="max-h-48 overflow-auto border rounded text-xs">
+                  <table className="w-full">
+                    <thead className="bg-muted">
+                      <tr>
+                        {importPreview.headers.map((h, i) => (
+                          <th key={i} className="p-2 text-left font-medium border-b">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importPreview.rows.slice(0, 5).map((row, ri) => (
+                        <tr key={ri} className="border-b">
+                          {row.map((cell, ci) => (
+                            <td key={ci} className="p-2">{cell}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setImportModalOpen(false)}>
+                Batal
+              </Button>
+              <Button 
+                onClick={handleProcessImport} 
+                disabled={!importPreview || importPreview.rows.length === 0 || importing}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2"
+              >
+                {importing && <Loader2 className="w-4 h-4 animate-spin" />}
+                Proses Impor ({importPreview?.rows.length || 0})
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-4 rounded-xl shadow-sm border border-border/50">
         <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
           Produk
         </h1>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" className="bg-background">Laporan</Button>
-          <Button variant="outline" size="sm" className="bg-background">Panduan</Button>
-          <Button variant="outline" size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white border-transparent">Aturan Harga</Button>
+          <Button variant="outline" size="sm" onClick={handleExportCSV} className="bg-background gap-1.5">
+            <Download className="w-4 h-4 text-muted-foreground" /> Ekspor CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setImportModalOpen(true)} className="bg-background gap-1.5">
+            <Upload className="w-4 h-4 text-muted-foreground" /> Impor
+          </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -333,8 +530,6 @@ export default function ProductInventory() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant="outline" size="sm" className="bg-background">Import</Button>
-          <Button variant="outline" size="sm" className="bg-background">Print</Button>
           <Button variant="outline" size="icon" className="w-8 h-8 bg-background"><MoreHorizontal className="w-4 h-4" /></Button>
         </div>
       </div>
