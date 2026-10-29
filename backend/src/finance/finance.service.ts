@@ -681,7 +681,7 @@ export class FinanceService {
           total_amount: amount,
           description: description || `Transfer dana ke ${toAccount.name}`,
           status: 'COMPLETED',
-          user_id: userId,
+          created_by: userId,
         },
       });
 
@@ -695,7 +695,7 @@ export class FinanceService {
           total_amount: amount,
           description: description || `Terima transfer dari ${fromAccount.name}`,
           status: 'COMPLETED',
-          user_id: userId,
+          created_by: userId,
         },
       });
 
