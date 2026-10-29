@@ -97,19 +97,34 @@ export default function CreateInvoiceExchangePage() {
     }
   }
 
+  // Helper to calculate due date based on transaction date and terms
+  const calculateDueDate = (trxDateStr: string, term: string) => {
+    if (!trxDateStr) return ""
+    const [y, m, d] = trxDateStr.split("-").map(Number)
+    const baseDate = new Date(y, m - 1, d)
+    let days = 30
+    if (term === "cod") days = 0
+    else if (term === "net15") days = 15
+    else if (term === "net30") days = 30
+    else if (term === "net60") days = 60
+    baseDate.setDate(baseDate.getDate() + days)
+    const year = baseDate.getFullYear()
+    const month = String(baseDate.getMonth() + 1).padStart(2, '0')
+    const day = String(baseDate.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   // Handle Payment Terms change -> recalculate due date
   const handlePaymentTermsChange = (term: string | null) => {
     const validTerm = term || "net30"
     setPaymentTerms(validTerm)
-    const baseDate = new Date(transactionDate)
-    let days = 30
-    if (validTerm === "cod") days = 0
-    else if (validTerm === "net15") days = 15
-    else if (validTerm === "net30") days = 30
-    else if (validTerm === "net60") days = 60
-    
-    baseDate.setDate(baseDate.getDate() + days)
-    setDueDate(baseDate.toISOString().split("T")[0])
+    setDueDate(calculateDueDate(transactionDate, validTerm))
+  }
+
+  // Handle Transaction Date change -> recalculate due date
+  const handleTransactionDateChange = (newDate: string) => {
+    setTransactionDate(newDate)
+    setDueDate(calculateDueDate(newDate, paymentTerms))
   }
 
   // Handle Invoice Row selection
@@ -315,7 +330,7 @@ export default function CreateInvoiceExchangePage() {
                 <Input 
                   type="date" 
                   value={transactionDate} 
-                  onChange={(e) => setTransactionDate(e.target.value)}
+                  onChange={(e) => handleTransactionDateChange(e.target.value)}
                   className="bg-background border-border h-10"
                 />
               </div>

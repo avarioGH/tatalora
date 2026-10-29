@@ -37,7 +37,7 @@ export default function CreateQuotationPage() {
     new Date().toISOString().split("T")[0]
   )
   const [expirationDate, setExpirationDate] = useState(
-    new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
   )
   const [paymentTerms, setPaymentTerms] = useState("net30")
   const [transactionNo, setTransactionNo] = useState("")
@@ -111,19 +111,34 @@ export default function CreateQuotationPage() {
     }
   }
 
+  // Helper to calculate expiration date based on transaction date and terms
+  const calculateExpirationDate = (trxDateStr: string, term: string) => {
+    if (!trxDateStr) return ""
+    const [y, m, d] = trxDateStr.split("-").map(Number)
+    const baseDate = new Date(y, m - 1, d)
+    let days = 30
+    if (term === "cod") days = 0
+    else if (term === "net15") days = 15
+    else if (term === "net30") days = 30
+    else if (term === "net60") days = 60
+    baseDate.setDate(baseDate.getDate() + days)
+    const year = baseDate.getFullYear()
+    const month = String(baseDate.getMonth() + 1).padStart(2, '0')
+    const day = String(baseDate.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   // When payment terms change, recalculate expiration date
   const handlePaymentTermsChange = (term: string | null) => {
     const validTerm = term || "net30"
     setPaymentTerms(validTerm)
-    const baseDate = new Date(transactionDate)
-    let days = 14
-    if (validTerm === "cod") days = 0
-    else if (validTerm === "net15") days = 15
-    else if (validTerm === "net30") days = 30
-    else if (validTerm === "net60") days = 60
-    
-    baseDate.setDate(baseDate.getDate() + days)
-    setExpirationDate(baseDate.toISOString().split("T")[0])
+    setExpirationDate(calculateExpirationDate(transactionDate, validTerm))
+  }
+
+  // When transaction date changes, update expiration date accordingly
+  const handleTransactionDateChange = (newDate: string) => {
+    setTransactionDate(newDate)
+    setExpirationDate(calculateExpirationDate(newDate, paymentTerms))
   }
 
   // Handle Item Row change
@@ -369,7 +384,7 @@ export default function CreateQuotationPage() {
               <Input 
                 type="date"
                 value={transactionDate}
-                onChange={(e) => setTransactionDate(e.target.value)}
+                onChange={(e) => handleTransactionDateChange(e.target.value)}
                 className="bg-background border-border"
               />
             </div>
