@@ -44,8 +44,8 @@ const items: MenuItem[] = [
   { title: "Biaya", url: "/finance/expenses", icon: Receipt, id: "expenses" },
   { title: "Kontak", url: "/crm/partners", icon: Users, id: "contacts" },
   { title: "Produk", url: "/inventory/products", icon: Box, id: "products" },
-  { title: "Aset", url: "/assets", icon: Building, id: "assets" },
-  { title: "Daftar Akun", url: "/finance/gl", icon: FileText, id: "accounting" },
+  { title: "Aset", url: "/finance/assets", icon: Building, id: "assets" },
+  { title: "Daftar Akun", url: "/finance/accounting", icon: FileText, id: "accounting" },
   { title: "Konsolidasi", url: "/finance/consolidation", icon: Building2, id: "consolidation" },
   { title: "Payroll", url: "/hr/payroll", icon: BadgeDollarSign, id: "payroll", badge: "★" },
   { title: "POS Kasir", url: "/pos/new-transaction", icon: MonitorSmartphone, id: "pos", badge: "★" }

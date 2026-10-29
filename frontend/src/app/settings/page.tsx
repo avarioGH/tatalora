@@ -71,6 +71,14 @@ const SETTINGS_SECTIONS = [
         color: "text-violet-600 bg-violet-50 border-violet-100",
       },
       {
+        title: "Kunci Periode & Tutup Buku",
+        description: "Kunci transaksi periode lalu dan proses tutup buku keuangan berkala",
+        icon: Lock,
+        href: "/finance/accounting-periods",
+        badge: "Jurnal",
+        color: "text-rose-600 bg-rose-50 border-rose-100",
+      },
+      {
         title: "Lokasi & Gudang",
         description: "Konfigurasi multi-gudang dan titik penyimpanan stok",
         icon: Warehouse,
