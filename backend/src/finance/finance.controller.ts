@@ -4,10 +4,12 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Body,
   UseGuards,
   Request,
   Param,
+  Query,
 } from '@nestjs/common';
 import { FinanceService, FinanceTransactionDto } from './finance.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -235,5 +237,58 @@ export class FinanceController {
   @Get('cash-reconciliation')
   async getCashReconciliation(@Request() req: any) {
     return this.financeService.getCashReconciliation(req.user.company_id);
+  }
+
+  @Permissions('finance.view')
+  @Get('budgets')
+  async getBudgets(@Request() req: any, @Query('period') period?: string) {
+    const companyId = req.user.company_id;
+    return this.prisma.budget.findMany({
+      where: {
+        company_id: companyId,
+        ...(period ? { period } : {}),
+      },
+      include: {
+        category: true,
+      },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  @Permissions('finance.create')
+  @Post('budgets')
+  async createBudget(@Request() req: any, @Body() data: any) {
+    const companyId = req.user.company_id;
+    const budgetAmount = Number(data.budget_amount || 0);
+    const usedAmount = Number(data.used_amount || 0);
+    const remainingAmount = budgetAmount - usedAmount;
+
+    return this.prisma.budget.create({
+      data: {
+        company_id: companyId,
+        category_id: data.category_id,
+        department_id: data.department_id || null,
+        period: data.period || '2026',
+        budget_amount: budgetAmount,
+        used_amount: usedAmount,
+        remaining_amount: remainingAmount,
+        status: remainingAmount <= 0 ? 'EXHAUSTED' : 'ACTIVE',
+      },
+      include: {
+        category: true,
+      },
+    });
+  }
+
+  @Permissions('finance.delete')
+  @Delete('budgets/:id')
+  async deleteBudget(@Request() req: any, @Param('id') id: string) {
+    const companyId = req.user.company_id;
+    return this.prisma.budget.deleteMany({
+      where: {
+        id,
+        company_id: companyId,
+      },
+    });
   }
 }
