@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SequenceService } from '../reports/sequence.service';
 
 @Injectable()
 export class PurchasingService {
@@ -16,6 +17,7 @@ export class PurchasingService {
     private notificationService: NotificationService,
     private inventoryService: InventoryService,
     private eventEmitter: EventEmitter2,
+    private sequenceService: SequenceService,
   ) {}
 
   async getPurchaseRequests(
@@ -119,6 +121,92 @@ export class PurchasingService {
     });
   }
 
+
+  async createPurchaseOrder(companyId: string, data: any) {
+    const {
+      supplierId,
+      orderDate,
+      expectedReceipt,
+      notes,
+      paymentTerms,
+      items,
+      warehouseId,
+      status = 'CONFIRMED',
+    } = data;
+
+    if (!supplierId) {
+      throw new BadRequestException('Supplier is required');
+    }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw new BadRequestException('At least one item is required');
+    }
+
+    const supplier = await this.prisma.customer.findUnique({
+      where: { id: supplierId },
+    });
+    if (!supplier || supplier.company_id !== companyId) {
+      throw new BadRequestException('Invalid supplier');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      let orderNumber = data.orderNumber;
+      if (!orderNumber || orderNumber.trim() === '' || orderNumber === '[Auto]') {
+        try {
+          orderNumber = await this.sequenceService.generateNumber(
+            tx as any,
+            companyId,
+            'PURCHASE_ORDER',
+            'PO',
+            5,
+          );
+        } catch {
+          orderNumber = 'PO-' + Date.now();
+        }
+      }
+
+      let total = 0;
+      const itemData = items.map((item: any) => {
+        const qty = Number(item.qty || 0);
+        const price = Number(item.price || 0);
+        const subtotal = qty * price;
+        const tax = subtotal * Number(item.taxRate || 0);
+        const discount = Number(item.discount || 0);
+        const finalSub = subtotal + tax - discount;
+        total += finalSub;
+        return {
+          product_id: item.productId,
+          qty,
+          unit_price: price,
+          tax,
+          discount,
+          subtotal: finalSub,
+        };
+      });
+
+      return tx.purchaseOrder.create({
+        data: {
+          company_id: companyId,
+          supplier_id: supplierId,
+          warehouse_id: warehouseId || null,
+          order_number: orderNumber,
+          order_date: new Date(orderDate || new Date()),
+          expected_receipt: expectedReceipt ? new Date(expectedReceipt) : null,
+          status: status,
+          receipt_status: 'PENDING',
+          bill_status: 'PENDING',
+          payment_status: 'UNPAID',
+          notes: notes || null,
+          payment_terms: paymentTerms || null,
+          total_amount: total,
+          items: {
+            create: itemData,
+          },
+        },
+        include: { items: { include: { product: true } }, supplier: true },
+      });
+    });
+  }
+
   async createRFQ(companyId: string, data: any) {
     const {
       supplierId,
@@ -177,29 +265,7 @@ export class PurchasingService {
       include: { items: true, supplier: true },
     });
 
-    if (data.autoReceive && warehouseId) {
-      try {
-        await this.confirmPO(companyId, po.id);
-        await this.receiveGoods(companyId, po.id, {
-          warehouseId,
-          items: items.map((it: any) => ({ productId: it.productId, qty: Number(it.qty) })),
-        });
-        if (data.autoBill) {
-          const bill = await this.createVendorBill(companyId, po.id, {});
-          if (data.autoPay && bill && bill.id) {
-            await this.payVendorBill(companyId, bill.id, {
-              amount: bill.total_amount,
-              method: data.paymentMethod || 'CASH',
-              notes: 'Auto payment upon purchase order creation',
-            });
-          }
-        }
-      } catch (autoErr) {
-        console.error('Auto receive/bill error:', autoErr);
-      }
-    }
-
-    return (await this.findOrder(companyId, po.id)) || po;
+    return po;
   }
 
   async confirmPO(companyId: string, id: string) {
@@ -238,7 +304,13 @@ export class PurchasingService {
       if (po.status !== 'CONFIRMED')
         throw new BadRequestException('PO is not confirmed');
 
-      const receiptNumber = `GRN-${Date.now()}`;
+      const receiptNumber = await this.sequenceService.generateNumber(
+        tx,
+        companyId,
+        'GOODS_RECEIPT',
+        'GRN',
+        5,
+      );
       const grn = await tx.goodsReceipt.create({
         data: {
           company_id: companyId,
@@ -379,7 +451,13 @@ export class PurchasingService {
       }
 
       const total = subtotal + tax;
-      const invoiceNumber = `VB-${Date.now()}`;
+      const invoiceNumber = await this.sequenceService.generateNumber(
+        tx,
+        companyId,
+        'VENDOR_BILL',
+        'VB',
+        5,
+      );
 
       const invoice = await tx.invoice.create({
         data: {
@@ -417,6 +495,15 @@ export class PurchasingService {
   }
 
   async payVendorBill(companyId: string, invoiceId: string, paymentData: any) {
+    // Check idempotencyKey first to prevent double-click / timeout resubmissions
+    const idempotencyKey = paymentData.idempotencyKey || paymentData.reference;
+    if (idempotencyKey) {
+      const existing = await this.prisma.payment.findFirst({
+        where: { company_id: companyId, reference: idempotencyKey },
+      });
+      if (existing) return existing;
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const invoice = await tx.invoice.findUnique({
         where: { id: invoiceId, company_id: companyId, type: 'AP' },
@@ -424,6 +511,8 @@ export class PurchasingService {
       });
 
       if (!invoice) throw new NotFoundException('Vendor Bill not found');
+      if (invoice.status === 'DRAFT' || invoice.status === 'CANCELLED')
+        throw new BadRequestException('Cannot pay unposted or cancelled invoice');
       if (invoice.status === 'PAID')
         throw new BadRequestException('Already fully paid');
 
@@ -432,24 +521,55 @@ export class PurchasingService {
       if (amount > invoice.remaining_amount)
         throw new BadRequestException('Payment exceeds remaining amount');
 
+      // Verify cash account exists and belongs to company
+      let accountId = paymentData.cashAccountId || paymentData.accountId;
+      if (accountId) {
+        const cashAcc = await tx.cashAccount.findFirst({
+          where: { id: accountId, company_id: companyId },
+        });
+        if (!cashAcc) throw new BadRequestException('Akun kas/bank tidak valid untuk perusahaan ini');
+      } else {
+        const defaultCash = await tx.cashAccount.findFirst({
+          where: { company_id: companyId },
+        });
+        if (defaultCash) accountId = defaultCash.id;
+      }
+
+      const paymentNumber = await this.sequenceService.generateNumber(
+        tx,
+        companyId,
+        'PAYMENT',
+        'PAY',
+        5,
+      );
+
       const payment = await tx.payment.create({
         data: {
           company_id: companyId,
           invoice_id: invoice.id,
-          payment_number: `PAY-OUT-${Date.now()}`,
-          payment_date: new Date(),
+          payment_number: paymentNumber,
+          payment_date: paymentData.paymentDate ? new Date(paymentData.paymentDate) : new Date(),
           amount: amount,
-          payment_method: paymentData.method || 'BANK_TRANSFER',
+          payment_method: paymentData.paymentMethod || paymentData.method || 'BANK_TRANSFER',
+          reference: idempotencyKey,
           notes: paymentData.notes,
         },
       });
 
-      const newRemaining = invoice.remaining_amount - amount;
+      await tx.paymentAllocation.create({
+        data: {
+          payment_id: payment.id,
+          invoice_id: invoice.id,
+          amount: amount,
+        },
+      });
+
+      const newRemaining = Math.max(0, invoice.remaining_amount - amount);
       const newPaid = invoice.paid_amount + amount;
       const newStatus = newRemaining <= 0 ? 'PAID' : 'PARTIALLY PAID';
 
       const updateRes = await tx.invoice.updateMany({
-        where: { id: invoice.id, remaining_amount: invoice.remaining_amount },
+        where: { id: invoice.id, remaining_amount: { gte: amount } },
         data: {
           paid_amount: newPaid,
           remaining_amount: newRemaining,
@@ -465,8 +585,8 @@ export class PurchasingService {
         const allInvs = await tx.invoice.findMany({
           where: { purchase_order_id: invoice.purchase_order_id, type: 'AP' },
         });
-        const allPaid = allInvs.every((i: any) => i.status === 'PAID');
-        const anyPaid = allInvs.some((i: any) => i.paid_amount > 0);
+        const allPaid = allInvs.every((i: any) => i.id === invoice.id ? newStatus === 'PAID' : i.status === 'PAID');
+        const anyPaid = allInvs.some((i: any) => i.id === invoice.id ? newPaid > 0 : i.paid_amount > 0);
 
         await tx.purchaseOrder.update({
           where: { id: invoice.purchase_order_id },
@@ -476,18 +596,37 @@ export class PurchasingService {
         });
       }
 
-      await this.eventEmitter.emitAsync('payment.processed', {
-        companyId,
-        sourceEntityId: payment.id,
-        eventId: 'EVT-' + Date.now(),
-        occurredAt: new Date(),
-        payload: {
-          type: 'PAYABLE',
-          amount: payment.amount,
-          accountId: paymentData.accountId,
-        },
-        tx: tx as any,
-      });
+      // Record to Cash Ledger (FinanceTransaction)
+      if (accountId) {
+        await tx.financeTransaction.create({
+          data: {
+            company_id: companyId,
+            transaction_no: 'TRX-' + Date.now(),
+            transaction_type: 'Cash Out',
+            cash_account_id: accountId,
+            reference_type: 'PAYMENT',
+            reference_id: payment.id,
+            transaction_date: payment.payment_date,
+            status: 'COMPLETED',
+            description: `Pembayaran Hutang Supplier ${invoice.invoice_number}`,
+            total_amount: payment.amount,
+            created_by: (await tx.user.findFirst({ where: { company_id: companyId } }))?.id || '000000000000000000000000',
+          },
+        });
+
+        await this.eventEmitter.emitAsync('payment.processed', {
+          companyId,
+          sourceEntityId: payment.id,
+          eventId: 'EVT-' + Date.now(),
+          occurredAt: payment.payment_date,
+          payload: {
+            type: 'PAYABLE',
+            amount: payment.amount,
+            accountId: accountId,
+          },
+          tx: tx as any,
+        });
+      }
       return payment;
     });
   }

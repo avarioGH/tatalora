@@ -125,6 +125,78 @@ export class QuotationService {
     return q;
   }
 
+  async send(companyId: string, id: string) {
+    const q = await this.prisma.quotation.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!q) throw new NotFoundException('Quotation not found');
+    if (q.status !== 'DRAFT') {
+      throw new BadRequestException(`Hanya penawaran berstatus DRAFT yang dapat dikirim (Status saat ini: ${q.status})`);
+    }
+
+    return this.prisma.quotation.update({
+      where: { id },
+      data: { status: 'SENT' },
+    });
+  }
+
+  async accept(companyId: string, id: string) {
+    const q = await this.prisma.quotation.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!q) throw new NotFoundException('Quotation not found');
+    if (q.status !== 'SENT' && q.status !== 'DRAFT') {
+      throw new BadRequestException(`Hanya penawaran berstatus SENT atau DRAFT yang dapat disetujui pelanggan (Status: ${q.status})`);
+    }
+
+    // Check expiration
+    if (q.expiration_date && new Date(q.expiration_date) < new Date()) {
+      await this.prisma.quotation.update({
+        where: { id },
+        data: { status: 'EXPIRED' },
+      });
+      throw new BadRequestException('Masa berlaku penawaran telah kadaluarsa (EXPIRED)');
+    }
+
+    return this.prisma.quotation.update({
+      where: { id },
+      data: { status: 'ACCEPTED' },
+    });
+  }
+
+  async reject(companyId: string, id: string, reason?: string) {
+    const q = await this.prisma.quotation.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!q) throw new NotFoundException('Quotation not found');
+    if (q.status === 'CONVERTED' || q.status === 'CONFIRMED') {
+      throw new BadRequestException('Penawaran yang telah dikonversi ke Sales Order tidak dapat ditolak');
+    }
+
+    return this.prisma.quotation.update({
+      where: { id },
+      data: {
+        status: 'REJECTED',
+        notes: reason ? `${q.notes || ''} [REASON: ${reason}]`.trim() : q.notes,
+      },
+    });
+  }
+
+  async expire(companyId: string, id: string) {
+    const q = await this.prisma.quotation.findFirst({
+      where: { id, company_id: companyId },
+    });
+    if (!q) throw new NotFoundException('Quotation not found');
+    if (q.status === 'CONVERTED' || q.status === 'CONFIRMED') {
+      throw new BadRequestException('Penawaran yang telah dikonversi tidak dapat ditandai kadaluarsa');
+    }
+
+    return this.prisma.quotation.update({
+      where: { id },
+      data: { status: 'EXPIRED' },
+    });
+  }
+
   async confirm(companyId: string, id: string) {
     return this.prisma.$transaction(async (tx) => {
       const q = await tx.quotation.findFirst({
@@ -132,24 +204,47 @@ export class QuotationService {
         include: { items: true },
       });
       if (!q) throw new NotFoundException('Quotation not found');
-      if (q.status === 'CONFIRMED')
-        throw new BadRequestException('Quotation already confirmed');
+
+      // Rule: Can be converted from ACCEPTED, SENT, or legacy CONFIRMED/DRAFT if permitted,
+      // but strictly NOT from CONVERTED, REJECTED, EXPIRED, or CANCELLED
+      if (q.status === 'CONVERTED' || q.status === 'CONFIRMED') {
+        throw new BadRequestException('Quotation has already been converted to a Sales Order');
+      }
+      if (q.status === 'REJECTED') {
+        throw new BadRequestException('Penawaran yang telah ditolak (REJECTED) tidak dapat dikonversi');
+      }
+      if (q.status === 'EXPIRED') {
+        throw new BadRequestException('Penawaran yang telah kadaluarsa (EXPIRED) tidak dapat dikonversi');
+      }
+      if (q.status === 'CANCELLED') {
+        throw new BadRequestException('Penawaran yang telah dibatalkan tidak dapat dikonversi');
+      }
+
+      // Check expiration date
+      if (q.expiration_date && new Date(q.expiration_date) < new Date()) {
+        await tx.quotation.update({
+          where: { id: q.id },
+          data: { status: 'EXPIRED' },
+        });
+        throw new BadRequestException('Masa berlaku penawaran telah kadaluarsa (EXPIRED)');
+      }
 
       const existingSo = await tx.salesOrder.findFirst({
         where: { quotation_id: q.id },
       });
-      if (existingSo)
+      if (existingSo) {
         throw new BadRequestException(
           'Sales order already generated for this quotation',
         );
+      }
 
       // Atomic state change to prevent race conditions / duplicate conversion
       const updateResult = await tx.quotation.updateMany({
-        where: { id: q.id, company_id: companyId, status: { not: 'CONFIRMED' } },
-        data: { status: 'CONFIRMED' },
+        where: { id: q.id, company_id: companyId, status: { notIn: ['CONVERTED', 'CONFIRMED'] } },
+        data: { status: 'CONVERTED' },
       });
       if (updateResult.count === 0) {
-        throw new BadRequestException('Quotation already confirmed or concurrently modified');
+        throw new BadRequestException('Quotation already converted or concurrently modified');
       }
 
       // Generate sequence using canonical SequenceService

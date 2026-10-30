@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { 
-  RotateCcw, Search, Filter, Plus, FileText, Printer, Loader2, ArrowRight
+  RotateCcw, Search, Filter, Plus, FileText, Printer, Loader2, ArrowRight, CreditCard, RefreshCw
 } from "lucide-react"
-import { api } from "@/lib/api"
+import { PurchasingAPI } from "@/lib/api"
 
 export default function PurchaseReturnsPage() {
   const router = useRouter()
@@ -20,14 +20,30 @@ export default function PurchaseReturnsPage() {
   const [returns, setReturns] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
-  const tabs = ["Semua", "DRAFT", "CONFIRMED", "COMPLETED"]
+  const tabs = ["Semua", "DRAFT", "POSTED", "REVERSED"]
+
+  const fetchReturns = async () => {
+    try {
+      setLoading(true)
+      const data = await PurchasingAPI.getPurchaseReturns()
+      setReturns(Array.isArray(data) ? data : [])
+    } catch (err: any) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchReturns()
+  }, [])
 
   const getStatusBadge = (status: string) => {
     switch(status) {
-      case "COMPLETED": 
-        return <Badge className="bg-emerald-500/10 text-emerald-600 border-0 font-medium px-2.5 py-0.5">Selesai Retur</Badge>
-      case "CONFIRMED": 
-        return <Badge className="bg-blue-500/10 text-blue-600 border-0 font-medium px-2.5 py-0.5">Disetujui Vendor</Badge>
+      case "POSTED": 
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-0 font-medium px-2.5 py-0.5">Disetujui (POSTED)</Badge>
+      case "REVERSED": 
+        return <Badge className="bg-rose-500/10 text-rose-600 border-0 font-medium px-2.5 py-0.5">Dibatalkan (REVERSED)</Badge>
       default: 
         return <Badge className="bg-amber-500/10 text-amber-600 border-0 font-medium px-2.5 py-0.5">Draft Pengajuan</Badge>
     }
@@ -64,14 +80,17 @@ export default function PurchaseReturnsPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border" onClick={() => router.push("/purchasing/credit-notes")}>
+            <CreditCard className="h-4 w-4 text-purple-600" /> Nota Kredit Supplier
+          </Button>
           <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border" onClick={() => router.push("/purchasing/orders")}>
             <FileText className="h-4 w-4" /> Daftar PO
           </Button>
           <Button className="bg-rose-600 hover:bg-rose-700 text-white gap-2" onClick={() => router.push("/purchasing/orders")}>
             <Plus className="h-4 w-4" /> Buat Retur dari PO
           </Button>
-          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" /> Print
+          <Button variant="outline" className="bg-card gap-2 shadow-sm text-foreground border-border" onClick={fetchReturns}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </Button>
         </div>
       </div>

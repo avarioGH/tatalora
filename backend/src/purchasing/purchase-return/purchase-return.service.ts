@@ -146,7 +146,7 @@ export class PurchaseReturnService {
         totalConsumedCost += consumedCost;
       }
 
-      // Create a negative invoice (Supplier Credit Note)
+      // 1. Maintain backward compatibility: create negative invoice representation for legacy reports
       const cnNumber = `PR-CN-${pr.return_number}`;
       await tx.invoice.create({
         data: {
@@ -162,13 +162,28 @@ export class PurchaseReturnService {
           total: -totalConsumedCost,
           remaining_amount: -totalConsumedCost,
           status: 'POSTED',
-          // Assuming `created_by` isn't in Invoice directly based on schema
-          // wait, some models have `created_by`, let's just use what's safe or cast it if needed
-          // `Invoice` model usually doesn't have `created_by` in standard prisma schemas unless we saw it.
-          // Wait, I saw Invoice model: `status String`. Let's remove `created_by` for safety, 
-          // or we can pass it if it's there. I'll omit it to avoid errors.
         } as any,
       });
+
+      // 2. Create modern dedicated SupplierCreditNote record if model exists in Prisma
+      if (typeof (tx as any).supplierCreditNote !== 'undefined') {
+        const scnNumber = `SCN-${pr.return_number}`;
+        await (tx as any).supplierCreditNote.create({
+          data: {
+            company_id: companyId,
+            credit_note_number: scnNumber,
+            supplier_id: pr.supplier_id,
+            purchase_return_id: pr.id,
+            currency: 'IDR',
+            subtotal: totalConsumedCost,
+            tax_amount: 0,
+            total_amount: totalConsumedCost,
+            remaining_credit: totalConsumedCost,
+            status: 'POSTED',
+            created_by: userId,
+          },
+        });
+      }
 
       await tx.purchaseReturn.update({
         where: { id },
@@ -258,6 +273,14 @@ export class PurchaseReturnService {
         } as any,
       });
 
+      // Also mark dedicated SupplierCreditNote as REVERSED if it exists
+      if (typeof (tx as any).supplierCreditNote !== 'undefined') {
+        await (tx as any).supplierCreditNote.updateMany({
+          where: { purchase_return_id: pr.id, company_id: companyId },
+          data: { status: 'REVERSED', remaining_credit: 0 },
+        });
+      }
+
       await tx.purchaseReturn.update({
         where: { id },
         data: { status: 'REVERSED' },
@@ -281,5 +304,32 @@ export class PurchaseReturnService {
 
       return pr;
     });
+  }
+
+  async findAll(companyId: string) {
+    return this.prisma.purchaseReturn.findMany({
+      where: { company_id: companyId },
+      include: {
+        supplier: true,
+        purchase_order: true,
+        warehouse: true,
+        items: { include: { product: true } },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  async findOne(companyId: string, id: string) {
+    const pr = await this.prisma.purchaseReturn.findFirst({
+      where: { id, company_id: companyId },
+      include: {
+        supplier: true,
+        purchase_order: true,
+        warehouse: true,
+        items: { include: { product: true } },
+      },
+    });
+    if (!pr) throw new NotFoundException('Purchase Return tidak ditemukan');
+    return pr;
   }
 }

@@ -6,15 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { 
-  Plus, Trash2, ArrowLeft, Building2, Warehouse as WarehouseIcon, 
-  Calendar, FileText, CheckCircle2, ShoppingCart, Image as ImageIcon, Loader2
+  Plus, Trash2, ArrowLeft, Building2, ShoppingCart, Image as ImageIcon, Loader2, CheckCircle2
 } from "lucide-react"
-import Link from "next/link"
 import { QuickAddCustomerModal, QuickAddProductModal } from "@/components/sales/quick-modals"
 
 interface OrderItem {
@@ -44,18 +41,16 @@ export default function CreateOrderPage() {
   const [productModalOpen, setProductModalOpen] = useState(false)
   const [activeItemIndexForModal, setActiveItemIndexForModal] = useState<number | null>(null)
 
-  // Form State
+  // Form State (Phase 4A: Decoupled Purchase Commitment)
   const [form, setForm] = useState({
     partnerId: "",
     warehouseId: "",
+    orderNumber: "[Auto]",
+    vendorRefNo: "",
     orderDate: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
     expectedReceipt: "",
     notes: "",
     paymentTerms: "Net 30",
-    paymentMethod: "BANK_TRANSFER",
-    autoReceive: true,   // Otomatis masukkan stok & update HPP
-    autoBill: true,      // Otomatis buat faktur pembelian
-    autoPay: true        // Otomatis tandai lunas
   })
 
   const [items, setItems] = useState<OrderItem[]>([
@@ -158,10 +153,13 @@ export default function CreateOrderPage() {
     setLoading(true)
     try {
       const payload = {
-        ...form,
         supplierId: form.partnerId,
+        warehouseId: form.warehouseId || null,
         orderDate: new Date(form.orderDate),
         expectedReceipt: form.expectedReceipt ? new Date(form.expectedReceipt) : null,
+        paymentTerms: form.paymentTerms,
+        notes: form.vendorRefNo ? `Ref Supplier: ${form.vendorRefNo}\n${form.notes}` : form.notes,
+        orderNumber: form.orderNumber === "[Auto]" ? undefined : form.orderNumber,
         items: items
           .filter(i => i.productId)
           .map(i => ({
@@ -171,19 +169,22 @@ export default function CreateOrderPage() {
             taxRate: Number(i.taxRate) / 100,
             discount: Number(i.discount || 0)
           })),
-        autoReceive: form.autoReceive,
-        autoBill: form.autoBill,
-        autoPay: form.autoPay,
-        paymentMethod: form.paymentMethod
+        status: "CONFIRMED"
       }
 
-      await PurchasingAPI.createRFQ(payload)
+      const res = await PurchasingAPI.createOrder(payload)
+      const poId = res?.data?.id || res?.id
 
       toast({ 
         title: "Pesanan Pembelian Berhasil Dibuat", 
-        description: form.autoReceive ? "Stok produk dan HPP inventori otomatis diperbarui!" : "PO siap diproses."
+        description: `Nomor PO: ${res?.data?.order_number || res?.order_number || "Tersimpan"}`
       })
-      router.push("/purchasing/orders")
+
+      if (poId) {
+        router.push(`/purchasing/orders/${poId}`)
+      } else {
+        router.push("/purchasing/orders")
+      }
     } catch (err: any) {
       console.error(err)
       toast({ 
@@ -205,9 +206,9 @@ export default function CreateOrderPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Buat Pembelian (Purchase Order)</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Buat Pesanan Pembelian (Purchase Order)</h1>
             <p className="text-muted-foreground text-sm">
-              Standar Jurnal: Catat tagihan pembelian, kelola HPP, dan otomasi stok persediaan
+              Standar ERP: Catat komitmen pesanan ke supplier. Penerimaan barang dan faktur dikelola terpisah.
             </p>
           </div>
         </div>
@@ -223,7 +224,7 @@ export default function CreateOrderPage() {
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm px-6 font-semibold"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-            {form.autoReceive ? "Beli & Masukkan Stok" : "Buat Pesanan Pembelian"}
+            Simpan Pesanan Pembelian
           </Button>
         </div>
       </div>
@@ -271,7 +272,7 @@ export default function CreateOrderPage() {
 
             {/* Warehouse Destination */}
             <div className="space-y-2">
-              <Label className="text-xs font-semibold">Gudang Penyimpanan Tujuan <span className="text-rose-500">*</span></Label>
+              <Label className="text-xs font-semibold">Gudang Tujuan Penerimaan</Label>
               <Select value={form.warehouseId} onValueChange={(v) => setForm({ ...form, warehouseId: v })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih Gudang" />
@@ -284,6 +285,16 @@ export default function CreateOrderPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Nomor Referensi Supplier */}
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">No. Referensi Supplier (Opsional)</Label>
+              <Input 
+                placeholder="Contoh: REF-VENDOR-001" 
+                value={form.vendorRefNo} 
+                onChange={e => setForm({ ...form, vendorRefNo: e.target.value })} 
+              />
             </div>
 
             {/* Tanggal Transaksi */}
@@ -323,67 +334,10 @@ export default function CreateOrderPage() {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Metode Pembayaran */}
-            <div className="space-y-2">
-              <Label className="text-xs font-semibold">Metode Pembayaran</Label>
-              <Select value={form.paymentMethod} onValueChange={(v) => setForm({ ...form, paymentMethod: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Metode Bayar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="BANK_TRANSFER">Transfer Bank</SelectItem>
-                  <SelectItem value="CASH">Kas Tunai</SelectItem>
-                  <SelectItem value="GIRO">Giro / Cek</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </CardContent>
         </Card>
 
-        {/* Card 2: Pengaturan Otomasi Persediaan & HPP ala Jurnal */}
-        <Card className="border-indigo-100 bg-indigo-50/30 dark:bg-indigo-950/20">
-          <CardContent className="pt-4 pb-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
-                <div className="space-y-0.5 pr-2">
-                  <div className="text-sm font-semibold text-foreground">Masuk Stok Langsung</div>
-                  <div className="text-xs text-muted-foreground">Tambah stok & HPP ke inventori otomatis</div>
-                </div>
-                <Switch 
-                  checked={form.autoReceive} 
-                  onCheckedChange={(checked) => setForm({ ...form, autoReceive: checked })} 
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
-                <div className="space-y-0.5 pr-2">
-                  <div className="text-sm font-semibold text-foreground">Buat Tagihan Langsung</div>
-                  <div className="text-xs text-muted-foreground">Catat tagihan invoice pembelian otomatis</div>
-                </div>
-                <Switch 
-                  checked={form.autoBill} 
-                  disabled={!form.autoReceive}
-                  onCheckedChange={(checked) => setForm({ ...form, autoBill: checked })} 
-                />
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border">
-                <div className="space-y-0.5 pr-2">
-                  <div className="text-sm font-semibold text-foreground">Tandai Lunas Langsung</div>
-                  <div className="text-xs text-muted-foreground">Kurangi uang kas/bank & lunasi hutang</div>
-                </div>
-                <Switch 
-                  checked={form.autoPay} 
-                  disabled={!form.autoBill || !form.autoReceive}
-                  onCheckedChange={(checked) => setForm({ ...form, autoPay: checked })} 
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Card 3: Rincian Barang (Line Items Table - Jurnal Style) */}
+        {/* Card 2: Rincian Barang (Line Items Table - Jurnal Style) */}
         <Card className="shadow-sm border-border overflow-visible">
           <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-center justify-between bg-muted/20">
             <div className="flex items-center gap-2">
@@ -431,10 +385,7 @@ export default function CreateOrderPage() {
 
                   return (
                     <tr key={index} className="hover:bg-muted/30 transition">
-                      {/* No */}
                       <td className="py-2.5 px-2 text-xs text-muted-foreground">{index + 1}</td>
-
-                      {/* Product Selector */}
                       <td className="py-2.5 px-2">
                         <div className="flex items-center gap-2">
                           {item.imageUrl ? (
@@ -475,8 +426,6 @@ export default function CreateOrderPage() {
                           </div>
                         </div>
                       </td>
-
-                      {/* Qty */}
                       <td className="py-2.5 px-2">
                         <Input
                           type="number"
@@ -486,8 +435,6 @@ export default function CreateOrderPage() {
                           onChange={e => handleItemChange(index, "qty", Math.max(1, Number(e.target.value) || 0))}
                         />
                       </td>
-
-                      {/* Price */}
                       <td className="py-2.5 px-2">
                         <Input
                           type="number"
@@ -497,8 +444,6 @@ export default function CreateOrderPage() {
                           onChange={e => handleItemChange(index, "price", Number(e.target.value) || 0)}
                         />
                       </td>
-
-                      {/* Tax */}
                       <td className="py-2.5 px-2">
                         <Input
                           type="number"
@@ -510,8 +455,6 @@ export default function CreateOrderPage() {
                           onChange={e => handleItemChange(index, "taxRate", Number(e.target.value) || 0)}
                         />
                       </td>
-
-                      {/* Discount */}
                       <td className="py-2.5 px-2">
                         <Input
                           type="number"
@@ -522,13 +465,9 @@ export default function CreateOrderPage() {
                           onChange={e => handleItemChange(index, "discount", Number(e.target.value) || 0)}
                         />
                       </td>
-
-                      {/* Subtotal */}
                       <td className="py-2.5 px-2 text-right font-semibold text-xs text-foreground">
                         Rp {lineTotal.toLocaleString("id-ID")}
                       </td>
-
-                      {/* Action */}
                       <td className="py-2.5 px-2 text-center">
                         <Button
                           type="button"
@@ -548,25 +487,23 @@ export default function CreateOrderPage() {
           </CardContent>
         </Card>
 
-        {/* Card 4: Summary & Catatan ala Jurnal */}
+        {/* Card 3: Summary & Catatan */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <div className="md:col-span-7 space-y-4">
             <Card className="shadow-sm border-border h-full">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-indigo-500" /> Catatan & Keterangan
-                </CardTitle>
+                <CardTitle className="text-sm font-semibold">Catatan / Pesan Internal</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Textarea
-                  placeholder="Tambahkan catatan untuk supplier atau nomor PO eksternal..."
+                  placeholder="Tambahkan catatan untuk pesanan pembelian ini..."
                   rows={4}
                   value={form.notes}
                   onChange={e => setForm({ ...form, notes: e.target.value })}
                   className="text-xs resize-none"
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Catatan ini akan tercetak pada formulir pesanan pembelian (PO) dan faktur supplier.
+                  Dokumen ini adalah pesanan pembelian. Barang fisik akan masuk stok setelah Goods Receipt dibuat.
                 </p>
               </CardContent>
             </Card>
@@ -575,7 +512,7 @@ export default function CreateOrderPage() {
           <div className="md:col-span-5">
             <Card className="shadow-sm border-border bg-card">
               <CardHeader className="pb-2 border-b border-border/60">
-                <CardTitle className="text-sm font-semibold">Ringkasan Pembelian</CardTitle>
+                <CardTitle className="text-sm font-semibold">Ringkasan Pesanan</CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-3 text-xs">
                 <div className="flex justify-between text-muted-foreground">
@@ -595,7 +532,7 @@ export default function CreateOrderPage() {
                   </div>
                 )}
                 <div className="border-t border-border pt-3 flex justify-between items-baseline">
-                  <span className="text-sm font-bold text-foreground">Total Tagihan</span>
+                  <span className="text-sm font-bold text-foreground">Total Pesanan</span>
                   <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
                     Rp {totals.grandTotal.toLocaleString("id-ID")}
                   </span>

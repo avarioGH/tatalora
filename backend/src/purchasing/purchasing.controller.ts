@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { PurchasingService } from './purchasing.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Assume standard AuthGuard
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('purchasing')
@@ -70,6 +70,12 @@ export class PurchasingController {
   @Post('rfq/:id/confirm')
   confirmPO(@Request() req: any, @Param('id') id: string) {
     return this.service.confirmPO(req.user.companyId, id);
+  }
+
+  @Permissions('purchasing.order.create')
+  @Post('orders')
+  createOrder(@Request() req: any, @Body() data: any) {
+    return this.service.createPurchaseOrder(req.user.companyId, data);
   }
 
   @Permissions('purchasing.order.view')
@@ -128,7 +134,7 @@ export class PurchasingController {
     return this.service.createVendorBill(req.user.companyId, id, data);
   }
 
-  @Permissions('purchasing.invoice.create')
+  @Permissions('purchasing.order.create')
   @Post('invoices/:id/pay')
   payVendorBill(
     @Request() req: any,
@@ -138,32 +144,36 @@ export class PurchasingController {
     return this.service.payVendorBill(req.user.companyId, id, data);
   }
 
-  @Permissions('purchasing.view')
+  @Permissions('purchasing.order.view')
   @Get('analytics')
   getAnalytics(@Request() req: any) {
     return this.service.getProcurementAnalytics(req.user.companyId);
   }
 
-  @Permissions('purchasing.view')
+  @Permissions('purchasing.order.view')
   @Get('receipts')
   async getReceipts(@Request() req: any) {
     const data = await this.prisma.goodsReceipt.findMany({
       where: { company_id: req.user.companyId },
-      include: { supplier: true, purchase_order: true },
+      include: {
+        supplier: true,
+        purchase_order: true,
+        items: { include: { product: true } },
+      },
       orderBy: { created_at: 'desc' },
     });
     return { data };
   }
 
-  @Permissions('purchasing.view')
+  @Permissions('purchasing.order.view')
   @Get('receipts/:id')
   getReceipt(@Request() req: any, @Param('id') id: string) {
     return this.prisma.goodsReceipt.findUnique({
       where: { id, company_id: req.user.companyId },
       include: {
-        items: { include: { product: true } },
         supplier: true,
-        purchase_order: true,
+        warehouse: true,
+        items: { include: { product: true } },
       },
     });
   }

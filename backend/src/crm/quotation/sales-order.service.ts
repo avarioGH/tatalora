@@ -122,6 +122,88 @@ export class SalesOrderService {
       const computedTotal = Math.max(0, subtotal - discountAmount + taxAmount);
       const totalAmount = Number(data.total_amount ?? data.total ?? computedTotal);
 
+      // 2.1 Customer Credit Limit Policy Verification
+      const customerId = data.customer_id || data.partner_id || undefined;
+      let creditWarning: string | null = null;
+      if (customerId) {
+        const customer = await tx.customer.findUnique({
+          where: { id: customerId },
+        });
+
+        if (customer && customer.credit_limit && customer.credit_limit > 0) {
+          // Calculate existing exposure: Posted AR remaining balances + Unbilled confirmed SOs - Customer unallocated deposits
+          const arInvoices = await tx.invoice.findMany({
+            where: {
+              customer_id: customerId,
+              company_id: companyId,
+              type: { in: ['AR', 'SALES_INVOICE'] },
+              status: { in: ['POSTED', 'PARTIALLY PAID'] },
+            },
+            select: { remaining_amount: true },
+          });
+          const totalArOutstanding = arInvoices.reduce((sum, inv) => sum + (inv.remaining_amount || 0), 0);
+
+          const confirmedSOs = await tx.salesOrder.findMany({
+            where: {
+              customer_id: customerId,
+              company_id: companyId,
+              status: { notIn: ['CANCELLED'] },
+            },
+            include: {
+              invoices: {
+                where: { status: { notIn: ['CANCELLED'] } },
+                select: { total: true },
+              },
+            },
+          });
+          let unbilledOrderAmount = 0;
+          for (const so of confirmedSOs) {
+            const invoiced = so.invoices.reduce((s, inv) => s + (inv.total || 0), 0);
+            unbilledOrderAmount += Math.max(0, so.total_amount - invoiced);
+          }
+
+          const payments = await tx.payment.findMany({
+            where: {
+              customer_id: customerId,
+              company_id: companyId,
+              deleted_at: null,
+            },
+            include: {
+              allocations: {
+                where: { invoice_id: { not: null } },
+                select: { amount: true },
+              },
+            },
+          });
+          let depositBalance = 0;
+          for (const p of payments) {
+            if (p.notes && p.notes.includes('[DIBATALKAN]')) continue;
+            const allocated = p.allocations.reduce((s, a) => s + (a.amount || 0), 0);
+            depositBalance += Math.max(0, p.amount - allocated);
+          }
+
+          const currentExposure = Math.max(0, totalArOutstanding + unbilledOrderAmount - depositBalance);
+          const projectedExposure = currentExposure + totalAmount;
+
+          if (projectedExposure > customer.credit_limit) {
+            const policy = (customer.credit_policy || 'BLOCK').toUpperCase();
+            const excess = projectedExposure - customer.credit_limit;
+            const message = `CREDIT_LIMIT_EXCEEDED: Customer ${customer.name} credit limit is Rp ${customer.credit_limit.toLocaleString('id-ID')}. Current exposure Rp ${currentExposure.toLocaleString('id-ID')}, new order Rp ${totalAmount.toLocaleString('id-ID')} (Excess: Rp ${excess.toLocaleString('id-ID')}).`;
+
+            if (policy === 'BLOCK') {
+              throw new BadRequestException(message);
+            } else if (policy === 'OVERRIDE') {
+              if (!data.overrideCreditLimit && !data.override_credit_limit) {
+                throw new BadRequestException(`${message} Explicit override authorization required.`);
+              }
+              creditWarning = `OVERRIDE_AUTHORIZED: ${message} (Reason: ${data.override_reason || data.overrideReason || 'Authorized by management'})`;
+            } else if (policy === 'WARNING') {
+              creditWarning = message;
+            }
+          }
+        }
+      }
+
       // 3. Payment Status & Upfront tracking
       const paidAmount = Number(data.paidAmount ?? data.paid_amount ?? 0);
       let paymentStatus = 'UNPAID';

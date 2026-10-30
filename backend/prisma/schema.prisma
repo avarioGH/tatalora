@@ -3815,7 +3815,8 @@ model PurchaseReturn {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  items PurchaseReturnItem[]
+  items               PurchaseReturnItem[]
+  SupplierCreditNotes SupplierCreditNote[]
 
   @@unique([company_id, return_number])
 }
@@ -3834,6 +3835,76 @@ model PurchaseReturnItem {
   unit_cost  Float   @default(0)
   total_cost Float   @default(0)
   reason     String?
+}
+
+model SupplierCreditNote {
+  id                 String          @id @default(uuid()) @db.Uuid
+  company_id         String          @db.Uuid
+  credit_note_number String
+  supplier_id        String          @db.Uuid
+  purchase_return_id String?         @db.Uuid
+  purchase_return    PurchaseReturn? @relation(fields: [purchase_return_id], references: [id], onDelete: SetNull)
+
+  currency         String   @default("IDR")
+  subtotal         Float    @default(0)
+  tax_amount       Float    @default(0)
+  total_amount     Float    @default(0)
+  remaining_credit Float    @default(0)
+  status           String   // DRAFT, POSTED, PARTIALLY_APPLIED, FULLY_APPLIED, REVERSED
+  notes            String?
+
+  created_by String?  @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  applications SupplierCreditApplication[]
+  refunds      SupplierCreditRefund[]
+
+  @@unique([company_id, credit_note_number])
+  @@index([company_id, supplier_id])
+}
+
+model SupplierCreditApplication {
+  id             String             @id @default(uuid()) @db.Uuid
+  company_id     String             @db.Uuid
+  credit_note_id String             @db.Uuid
+  credit_note    SupplierCreditNote @relation(fields: [credit_note_id], references: [id], onDelete: Cascade)
+  vendor_bill_id String             @db.Uuid
+  amount         Float
+  applied_at     DateTime           @default(now())
+  status         String             @default("APPLIED") // APPLIED, REVERSED
+  notes          String?
+  idempotency_key String?
+
+  reversal_reason String?
+  reversed_at     DateTime?
+  reversed_by     String?   @db.Uuid
+  applied_by      String?   @db.Uuid
+
+  @@index([company_id, credit_note_id])
+  @@index([company_id, vendor_bill_id])
+}
+
+model SupplierCreditRefund {
+  id              String             @id @default(uuid()) @db.Uuid
+  company_id      String             @db.Uuid
+  credit_note_id  String             @db.Uuid
+  credit_note     SupplierCreditNote @relation(fields: [credit_note_id], references: [id], onDelete: Cascade)
+  refund_number   String
+  cash_account_id String             @db.Uuid
+  amount          Float
+  refund_date     DateTime           @default(now())
+  status          String             @default("COMPLETED") // COMPLETED, REVERSED
+  reference       String?
+  notes           String?
+  idempotency_key String?
+
+  created_by String?  @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, refund_number])
+  @@index([company_id, credit_note_id])
 }
 
 model SalesReturn {

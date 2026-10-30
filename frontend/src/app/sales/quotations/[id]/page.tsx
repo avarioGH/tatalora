@@ -39,25 +39,48 @@ export default function QuotationDetailPage() {
     }
   }
 
+  const handleSend = async () => {
+    if (!data) return
+    try {
+      await B2BApi.sendQuotation(data.id)
+      alert("Penawaran telah dikirim ke pelanggan!")
+      fetchDetails()
+    } catch (e: any) {
+      alert("Gagal mengirim: " + (e.response?.data?.message || e.message))
+    }
+  }
+
+  const handleAccept = async () => {
+    if (!data) return
+    try {
+      await B2BApi.acceptQuotation(data.id)
+      alert("Penawaran telah disetujui pelanggan!")
+      fetchDetails()
+    } catch (e: any) {
+      alert("Gagal: " + (e.response?.data?.message || e.message))
+    }
+  }
+
   const handleConfirm = async () => {
     if (!data) return
     try {
       await B2BApi.confirmQuotation(data.id)
-      alert("Penawaran diterima dan Pemesanan (Sales Order) otomatis dibuat!")
+      alert("Penawaran berhasil dikonversi menjadi Pemesanan (Sales Order)!")
       router.push('/sales')
     } catch (e: any) {
-      alert("Gagal: " + e.message)
+      alert("Gagal konversi: " + (e.response?.data?.message || e.message))
     }
   }
 
   const handleReject = async () => {
     if (!data) return
+    const reason = prompt("Masukkan alasan penolakan (opsional):")
     try {
-      await B2BApi.cancelQuotation(data.id)
-      alert("Penawaran telah ditolak.")
+      await B2BApi.rejectQuotation(data.id, reason || undefined)
+      alert("Penawaran telah ditandai ditolak.")
       fetchDetails()
     } catch (e: any) {
-      alert("Gagal: " + e.message)
+      alert("Gagal: " + (e.response?.data?.message || e.message))
     }
   }
 
@@ -89,8 +112,18 @@ export default function QuotationDetailPage() {
           {/* Action Bar */}
           <div className="flex flex-col md:flex-row justify-between items-center p-6 border-b border-border bg-muted/10">
             <div>
-              <span className={`font-semibold ${data.status === 'DRAFT' || data.status === 'SENT' ? 'text-amber-500' : data.status === 'CONFIRMED' ? 'text-teal-500' : 'text-rose-500'}`}>
-                {data.status === 'DRAFT' ? 'Draft' : data.status === 'SENT' ? 'Terkirim' : data.status === 'CONFIRMED' ? 'Disetujui Pelanggan' : 'Ditolak'}
+              <span className={`font-semibold px-2 py-1 rounded text-xs ${
+                data.status === 'DRAFT' ? 'bg-slate-100 text-slate-700' :
+                data.status === 'SENT' ? 'bg-blue-100 text-blue-700' :
+                data.status === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-700' :
+                data.status === 'CONVERTED' || data.status === 'CONFIRMED' ? 'bg-indigo-100 text-indigo-700' :
+                'bg-rose-100 text-rose-700'
+              }`}>
+                {data.status === 'DRAFT' ? 'Draft' :
+                 data.status === 'SENT' ? 'Terkirim' :
+                 data.status === 'ACCEPTED' ? 'Disetujui Pelanggan' :
+                 data.status === 'CONVERTED' || data.status === 'CONFIRMED' ? 'Dikonversi ke SO' :
+                 data.status === 'EXPIRED' ? 'Kedaluwarsa' : 'Ditolak'}
               </span>
             </div>
             
@@ -98,15 +131,27 @@ export default function QuotationDetailPage() {
               <Button variant="outline" className="bg-background gap-2"><Share2 className="w-4 h-4" /> Bagikan</Button>
               <Button variant="outline" className="bg-background gap-2"><Printer className="w-4 h-4" /> Print</Button>
               
-              {data.status !== 'CONFIRMED' && data.status !== 'CANCELLED' && (
+              {data.status === 'DRAFT' && (
+                <Button onClick={handleSend} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                  <Share2 className="w-4 h-4" /> Kirim ke Pelanggan
+                </Button>
+              )}
+
+              {data.status === 'SENT' && (
                 <>
-                  <Button onClick={handleConfirm} className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
-                    <CheckCircle2 className="w-4 h-4" /> Tandai sbg diterima
+                  <Button onClick={handleAccept} className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Pelanggan Menyetujui
                   </Button>
                   <Button onClick={handleReject} className="bg-rose-500 hover:bg-rose-600 text-white gap-2">
-                    <XCircle className="w-4 h-4" /> Tandai sbg ditolak
+                    <XCircle className="w-4 h-4" /> Pelanggan Menolak
                   </Button>
                 </>
+              )}
+
+              {data.status === 'ACCEPTED' && (
+                <Button onClick={handleConfirm} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
+                  <CheckCircle2 className="w-4 h-4" /> Konversi ke Sales Order (SO)
+                </Button>
               )}
               
                             {data.status === 'CONFIRMED' && (

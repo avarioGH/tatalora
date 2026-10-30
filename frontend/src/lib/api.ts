@@ -146,7 +146,11 @@ export const B2BApi: any = {
   updateQuotation: async (id: string, data: any) => (await api.put('/sales/quotations/' + id, data)).data,
   deleteQuotation: async (id: string) => (await api.delete('/sales/quotations/' + id)).data,
   confirmQuotation: async (id: string) => (await api.post('/sales/quotations/' + id + '/confirm')).data,
-    cancelQuotation: async (id: string) => (await api.post('/sales/quotations/' + id + '/cancel')).data,
+  sendQuotation: async (id: string) => (await api.post('/sales/quotations/' + id + '/send')).data,
+  acceptQuotation: async (id: string) => (await api.post('/sales/quotations/' + id + '/accept')).data,
+  rejectQuotation: async (id: string, reason?: string) => (await api.post('/sales/quotations/' + id + '/reject', { reason })).data,
+  expireQuotation: async (id: string) => (await api.post('/sales/quotations/' + id + '/expire')).data,
+  cancelQuotation: async (id: string) => (await api.post('/sales/quotations/' + id + '/cancel')).data,
   getOrders: async (params?: any) => (await api.get('/sales/orders', { params })).data,
     createOrder: async (data: any) => (await api.post('/sales/orders', data)).data,
   getOrder: async (id: string) => (await api.get('/sales/orders/' + id)).data,
@@ -164,6 +168,7 @@ export const PurchasingAPI: any = {
   createRequest: async (data: any) => (await api.post('/purchasing/requests', data)).data,
   getRFQs: async () => (await api.get('/purchasing/orders', { params: { page: 1, limit: 100 } })).data,
   createRFQ: async (data: any) => (await api.post('/purchasing/rfq', data)).data,
+  createOrder: async (data: any) => (await api.post('/purchasing/orders', data)).data,
   confirmRFQ: async (id: string) => (await api.post('/purchasing/rfq/' + id + '/confirm')).data,
   getOrders: async (params?: any) => (await api.get('/purchasing/orders', { params })).data,
   getOrder: async (id: string) => (await api.get('/purchasing/orders/' + id)).data,
@@ -174,6 +179,20 @@ export const PurchasingAPI: any = {
   receiveGoods: async (poId: string, data: any) => (await api.post('/purchasing/orders/' + poId + '/receive', data)).data,
   getAnalytics: async () => (await api.get('/purchasing/analytics')).data,
   getVendorComparison: async (productId: string) => (await api.get('/purchasing/products/' + productId + '/vendor-comparison')).data,
+  // Purchase Return
+  getPurchaseReturns: async () => (await api.get('/purchasing/purchase-returns')).data,
+  getPurchaseReturn: async (id: string) => (await api.get('/purchasing/purchase-returns/' + id)).data,
+  createPurchaseReturn: async (data: any) => (await api.post('/purchasing/purchase-returns', data)).data,
+  approvePurchaseReturn: async (id: string) => (await api.put('/purchasing/purchase-returns/' + id + '/approve', {})).data,
+  reversePurchaseReturn: async (id: string) => (await api.put('/purchasing/purchase-returns/' + id + '/reverse', {})).data,
+  // Supplier Credit Notes
+  getSupplierCredits: async (params?: any) => (await api.get('/purchasing/supplier-credits', { params })).data,
+  getSupplierCredit: async (id: string) => (await api.get('/purchasing/supplier-credits/' + id)).data,
+  createSupplierCreditFromReturn: async (returnId: string) => (await api.post('/purchasing/supplier-credits/from-return/' + returnId, {})).data,
+  applySupplierCredit: async (id: string, data: any) => (await api.post('/purchasing/supplier-credits/' + id + '/apply', data)).data,
+  refundSupplierCredit: async (id: string, data: any) => (await api.post('/purchasing/supplier-credits/' + id + '/refund', data)).data,
+  reverseCreditApplication: async (applicationId: string, data: { reason: string }) => (await api.post('/purchasing/supplier-credits/applications/' + applicationId + '/reverse', data)).data,
+  reverseSupplierCredit: async (id: string, data: { reason: string }) => (await api.post('/purchasing/supplier-credits/' + id + '/reverse', data)).data,
 };
 
 export const AuthAPI: any = {

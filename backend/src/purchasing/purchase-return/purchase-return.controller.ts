@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Put, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Request, UseGuards } from '@nestjs/common';
 import { PurchaseReturnService } from './purchase-return.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { Permissions } from '../../auth/permissions.decorator';
@@ -7,6 +7,18 @@ import { Permissions } from '../../auth/permissions.decorator';
 @Controller('purchasing/purchase-returns')
 export class PurchaseReturnController {
   constructor(private readonly purchaseReturnService: PurchaseReturnService) {}
+
+  @Get()
+  @Permissions('view:purchase_return')
+  findAll(@Request() req) {
+    return this.purchaseReturnService.findAll(req.user.company_id);
+  }
+
+  @Get(':id')
+  @Permissions('view:purchase_return')
+  findOne(@Request() req, @Param('id') id: string) {
+    return this.purchaseReturnService.findOne(req.user.company_id, id);
+  }
 
   @Post()
   @Permissions('create:purchase_return')

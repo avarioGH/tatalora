@@ -5,7 +5,8 @@ import { Prisma } from '@prisma/client';
 export class SequenceService {
   /**
    * Generates a unique sequential number atomically using Prisma transaction capabilities.
-   * Format: PREFIX + PADDED_NUMBER (e.g. INV/2026/00001)
+   * Format: PREFIX + PADDED_NUMBER (e.g. PO/2026/00001)
+   * Hardened with atomic upsert against composite unique constraint @@unique([company_id, type, prefix])
    */
   async generateNumber(
     tx: Prisma.TransactionClient,
@@ -18,29 +19,24 @@ export class SequenceService {
     const fullPrefix = `${prefixString}/${year}/`;
 
     try {
-      let sequence = await (tx as any).documentSequence.findFirst({
+      const sequence = await (tx as any).documentSequence.upsert({
         where: {
-          company_id: companyId,
-          type: type,
-          prefix: fullPrefix,
-        },
-      });
-
-      if (sequence) {
-        sequence = await (tx as any).documentSequence.update({
-          where: { id: sequence.id },
-          data: { last_value: { increment: 1 } },
-        });
-      } else {
-        sequence = await (tx as any).documentSequence.create({
-          data: {
+          company_id_type_prefix: {
             company_id: companyId,
             type: type,
             prefix: fullPrefix,
-            last_value: 1,
           },
-        });
-      }
+        },
+        update: {
+          last_value: { increment: 1 },
+        },
+        create: {
+          company_id: companyId,
+          type: type,
+          prefix: fullPrefix,
+          last_value: 1,
+        },
+      });
 
       const paddedValue = sequence.last_value.toString().padStart(padding, '0');
       return `${fullPrefix}${paddedValue}`;

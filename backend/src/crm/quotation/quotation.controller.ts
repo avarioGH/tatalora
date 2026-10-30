@@ -44,6 +44,26 @@ export class QuotationController {
     return this.service.confirm(req.user.company_id, id);
   }
   @Permissions('quotation.create')
+  @Post(':id/send')
+  send(@Request() req, @Param('id') id: string) {
+    return this.service.send(req.user.company_id, id);
+  }
+  @Permissions('quotation.create')
+  @Post(':id/accept')
+  accept(@Request() req, @Param('id') id: string) {
+    return this.service.accept(req.user.company_id, id);
+  }
+  @Permissions('quotation.create')
+  @Post(':id/reject')
+  reject(@Request() req, @Param('id') id: string, @Body('reason') reason?: string) {
+    return this.service.reject(req.user.company_id, id, reason);
+  }
+  @Permissions('quotation.create')
+  @Post(':id/expire')
+  expire(@Request() req, @Param('id') id: string) {
+    return this.service.expire(req.user.company_id, id);
+  }
+  @Permissions('quotation.create')
   @Post(':id/cancel')
   cancel(@Request() req, @Param('id') id: string) {
     return this.service.cancel(req.user.company_id, id);

@@ -5,6 +5,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { NotificationModule } from '../notification/notification.module';
 import { PurchaseReturnModule } from './purchase-return/purchase-return.module';
+import { SupplierCreditModule } from './supplier-credit/supplier-credit.module';
+import { ReportsModule } from '../reports/reports.module';
 
 @Module({
   imports: [
@@ -12,9 +14,12 @@ import { PurchaseReturnModule } from './purchase-return/purchase-return.module';
     InventoryModule,
     NotificationModule,
     PurchaseReturnModule,
+    SupplierCreditModule,
+    ReportsModule,
   ],
   controllers: [PurchasingController],
   providers: [PurchasingService],
-  exports: [PurchasingService],
+  exports: [PurchasingService, SupplierCreditModule],
 })
 export class PurchasingModule {}
+
