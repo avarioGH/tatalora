@@ -117,7 +117,7 @@ export default function PurchaseOrderDetailPage() {
         items: itemsToReceive
       };
 
-      const res = await api.post(`/purchasing/orders/${id}/receive`, payload);
+      const res: any = await api.post(`/purchasing/orders/${id}/receive`, payload);
       const grnNumber = res?.data?.receipt_number || res?.receipt_number || 'GRN Baru';
 
       toast({ 
@@ -172,7 +172,7 @@ export default function PurchaseOrderDetailPage() {
         dueDate: billDueDate ? new Date(billDueDate).toISOString() : null
       };
 
-      const res = await api.post(`/purchasing/orders/${id}/bill`, payload);
+      const res: any = await api.post(`/purchasing/orders/${id}/bill`, payload);
       const invoiceNumber = res?.data?.invoice_number || res?.invoice_number || 'Faktur Baru';
 
       toast({ 
@@ -461,7 +461,7 @@ export default function PurchaseOrderDetailPage() {
             <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Gudang Penyimpanan Masuk</Label>
-                <Select value={receiveWarehouseId} onValueChange={setReceiveWarehouseId}>
+                <Select value={receiveWarehouseId} onValueChange={(val) => setReceiveWarehouseId(val || '')}>
                   <SelectTrigger className="h-9 text-xs">
                     <SelectValue placeholder="Pilih Gudang" />
                   </SelectTrigger>
