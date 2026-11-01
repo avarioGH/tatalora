@@ -250,7 +250,7 @@ export default function CreateOrderPage() {
                   <Plus className="w-3 h-3" /> Tambah Baru
                 </button>
               </div>
-              <Select value={form.partnerId} onValueChange={(v) => setForm({ ...form, partnerId: v })}>
+              <Select value={form.partnerId} onValueChange={(v) => setForm({ ...form, partnerId: v || '' })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="-- Pilih Supplier --" />
                 </SelectTrigger>
@@ -273,7 +273,7 @@ export default function CreateOrderPage() {
             {/* Warehouse Destination */}
             <div className="space-y-2">
               <Label className="text-xs font-semibold">Gudang Tujuan Penerimaan</Label>
-              <Select value={form.warehouseId} onValueChange={(v) => setForm({ ...form, warehouseId: v })}>
+              <Select value={form.warehouseId} onValueChange={(v) => setForm({ ...form, warehouseId: v || '' })}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Pilih Gudang" />
                 </SelectTrigger>
@@ -321,7 +321,7 @@ export default function CreateOrderPage() {
             {/* Syarat Pembayaran */}
             <div className="space-y-2">
               <Label className="text-xs font-semibold">Syarat Pembayaran</Label>
-              <Select value={form.paymentTerms} onValueChange={(v) => setForm({ ...form, paymentTerms: v })}>
+              <Select value={form.paymentTerms} onValueChange={(v) => setForm({ ...form, paymentTerms: v || '' })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih Termin" />
                 </SelectTrigger>

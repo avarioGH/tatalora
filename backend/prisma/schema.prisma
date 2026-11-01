@@ -1644,6 +1644,8 @@ model Customer {
   status       Boolean    @default(true)
 
   company_name     String?
+  credit_limit     Float?            @default(0)
+  credit_policy    String?           @default("BLOCK") // BLOCK, WARNING, OVERRIDE
   payments         Payment[]
   billing_address  String?
   delivery_address String?
