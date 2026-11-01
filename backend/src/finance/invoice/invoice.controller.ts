@@ -33,6 +33,11 @@ export class InvoiceController {
   create(@Request() req, @Body() data: { salesOrderId: string; items?: any[]; notes?: string; paymentTerms?: string }) {
     return this.service.createFromSO(req.user.company_id, data.salesOrderId, data);
   }
+  @Permissions('invoice.create')
+  @Post('from-deliveries')
+  createFromDeliveries(@Request() req, @Body() data: any) {
+    return this.service.createFromDeliveries(req.user.company_id, data);
+  }
   @Permissions('invoice.view')
   @Get()
   async findAll(@Request() req, @Query('type') type?: string) {

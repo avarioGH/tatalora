@@ -16,11 +16,15 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
 import { PrismaService } from '../prisma/prisma.service';
+import { DeliveryService } from '../crm/delivery/delivery.service';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('sales')
 export class SalesController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly deliveryService: DeliveryService,
+  ) {}
 
   // ----------------------------------------------------
   // 1. QUOTATIONS (Penawaran Penjualan)
@@ -268,30 +272,6 @@ export class SalesController {
   @Post('deliveries/:soId')
   async createDelivery(@Request() req: any, @Param('soId') soId: string, @Body() data: any) {
     const companyId = req.user.company_id || req.user.companyId;
-    const items = data.items || [];
-
-    return this.prisma.deliveryOrder.create({
-      data: {
-        company_id: companyId,
-        sales_order_id: soId,
-        delivery_number: data.delivery_number || `SJ-${Date.now()}`,
-        delivery_date: data.delivery_date ? new Date(data.delivery_date) : new Date(),
-        status: data.status || 'DELIVERED',
-        driver_name: data.driver_name || data.driverName || null,
-        vehicle_plate: data.vehicle_plate || null,
-        notes: data.notes || null,
-        items: {
-          create: items.map((it: any) => ({
-            product_id: it.product_id,
-            ordered_qty: Number(it.ordered_qty || it.qty || 0),
-            delivered_qty: Number(it.delivered_qty || it.qty || 0),
-            remaining_qty: Math.max(0, Number(it.ordered_qty || 0) - Number(it.delivered_qty || 0)),
-          })),
-        },
-      },
-      include: {
-        items: true,
-      },
-    });
+    return this.deliveryService.create(companyId, soId, data);
   }
 }

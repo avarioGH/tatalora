@@ -106,7 +106,7 @@ export class PaymentService {
       }
 
       // Validate allocation totals vs payment amount
-      if (totalAllocated > paymentAmount && !data.allowUnallocated) {
+      if (totalAllocated > paymentAmount) {
         throw new BadRequestException(
           `Total alokasi (${totalAllocated}) melebihi jumlah pembayaran (${paymentAmount})`,
         );
@@ -239,6 +239,7 @@ export class PaymentService {
       const isCustomerDeposit =
         allocations.length === 0 ||
         allocations.every((a) => a.salesOrderId && !a.invoiceId);
+      const isSplitPayment = !isAP && !isCustomerDeposit && totalAllocated > 0 && totalAllocated < paymentAmount;
 
       // Process Allocations
       for (const alloc of allocations) {
@@ -359,7 +360,42 @@ export class PaymentService {
           },
         });
 
-        const eventType = isAP
+        if (isSplitPayment) {
+          const unappliedAmount = this.roundMoney(payment.amount - totalAllocated);
+          await this.eventEmitter.emitAsync(
+            'payment.processed',
+            new PaymentProcessedEvent(
+              companyId,
+              payment.id,
+              `VAL-PAY-AR-${payment.id}`,
+              payment.payment_date,
+              {
+                type: 'RECEIVABLE',
+                amount: totalAllocated,
+                accountId: accountId,
+                referenceType: 'PAYMENT_AR',
+              },
+              tx as any,
+            ),
+          );
+          await this.eventEmitter.emitAsync(
+            'payment.processed',
+            new PaymentProcessedEvent(
+              companyId,
+              payment.id,
+              `VAL-PAY-DEP-${payment.id}`,
+              payment.payment_date,
+              {
+                type: 'CUSTOMER_DEPOSIT',
+                amount: unappliedAmount,
+                accountId: accountId,
+                referenceType: 'PAYMENT_DEPOSIT',
+              },
+              tx as any,
+            ),
+          );
+        } else {
+          const eventType = isAP
           ? 'PAYABLE'
           : isCustomerDeposit
             ? 'CUSTOMER_DEPOSIT'
@@ -381,6 +417,7 @@ export class PaymentService {
             tx as any,
           ),
         );
+        }
       }
 
       return payment;
@@ -1010,7 +1047,7 @@ export class PaymentService {
       }
 
       // 3. GL Journal Reversal - MUST BE STRICTLY ATOMIC (NO TRY-CATCH SWALLOWING)
-      const journal = await tx.journalEntry.findFirst({
+      const journals = await tx.journalEntry.findMany({
         where: {
           company_id: companyId,
           reference_type: { in: ['PAYMENT_AR', 'PAYMENT_DEPOSIT', 'PAYMENT_AP'] },
@@ -1020,7 +1057,7 @@ export class PaymentService {
         include: { items: true },
       });
 
-      if (journal) {
+      for (const journal of journals) {
         const reversedJournal = await tx.journalEntry.create({
           data: {
             company_id: companyId,

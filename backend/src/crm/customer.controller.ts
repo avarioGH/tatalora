@@ -50,16 +50,23 @@ export class CustomerController {
   @Permissions('crm.customer.create')
   @Post()
   async createCustomer(@Request() req, @Body() data: any) {
-    const role = data.type?.toUpperCase() || (Array.isArray(data.roles) && data.roles.length > 0 ? data.roles[0].toUpperCase() : 'CUSTOMER');
+    const role = data.is_supplier || data.type?.toUpperCase() === 'VENDOR' || data.type?.toUpperCase() === 'SUPPLIER'
+      ? 'SUPPLIER'
+      : (Array.isArray(data.roles) && data.roles.length > 0 ? data.roles[0].toUpperCase() : (data.type?.toUpperCase() || 'CUSTOMER'));
+    const companyId = req.user.company_id || req.user.companyId;
+    const randSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const prefix = (role === 'VENDOR' || role === 'SUPPLIER') ? 'VEND' : 'CUST';
+    const code = data.code || (prefix + '-' + Date.now() + '-' + randSuffix);
+
     return this.prisma.customer.create({
       data: {
-        company_id: req.user.company_id || req.user.companyId,
-        code: data.code || `${role === 'VENDOR' || role === 'SUPPLIER' ? 'VEND' : 'CUST'}-${Date.now()}`,
+        company_id: companyId,
+        code: code,
         name: data.name,
-        phone: data.phone,
-        email: data.email,
-        address: data.address,
-        company_name: data.company_name || data.company,
+        phone: data.phone || null,
+        email: data.email || null,
+        address: data.address || null,
+        company_name: data.company_name || data.company || null,
         roles: Array.isArray(data.roles) ? data.roles : [role],
         warehouse_id: data.warehouse_id || undefined,
       },

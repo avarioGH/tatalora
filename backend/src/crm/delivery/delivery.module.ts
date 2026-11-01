@@ -8,5 +8,6 @@ import { ReportsModule } from '../../reports/reports.module';
   imports: [InventoryModule, ReportsModule],
   providers: [DeliveryService],
   controllers: [DeliveryController],
+  exports: [DeliveryService],
 })
 export class DeliveryModule {}

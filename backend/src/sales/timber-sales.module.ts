@@ -6,9 +6,10 @@ import { ExportShipmentService } from './export-shipment.service';
 import { SalesController } from './sales.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { InventoryModule } from '../inventory/inventory.module';
+import { DeliveryModule } from '../crm/delivery/delivery.module';
 
 @Module({
-  imports: [PrismaModule, InventoryModule],
+  imports: [PrismaModule, InventoryModule, DeliveryModule],
   controllers: [SalesController, TimberSalesController, ExportShipmentController],
   providers: [TimberSalesService, ExportShipmentService],
   exports: [TimberSalesService, ExportShipmentService],

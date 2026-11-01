@@ -157,9 +157,10 @@ export const B2BApi: any = {
   updateOrder: async (id: string, data: any) => (await api.put('/sales/orders/' + id, data)).data,
   deleteOrder: async (id: string) => (await api.delete('/sales/orders/' + id)).data,
   getDeliveries: async (params?: any) => (await api.get('/sales/deliveries', { params })).data,
-    createDelivery: async (soId: string, data: any) => (await api.post('/sales/deliveries/' + soId, data)).data,
+  createDelivery: async (soId: string, data: any) => (await api.post('/sales/deliveries/' + soId, data)).data,
   getDelivery: async (id: string) => (await api.get('/sales/deliveries/' + id)).data,
-  validateDelivery: async (id: string) => (await api.post('/sales/deliveries/' + id + '/validate')).data,
+  validateDelivery: async (id: string, data?: { warehouseId?: string }) => (await api.post('/sales/deliveries/' + id + '/validate', data || {})).data,
+  cancelDelivery: async (id: string) => (await api.post('/sales/deliveries/' + id + '/cancel')).data,
 };
 
 export const PurchasingAPI: any = {
@@ -234,6 +235,7 @@ export const FinanceAPI: any = {
   getInvoices: async (params?: any) => (await api.get('/finance/invoices', { params })).data,
   getInvoice: async (id: string) => (await api.get('/finance/invoices/' + id)).data,
   createInvoiceFromSO: async (data: any) => (await api.post('/finance/invoices/from-so', data)).data,
+  createInvoiceFromDeliveries: async (data: any) => (await api.post('/finance/invoices/from-deliveries', data)).data,
   postInvoice: async (id: string) => (await api.post('/finance/invoices/' + id + '/post')).data,
   getPayments: async (params?: any) => (await api.get('/finance/payments', { params })).data,
   createPayment: async (data: any) => (await api.post('/finance/payments', data)).data,

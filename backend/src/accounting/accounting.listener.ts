@@ -479,11 +479,12 @@ export class AccountingListener {
   async handlePaymentProcessed(event: PaymentProcessedEvent) {
     const tx = event.tx || this.prisma;
     const refType =
-      event.payload.type === 'CUSTOMER_DEPOSIT'
+      event.payload.referenceType ||
+      (event.payload.type === 'CUSTOMER_DEPOSIT'
         ? 'PAYMENT_DEPOSIT'
         : event.payload.type === 'PAYABLE'
           ? 'PAYMENT_AP'
-          : 'PAYMENT_AR';
+          : 'PAYMENT_AR');
 
     // Idempotency check matching exact referenceType and referenceId written to JournalEntry
     if (

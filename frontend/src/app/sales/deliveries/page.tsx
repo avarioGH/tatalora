@@ -24,7 +24,7 @@ export default function DeliveriesPage() {
   const [deliveries, setDeliveries] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  const tabs = ["Semua", "PENDING", "SHIPPED", "DELIVERED", "CANCELLED"]
+  const tabs = ["Semua", "DRAFT", "READY", "DONE", "WAITING", "CANCELLED"]
 
   useEffect(() => {
     fetchDeliveries()
@@ -43,16 +43,43 @@ export default function DeliveriesPage() {
     }
   }
 
+  const handleValidate = async (id: string) => {
+    if (!confirm('Validasi dan terbitkan pengiriman fisik (Surat Jalan)? Stok gudang akan otomatis dipotong sesuai FIFO layer.')) return
+    try {
+      await B2BApi.validateDelivery(id)
+      alert('Pengiriman berhasil divalidasi dan stok fisik telah dipotong!')
+      fetchDeliveries()
+    } catch (err: any) {
+      alert('Gagal memvalidasi pengiriman: ' + (err.response?.data?.message || err.message))
+    }
+  }
+
+  const handleCancel = async (id: string, isPosted: boolean) => {
+    const promptMsg = isPosted 
+      ? 'Batalkan pengiriman yang sudah tervalidasi? Sistem akan mengembalikan layer stok FIFO dan membalik jurnal HPP (COGS).'
+      : 'Batalkan draf surat jalan ini?'
+    if (!confirm(promptMsg)) return
+    try {
+      await B2BApi.cancelDelivery(id)
+      alert('Pengiriman berhasil dibatalkan!')
+      fetchDeliveries()
+    } catch (err: any) {
+      alert('Gagal membatalkan pengiriman: ' + (err.response?.data?.message || err.message))
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     switch(status) {
-      case "PENDING": 
-        return <Badge className="bg-amber-500/10 text-amber-700 border-0 font-medium px-2.5 py-0.5">Pending</Badge>
-      case "SHIPPED": 
-        return <Badge className="bg-blue-500/10 text-blue-700 border-0 font-medium px-2.5 py-0.5">Dikirim</Badge>
+      case "DRAFT": 
+      case "WAITING": 
+        return <Badge className="bg-amber-500/10 text-amber-700 border-0 font-medium px-2.5 py-0.5">DRAFT</Badge>
+      case "READY": 
+        return <Badge className="bg-blue-500/10 text-blue-700 border-0 font-medium px-2.5 py-0.5">READY</Badge>
+      case "DONE": 
       case "DELIVERED": 
-        return <Badge className="bg-emerald-500/10 text-emerald-700 border-0 font-medium px-2.5 py-0.5">Terkirim</Badge>
+        return <Badge className="bg-emerald-500/10 text-emerald-700 border-0 font-medium px-2.5 py-0.5">DONE</Badge>
       case "CANCELLED": 
-        return <Badge className="bg-rose-500/10 text-rose-700 border-0 font-medium px-2.5 py-0.5">Dibatalkan</Badge>
+        return <Badge className="bg-rose-500/10 text-rose-700 border-0 font-medium px-2.5 py-0.5">CANCELLED</Badge>
       default: 
         return <Badge variant="outline">{status || 'Draft'}</Badge>
     }
@@ -136,32 +163,72 @@ export default function DeliveriesPage() {
                   <TableRow className="border-border hover:bg-transparent bg-muted/10">
                     <TableHead className="font-semibold text-foreground pl-6">No. Surat Jalan</TableHead>
                     <TableHead className="font-semibold text-foreground">Pelanggan</TableHead>
-                    <TableHead className="font-semibold text-foreground">No. Referensi / PO</TableHead>
+                    <TableHead className="font-semibold text-foreground">No. Pesanan (SO)</TableHead>
                     <TableHead className="font-semibold text-foreground">Tanggal Kirim</TableHead>
-                    <TableHead className="font-semibold text-foreground text-center pr-6">Status</TableHead>
+                    <TableHead className="font-semibold text-foreground text-center">Status</TableHead>
+                    <TableHead className="font-semibold text-foreground text-right pr-6">Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-16 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-16 text-muted-foreground">
                         <FolderOpen className="w-10 h-10 mx-auto text-muted-foreground/40 mb-2" />
                         <p className="text-base font-medium">Belum ada dokumen pengiriman tercatat.</p>
                         <p className="text-xs text-muted-foreground mt-1">Buat surat jalan baru untuk memantau proses pengiriman pesanan.</p>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filtered.map((item) => (
-                      <TableRow key={item.id} className="hover:bg-muted/30 border-border transition-colors">
-                        <TableCell className="font-semibold text-indigo-600 pl-6">{item.delivery_number || item.id.slice(0, 8)}</TableCell>
-                        <TableCell className="font-medium text-foreground">{item.customer?.name || item.customer_name || 'Pelanggan Umum'}</TableCell>
-                        <TableCell className="text-muted-foreground font-mono text-xs">{item.order?.order_number || item.reference || '-'}</TableCell>
-                        <TableCell className="text-muted-foreground">{item.delivery_date ? new Date(item.delivery_date).toLocaleDateString('id-ID') : '-'}</TableCell>
-                        <TableCell className="text-center pr-6">
-                          {getStatusBadge(item.status)}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    filtered.map((item) => {
+                      const isWaiting = item.status === 'WAITING' || item.status === 'READY' || item.status === 'DRAFT'
+                      const isDone = item.status === 'DONE' || item.status === 'DELIVERED'
+                      const isCancelled = item.status === 'CANCELLED'
+                      return (
+                        <TableRow key={item.id} className="hover:bg-muted/30 border-border transition-colors">
+                          <TableCell className="font-semibold text-indigo-600 pl-6">{item.delivery_number || item.id.slice(0, 8)}</TableCell>
+                          <TableCell className="font-medium text-foreground">{item.sales_order?.customer?.name || item.customer?.name || item.customer_name || 'Pelanggan Umum'}</TableCell>
+                          <TableCell className="text-muted-foreground font-mono text-xs">{item.sales_order?.order_number || item.order?.order_number || item.reference || '-'}</TableCell>
+                          <TableCell className="text-muted-foreground">{item.delivery_date ? new Date(item.delivery_date).toLocaleDateString('id-ID') : '-'}</TableCell>
+                          <TableCell className="text-center">
+                            {getStatusBadge(item.status)}
+                          </TableCell>
+                          <TableCell className="text-right pr-6 space-x-2">
+                            {isWaiting && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => handleValidate(item.id)}
+                                  className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5"
+                                >
+                                  Validasi & Terbitkan
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  onClick={() => handleCancel(item.id, false)}
+                                  className="h-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50 text-xs px-2"
+                                >
+                                  Batalkan
+                                </Button>
+                              </>
+                            )}
+                            {isDone && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => handleCancel(item.id, true)}
+                                className="h-8 text-amber-700 border-amber-300 hover:bg-amber-50 text-xs px-2"
+                              >
+                                Retur / Reverse
+                              </Button>
+                            )}
+                            {isCancelled && (
+                              <span className="text-xs text-muted-foreground italic">Dibatalkan</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   )}
                 </TableBody>
               </Table>

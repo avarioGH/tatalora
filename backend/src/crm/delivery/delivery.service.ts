@@ -101,6 +101,12 @@ export class DeliveryService {
       });
       if (!so) throw new NotFoundException('Sales order not found');
 
+      if (so.status !== 'CONFIRMED') {
+        throw new BadRequestException(
+          `Cannot create delivery for Sales Order ${so.order_number}. Order status must be CONFIRMED (current: ${so.status}).`,
+        );
+      }
+
       const itemsToDeliver = data.items;
       if (!Array.isArray(itemsToDeliver) || itemsToDeliver.length === 0) {
         throw new BadRequestException('Delivery must contain at least one item');
@@ -221,13 +227,19 @@ export class DeliveryService {
       if (delivery.status === 'CANCELLED') {
         throw new BadRequestException('Cannot validate a cancelled delivery');
       }
-      if (delivery.status !== 'WAITING') {
+      if (delivery.status !== 'WAITING' && delivery.status !== 'READY' && delivery.status !== 'DRAFT') {
         throw new BadRequestException(
           `Delivery cannot be validated in status ${delivery.status}`,
         );
       }
 
       const so = delivery.sales_order;
+
+      if (so.status !== 'CONFIRMED') {
+        throw new BadRequestException(
+          `Cannot validate delivery: parent Sales Order ${so.order_number} is not CONFIRMED (current: ${so.status})`,
+        );
+      }
 
       // 1b. Concurrency Coordination: Acquire an exclusive row-level lock (FOR UPDATE)
       // on the parent Sales Order. In PostgreSQL Read-Committed transactions, this forces
@@ -298,14 +310,14 @@ export class DeliveryService {
         where: {
           id: deliveryId,
           company_id: companyId,
-          status: 'WAITING',
+          status: { in: ['WAITING', 'READY', 'DRAFT'] },
         },
         data: { status: 'DONE' },
       });
 
       if (claimResult.count === 0) {
         throw new BadRequestException(
-          'Concurrency conflict or delivery is no longer WAITING',
+          'Concurrency conflict or delivery is no longer in valid state to be validated',
         );
       }
 
@@ -382,13 +394,13 @@ export class DeliveryService {
 
       const so = delivery.sales_order;
 
-      // Case 1: Unposted Delivery (WAITING / READY)
-      if (delivery.status === 'WAITING' || delivery.status === 'READY') {
+      // Case 1: Unposted Delivery (WAITING / READY / DRAFT)
+      if (delivery.status === 'WAITING' || delivery.status === 'READY' || delivery.status === 'DRAFT') {
         const claimCancel = await tx.deliveryOrder.updateMany({
           where: {
             id: deliveryId,
             company_id: companyId,
-            status: { in: ['WAITING', 'READY'] },
+            status: { in: ['WAITING', 'READY', 'DRAFT'] },
           },
           data: { status: 'CANCELLED' },
         });

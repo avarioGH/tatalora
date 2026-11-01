@@ -22,7 +22,7 @@ export default function SalesInvoicesPage() {
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  const tabs = ["Semua", "Belum Dibayar", "Dibayar Sebagian", "Lunas"]
+  const tabs = ["Semua", "DRAFT", "Belum Dibayar", "Dibayar Sebagian", "Lunas"]
 
   const fetchData = async () => {
     try {
@@ -45,8 +45,10 @@ export default function SalesInvoicesPage() {
   // Filter logic
   const filteredData = data.filter((item) => {
     // 1. Tab filter
-    if (activeTab === "Belum Dibayar") {
-      const isUnpaid = item.status === "UNPAID" || item.status === "Belum Dibayar" || (Number(item.remaining_amount) > 0 && !item.paid_amount)
+    if (activeTab === "DRAFT") {
+      if (item.status !== "DRAFT") return false
+    } else if (activeTab === "Belum Dibayar") {
+      const isUnpaid = (item.status === "POSTED" || item.status === "UNPAID" || item.status === "Belum Dibayar") && Number(item.remaining_amount) > 0 && !item.paid_amount
       if (!isUnpaid) return false
     } else if (activeTab === "Dibayar Sebagian") {
       const isPartial = item.status === "PARTIALLY PAID" || item.status === "Dibayar Sebagian" || (Number(item.paid_amount) > 0 && Number(item.remaining_amount) > 0)
@@ -98,11 +100,17 @@ export default function SalesInvoicesPage() {
   }
 
   const getStatusBadge = (status: string, remaining: number) => {
+    if (status === "DRAFT") {
+      return <Badge className="bg-slate-100 text-slate-700 border-0 font-medium px-2.5 py-0.5">DRAFT</Badge>
+    }
     if (remaining === 0 || status === "PAID" || status === "Lunas") {
       return <Badge className="bg-emerald-500/10 text-emerald-600 border-0 font-medium px-2.5 py-0.5">Lunas</Badge>
     }
     if (status === "PARTIALLY PAID" || status === "Dibayar Sebagian") {
       return <Badge className="bg-amber-500/10 text-amber-600 border-0 font-medium px-2.5 py-0.5">Dibayar Sebagian</Badge>
+    }
+    if (status === "POSTED") {
+      return <Badge className="bg-blue-500/10 text-blue-600 border-0 font-medium px-2.5 py-0.5">POSTED (Belum Dibayar)</Badge>
     }
     return <Badge className="bg-rose-500/10 text-rose-600 border-0 font-medium px-2.5 py-0.5">Belum Dibayar</Badge>
   }

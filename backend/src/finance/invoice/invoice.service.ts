@@ -11,6 +11,24 @@ import { SequenceService } from '../../reports/sequence.service';
 export interface CreateInvoiceFromSoDto {
   salesOrderId: string;
   deliveryOrderId?: string;
+  deliveryOrderIds?: string[];
+  items?: Array<{
+    productId: string;
+    qty: number;
+    unitPrice?: number;
+    discount?: number;
+    tax?: number;
+    description?: string;
+    deliveryOrderItemId?: string;
+  }>;
+  invoiceDate?: Date | string;
+  dueDate?: Date | string;
+  paymentTerms?: string;
+  notes?: string;
+}
+
+export interface CreateInvoiceFromDeliveriesDto {
+  deliveryOrderIds: string[];
   items?: Array<{
     productId: string;
     qty: number;
@@ -363,7 +381,234 @@ export class InvoiceService {
     });
   }
 
-  async createDirect(companyId: string, data: any) {
+  /**
+   * Create an invoice from one or more completed Delivery Orders (or specific delivery order items).
+   * Supports:
+   * - One invoice covering multiple completed Delivery Orders for the same customer.
+   * - Multiple invoices against one Delivery Order (partial billing).
+   * - Full backend recalculation of delivered vs previously invoiced quantities.
+   * - Concurrency locks on parent Sales Orders.
+   */
+  async createFromDeliveries(
+    companyId: string,
+    dto: CreateInvoiceFromDeliveriesDto,
+  ) {
+    if (!dto.deliveryOrderIds || dto.deliveryOrderIds.length === 0) {
+      throw new BadRequestException('At least one Delivery Order ID is required');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Fetch and validate all referenced Delivery Orders
+      const deliveries = await tx.deliveryOrder.findMany({
+        where: {
+          id: { in: dto.deliveryOrderIds },
+          company_id: companyId,
+        },
+        include: {
+          sales_order: {
+            include: { customer: true, items: true },
+          },
+          items: {
+            include: { product: true },
+          },
+        },
+      });
+
+      if (deliveries.length !== dto.deliveryOrderIds.length) {
+        throw new NotFoundException('One or more Delivery Orders not found for company');
+      }
+
+      // Check status: ONLY DONE / DELIVERED deliveries are billable
+      for (const d of deliveries) {
+        if (d.status !== 'DONE' && d.status !== 'DELIVERED') {
+          throw new BadRequestException(
+            `Delivery Order ${d.delivery_number} cannot be invoiced in status ${d.status}. Only completed (DONE) deliveries are billable.`,
+          );
+        }
+      }
+
+      // Verify customer consistency across all deliveries
+      const customerId = deliveries[0].sales_order.customer_id;
+      for (const d of deliveries) {
+        if (d.sales_order.customer_id !== customerId) {
+          throw new BadRequestException(
+            `Cannot combine deliveries for different customers into a single invoice.`,
+          );
+        }
+      }
+
+      // 2. Lock parent Sales Orders in deterministic order to prevent deadlocks
+      const soIds = Array.from(new Set(deliveries.map((d: any) => d.sales_order_id))).sort();
+      for (const soId of soIds) {
+        if (typeof (tx as any).$executeRaw === 'function') {
+          await (tx as any).$executeRaw`SELECT 1 FROM "SalesOrder" WHERE id = ${soId}::uuid AND company_id = ${companyId}::uuid FOR UPDATE`;
+        }
+      }
+
+      // 3. Compute delivered vs previously billed quantities across all items of these deliveries
+      // Aggregate delivered quantities strictly from the specified deliveries
+      const deliveredQtyMap: Record<string, number> = {};
+      const productPriceMap: Record<string, number> = {};
+      const productDescMap: Record<string, string> = {};
+
+      for (const d of deliveries) {
+        for (const item of d.items) {
+          deliveredQtyMap[item.product_id] = this.roundQty(
+            (deliveredQtyMap[item.product_id] || 0) + item.delivered_qty,
+          );
+          // Look up price from sales order items
+          const soItem = d.sales_order.items.find((si: any) => si.product_id === item.product_id);
+          if (soItem) {
+            productPriceMap[item.product_id] = Number(soItem.unit_price);
+            productDescMap[item.product_id] = soItem.product_id;
+          }
+        }
+      }
+
+      // Query active invoices (POSTED and active DRAFT reservations) across these sales orders
+      const existingInvoices = await tx.invoice.findMany({
+        where: {
+          sales_order_id: { in: soIds },
+          company_id: companyId,
+          status: { notIn: ['CANCELLED', 'VOID'] },
+        },
+        include: { items: true },
+      });
+
+      const previouslyInvoicedMap: Record<string, number> = {};
+      for (const inv of existingInvoices) {
+        for (const it of inv.items) {
+          previouslyInvoicedMap[it.product_id] = this.roundQty(
+            (previouslyInvoicedMap[it.product_id] || 0) + it.qty,
+          );
+        }
+      }
+
+      // Calculate billable remaining per product
+      const remainingBillableMap: Record<string, number> = {};
+      for (const [prodId, delQty] of Object.entries(deliveredQtyMap)) {
+        const invoiced = previouslyInvoicedMap[prodId] || 0;
+        remainingBillableMap[prodId] = this.roundQty(Math.max(0, delQty - invoiced));
+      }
+
+      // 4. Build invoice items
+      const invoiceItemsData: any[] = [];
+      let calculatedSubtotal = 0;
+      let calculatedTax = 0;
+
+      if (dto.items && dto.items.length > 0) {
+        for (const req of dto.items) {
+          const prodId = req.productId;
+          const reqQty = this.roundQty(req.qty);
+          if (reqQty <= 0) {
+            throw new BadRequestException(`Invoice quantity for product ${prodId} must be greater than zero`);
+          }
+          if (!deliveredQtyMap[prodId]) {
+            throw new BadRequestException(`Product ${prodId} is not in the referenced Delivery Orders`);
+          }
+
+          const remaining = remainingBillableMap[prodId] || 0;
+          if (reqQty > remaining) {
+            throw new BadRequestException(
+              `Cannot invoice ${reqQty} for product ${prodId}. Only ${remaining} remaining billable from delivered quantity.`,
+            );
+          }
+
+          const unitPrice = req.unitPrice !== undefined ? Number(req.unitPrice) : (productPriceMap[prodId] || 0);
+          const discount = Number(req.discount || 0);
+          const tax = Number(req.tax || 0);
+          const lineSubtotal = this.roundMoney(reqQty * unitPrice - discount);
+
+          invoiceItemsData.push({
+            product_id: prodId,
+            description: req.description || productDescMap[prodId] || prodId,
+            qty: reqQty,
+            unit_price: unitPrice,
+            discount,
+            tax,
+            subtotal: lineSubtotal,
+          });
+
+          calculatedSubtotal += lineSubtotal;
+          calculatedTax += tax;
+        }
+      } else {
+        // Auto-bill full remaining delivered quantities
+        for (const [prodId, remQty] of Object.entries(remainingBillableMap)) {
+          if (remQty > 0) {
+            const unitPrice = productPriceMap[prodId] || 0;
+            const lineSubtotal = this.roundMoney(remQty * unitPrice);
+
+            invoiceItemsData.push({
+              product_id: prodId,
+              description: productDescMap[prodId] || prodId,
+              qty: remQty,
+              unit_price: unitPrice,
+              discount: 0,
+              tax: 0,
+              subtotal: lineSubtotal,
+            });
+
+            calculatedSubtotal += lineSubtotal;
+          }
+        }
+      }
+
+      if (invoiceItemsData.length === 0) {
+        throw new BadRequestException('Referenced Delivery Orders are fully invoiced or have no remaining billable quantities');
+      }
+
+      calculatedSubtotal = this.roundMoney(calculatedSubtotal);
+      calculatedTax = this.roundMoney(calculatedTax);
+      const total = this.roundMoney(calculatedSubtotal + calculatedTax);
+
+      // Generate invoice number
+      const invoiceNumber = await this.sequenceService.generateNumber(
+        tx,
+        companyId,
+        'INVOICE',
+        'INV',
+      );
+
+      const invoiceDate = dto.invoiceDate ? new Date(dto.invoiceDate) : new Date();
+      const terms = dto.paymentTerms || deliveries[0].sales_order.payment_terms || 'net30';
+      const days = terms === 'net15' ? 15 : terms === 'net60' ? 60 : terms === 'cod' ? 0 : 30;
+      const dueDate = dto.dueDate ? new Date(dto.dueDate) : new Date(invoiceDate.getTime() + days * 24 * 60 * 60 * 1000);
+
+      const primarySo = deliveries[0].sales_order;
+      const memoDoList = deliveries.map((d: any) => d.delivery_number).join(', ');
+
+      const invoice = await tx.invoice.create({
+        data: {
+          company_id: companyId,
+          type: 'AR',
+          sales_order_id: primarySo.id,
+          customer_id: customerId,
+          invoice_number: invoiceNumber,
+          invoice_date: invoiceDate,
+          due_date: dueDate,
+          payment_terms: terms,
+          currency: primarySo.currency || 'IDR',
+          status: 'DRAFT',
+          subtotal: calculatedSubtotal,
+          discount_percent: 0,
+          discount_amount: 0,
+          tax: calculatedTax,
+          total,
+          paid_amount: 0,
+          remaining_amount: total,
+          memo: dto.notes || `Faktur atas Surat Jalan: ${memoDoList}`,
+          client_ref: primarySo.order_number,
+          items: {
+            create: invoiceItemsData,
+          },
+        },
+        include: { items: true, customer: true },
+      });
+
+      return invoice;
+    });
+  }
     return this.prisma.$transaction(async (tx) => {
       const invoiceNumber =
         data.invoice_number ||
