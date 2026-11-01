@@ -218,7 +218,7 @@ export default function CreatePaymentPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label>Metode Pembayaran *</Label>
-                  <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <Select value={paymentMethod} onValueChange={(val) => val && setPaymentMethod(val)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -234,7 +234,7 @@ export default function CreatePaymentPage() {
 
               <div className="space-y-1.5">
                 <Label>Akun Kas / Bank Tujuan *</Label>
-                <Select value={selectedCashAccountId} onValueChange={setSelectedCashAccountId}>
+                <Select value={selectedCashAccountId} onValueChange={(val) => val && setSelectedCashAccountId(val)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih Akun Kas/Bank" />
                   </SelectTrigger>
