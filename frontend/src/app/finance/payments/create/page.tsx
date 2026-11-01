@@ -57,7 +57,7 @@ export default function CreatePaymentPage() {
     }
   };
 
-  const handleCustomerChange = async (custId: string) => {
+  const handleCustomerChange = async (custId: any) => {
     setSelectedCustomerId(custId);
     setAllocations({});
     if (!custId) {
