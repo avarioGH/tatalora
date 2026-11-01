@@ -202,25 +202,27 @@ export class SalesReturnService {
         ));
       }
 
-      const invoice = await tx.invoice.create({
+      // Generate sequential CustomerCreditNote (CCN) replacing negative invoice
+      const creditNoteNumber = `CCN-${Date.now()}`;
+      const creditNote = await tx.customerCreditNote.create({
         data: {
           company_id: companyId,
+          credit_note_number: creditNoteNumber,
           customer_id: sr.customer_id,
-          type: 'AR',
-          invoice_number: `CN-${Date.now()}`,
-          invoice_date: new Date(),
-          due_date: new Date(),
-          subtotal: -totalRevenue,
-          tax: 0,
-          total: -totalRevenue,
-          remaining_amount: -totalRevenue,
-          status: 'UNPAID'
+          sales_return_id: sr.id,
+          currency: 'IDR',
+          subtotal: totalRevenue,
+          tax_amount: 0,
+          total_amount: totalRevenue,
+          remaining_credit: totalRevenue,
+          status: 'POSTED',
+          created_by: userId,
         }
       });
 
       if (totalRevenue > 0) {
         this.eventEmitter.emit('invoice.posted', new InvoicePostedEvent(
-          companyId, invoice.id, `sr-rev-${sr.id}`, new Date(),
+          companyId, creditNote.id, `sr-rev-${sr.id}`, new Date(),
           { type: 'SALES_RETURN_REVENUE', totalAmount: totalRevenue }, tx as any
         ));
       }
@@ -333,25 +335,29 @@ export class SalesReturnService {
         ));
       }
 
-      const invoice = await tx.invoice.create({
-        data: {
-          company_id: companyId,
-          customer_id: sr.customer_id,
-          type: 'AR',
-          invoice_number: `CN-REV-${Date.now()}`,
-          invoice_date: new Date(),
-          due_date: new Date(),
-          subtotal: totalRevenue,
-          tax: 0,
-          total: totalRevenue,
-          remaining_amount: totalRevenue,
-          status: 'UNPAID'
-        }
+      // Reverse CustomerCreditNote if present
+      const existingCreditNote = await tx.customerCreditNote.findFirst({
+        where: { company_id: companyId, sales_return_id: sr.id },
+        include: { applications: true, refunds: true }
       });
+      if (existingCreditNote) {
+        const activeApps = (existingCreditNote.applications || []).filter((a: any) => a.status === 'APPLIED');
+        if (activeApps.length > 0) {
+          throw new BadRequestException('Tidak dapat membatalkan Sales Return: Nota Kredit sudah memiliki alokasi aktif.');
+        }
+        const activeRefunds = (existingCreditNote.refunds || []).filter((r: any) => r.status === 'COMPLETED');
+        if (activeRefunds.length > 0) {
+          throw new BadRequestException('Tidak dapat membatalkan Sales Return: Nota Kredit sudah memiliki refund aktif.');
+        }
+        await tx.customerCreditNote.update({
+          where: { id: existingCreditNote.id },
+          data: { status: 'REVERSED', remaining_credit: 0 }
+        });
+      }
 
       if (totalRevenue > 0) {
         this.eventEmitter.emit('invoice.posted', new InvoicePostedEvent(
-          companyId, invoice.id, `sr-rev-void-${sr.id}`, new Date(),
+          companyId, sr.id, `sr-rev-void-${sr.id}`, new Date(),
           { type: 'SALES_RETURN_REVENUE_REVERSAL', totalAmount: totalRevenue }, tx as any
         ));
       }

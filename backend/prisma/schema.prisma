@@ -1715,6 +1715,7 @@ model SalesOrder {
   payment_status String? // UNPAID, PARTIAL, PAID
 
   allocations PaymentAllocation[]
+  advance_refunds CustomerAdvanceRefund[]
 
   channel              String?       @default("B2B") // POS, B2B, ECOMMERCE
   ecommerce_session_id String? // Idempotency key for checkout
@@ -3934,6 +3935,7 @@ model SalesReturn {
 
   items                     SalesReturnItem[]
   SalesReturnCostAllocation SalesReturnCostAllocation[]
+  credit_notes              CustomerCreditNote[]
 
   @@unique([company_id, return_number])
 }
@@ -3981,6 +3983,106 @@ model SalesReturnCostAllocation {
   created_at DateTime @default(now())
 
   @@index([sales_return_id])
+}
+
+model CustomerCreditNote {
+  id                 String          @id @default(uuid()) @db.Uuid
+  company_id         String          @db.Uuid
+  credit_note_number String
+  customer_id        String          @db.Uuid
+  sales_return_id    String?         @db.Uuid
+  sales_return       SalesReturn?    @relation(fields: [sales_return_id], references: [id], onDelete: SetNull)
+
+  currency         String   @default("IDR")
+  subtotal         Float    @default(0)
+  tax_amount       Float    @default(0)
+  total_amount     Float    @default(0)
+  remaining_credit Float    @default(0)
+  status           String   // DRAFT, POSTED, PARTIALLY_APPLIED, FULLY_APPLIED, REVERSED
+  notes            String?
+
+  created_by String?  @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  applications CustomerCreditApplication[]
+  refunds      CustomerCreditRefund[]
+
+  @@unique([company_id, credit_note_number])
+  @@index([company_id, customer_id])
+}
+
+model CustomerCreditApplication {
+  id             String             @id @default(uuid()) @db.Uuid
+  company_id     String             @db.Uuid
+  credit_note_id String             @db.Uuid
+  credit_note    CustomerCreditNote @relation(fields: [credit_note_id], references: [id], onDelete: Restrict)
+  invoice_id     String             @db.Uuid
+  amount         Float
+  applied_at     DateTime           @default(now())
+  status         String             @default("APPLIED") // APPLIED, REVERSED
+  notes          String?
+  idempotency_key String?
+
+  reversal_reason String?
+  reversed_at     DateTime?
+  reversed_by     String?   @db.Uuid
+  applied_by      String?   @db.Uuid
+
+  @@unique([company_id, idempotency_key])
+  @@index([company_id, credit_note_id])
+  @@index([company_id, invoice_id])
+}
+
+model CustomerCreditRefund {
+  id              String             @id @default(uuid()) @db.Uuid
+  company_id      String             @db.Uuid
+  credit_note_id  String             @db.Uuid
+  credit_note     CustomerCreditNote @relation(fields: [credit_note_id], references: [id], onDelete: Restrict)
+  refund_number   String
+  cash_account_id String             @db.Uuid
+  amount          Float
+  refund_date     DateTime           @default(now())
+  status          String             @default("COMPLETED") // COMPLETED, REVERSED
+  reference       String?
+  notes           String?
+  idempotency_key String?
+
+  created_by String?  @db.Uuid
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([company_id, refund_number])
+  @@unique([company_id, idempotency_key])
+  @@index([company_id, credit_note_id])
+}
+
+model CustomerAdvanceRefund {
+  id              String    @id @default(uuid()) @db.Uuid
+  company_id      String    @db.Uuid
+  payment_id      String    @db.Uuid
+  payment         Payment   @relation(fields: [payment_id], references: [id], onDelete: Restrict)
+  customer_id     String    @db.Uuid
+  refund_number   String
+  cash_account_id String    @db.Uuid
+  amount          Float
+  refund_date     DateTime  @default(now())
+  status          String    @default("DRAFT") // DRAFT, COMPLETED, REVERSED
+  reference       String?
+  notes           String?
+  idempotency_key String?
+
+  reversal_reason String?
+  reversed_at     DateTime?
+  reversed_by     String?   @db.Uuid
+  created_by      String?   @db.Uuid
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  @@unique([company_id, refund_number])
+  @@unique([company_id, idempotency_key])
+  @@index([company_id, payment_id])
+  @@index([company_id, customer_id])
 }
 
 model Shift {

@@ -78,6 +78,36 @@ export class PaymentController {
   }
 
   @Permissions('payment.create')
+  @Post(':id/refund-advance')
+  refundCustomerAdvance(
+    @Request() req,
+    @Param('id') paymentId: string,
+    @Body() body: { cashAccountId: string; amount: number; reference?: string; notes?: string; idempotencyKey?: string },
+  ) {
+    return this.service.refundCustomerAdvance(
+      req.user.company_id || req.user.companyId,
+      paymentId,
+      body,
+      req.user.id || req.user.userId,
+    );
+  }
+
+  @Permissions('payment.create')
+  @Post('advance-refunds/:id/reverse')
+  reverseAdvanceRefund(
+    @Request() req,
+    @Param('id') refundId: string,
+    @Body() body: { reason?: string },
+  ) {
+    return this.service.reverseAdvanceRefund(
+      req.user.company_id || req.user.companyId,
+      refundId,
+      body?.reason || 'Dibatalkan oleh pengguna',
+      req.user.id || req.user.userId,
+    );
+  }
+
+  @Permissions('payment.create')
   @Post(':id/reverse')
   reversePayment(
     @Request() req,

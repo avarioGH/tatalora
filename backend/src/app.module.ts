@@ -49,6 +49,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ReportsModule as InventoryReportsModule } from './inventory/reports/reports.module';
 
 import { SalesReturnModule } from './sales/sales-return/sales-return.module';
+import { CustomerCreditModule } from './sales/customer-credit/customer-credit.module';
 
 import { CommunicationModule } from './communication/communication.module';
 
@@ -56,6 +57,7 @@ import { CommunicationModule } from './communication/communication.module';
   imports: [
     CommunicationModule,
     SalesReturnModule,
+    CustomerCreditModule,
     TimberSalesModule,
     ApprovalModule,
     EcommerceModule,

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, Eye, RefreshCw, Undo2, ArrowUpRight, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, Plus, Eye, RefreshCw, Undo2, ArrowUpRight, CheckCircle2, AlertCircle, Banknote } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 export default function PaymentsPage() {
@@ -38,6 +38,32 @@ export default function PaymentsPage() {
       console.error('Error fetching payments:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefundSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!refundPayment || !refundCashAccountId || refundAmount <= 0) {
+      alert('Pilih akun kas/bank dan masukkan nominal refund yang valid');
+      return;
+    }
+    setRefunding(true);
+    try {
+      await api.post(`/finance/payments/${refundPayment.id}/refund-advance`, {
+        cashAccountId: refundCashAccountId,
+        amount: Number(refundAmount),
+        reference: refundReference,
+        idempotencyKey: `ADV-REF-${Date.now()}`,
+      });
+      alert('Pengembalian uang muka pelanggan (advance refund) berhasil diproses.');
+      setRefundDialogOpen(false);
+      setRefundPayment(null);
+      fetchPayments();
+    } catch (err: any) {
+      console.error(err);
+      alert('Gagal memproses refund uang muka: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setRefunding(false);
     }
   };
 
