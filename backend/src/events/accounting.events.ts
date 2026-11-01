@@ -21,9 +21,10 @@ export class PaymentProcessedEvent {
     public readonly eventId: string,
     public readonly occurredAt: Date,
     public readonly payload: {
-      type: string; // 'RECEIVABLE' | 'PAYABLE'
+      type: string; // 'RECEIVABLE' | 'PAYABLE' | 'CUSTOMER_DEPOSIT'
       amount: number;
       accountId: string; // CashAccount ID
+      referenceType?: string;
     },
     public readonly tx?: Prisma.TransactionClient,
   ) {}

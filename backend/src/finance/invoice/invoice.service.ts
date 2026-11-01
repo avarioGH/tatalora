@@ -609,6 +609,7 @@ export class InvoiceService {
       return invoice;
     });
   }
+    async createDirect(companyId: string, data: any) {
     return this.prisma.$transaction(async (tx) => {
       const invoiceNumber =
         data.invoice_number ||
