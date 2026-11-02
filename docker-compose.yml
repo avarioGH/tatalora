@@ -72,7 +72,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3005
-        NEXT_PUBLIC_API_URL: https://api.tatalora.com
+      NEXT_PUBLIC_API_URL: https://api.tatalora.com
     ports:
       - "3005:3005"
     depends_on:
