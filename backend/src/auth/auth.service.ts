@@ -54,6 +54,7 @@ export class AuthService {
         username: user.username,
         email: user.email,
         name: user.name,
+        company_id: user.company_id,
         role: user.role?.name || 'User',
         accessible_modules: user.accessible_modules || [],
         accessible_warehouses:

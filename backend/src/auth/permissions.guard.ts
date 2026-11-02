@@ -1,4 +1,4 @@
-﻿import {
+import {
   Injectable,
   CanActivate,
   ExecutionContext,
@@ -58,7 +58,9 @@ export class PermissionsGuard implements CanActivate {
       dbUser.role.name === 'Owner' ||
       dbUser.role.name === 'Admin' ||
       dbUser.role.name === 'Superadmin' ||
-      dbUser.role.name === 'FULL_ADMIN'
+      dbUser.role.name === 'SUPERADMIN' ||
+      dbUser.role.name === 'FULL_ADMIN' ||
+      (Array.isArray(dbUser.accessible_modules) && dbUser.accessible_modules.includes('*'))
     ) {
       return true;
     }
