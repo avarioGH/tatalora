@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -33,8 +33,8 @@ export default function ProfitReport() {
   }
 
   const handleExport = (format: string) => {
-    const token = localStorage.getItem("erp_token")
-    window.open(`${process.env.NEXT_PUBLIC_API_URL || "https://api.erp.boostup.id"}/reports/sales/gross-margin/export?format=${format}&token=${token}`, "_blank")
+    const token = localStorage.getItem("erp_token") || localStorage.getItem("token")
+    window.open(`${process.env.NEXT_PUBLIC_API_URL || "https://api.tatalora.com"}/reports/sales/gross-margin/export?format=${format}&token=${token}`, "_blank")
   }
 
   const columns = report?.columns || [

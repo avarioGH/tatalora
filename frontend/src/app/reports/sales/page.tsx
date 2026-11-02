@@ -42,23 +42,23 @@ export default function SalesReportReal() {
       const [qRes, oRes, iRes] = await Promise.all([
         api.get('/sales/quotations?limit=1000').catch(() => ({ data: { data: [] } })),
         api.get('/sales/orders?limit=1000').catch(() => ({ data: { data: [] } })),
-        api.get('/finance/invoices?type=SALES&limit=1000').catch(() => ({ data: { data: [] } }))
+        api.get('/finance/invoices?type=AR&limit=1000').catch(() => ({ data: { data: [] } }))
       ])
 
-      const quotations = qRes.data?.data || []
-      const orders = oRes.data?.data || []
-      const invoices = iRes.data?.data || []
+      const quotations = qRes.data?.data || qRes.data || []
+      const orders = oRes.data?.data || oRes.data || []
+      const invoices = iRes.data?.data || iRes.data || []
 
       // Calculate totals
-      const totalSales = orders.reduce((sum: number, o: any) => sum + (o.total_amount || 0), 0)
-      const totalReceivables = invoices.reduce((sum: number, i: any) => sum + (i.outstanding_balance || 0), 0)
+      const totalSales = orders.reduce((sum: number, o: any) => sum + (Number(o.total_amount) || Number(o.total) || 0), 0)
+      const totalReceivables = invoices.reduce((sum: number, i: any) => sum + (Number(i.remaining_amount) || Number(i.outstanding_balance) || 0), 0)
       
       // Calculate payment ratio
       const lunasCount = invoices.filter((i: any) => i.status === 'PAID').length
-      const belumCount = invoices.length - lunasCount
+      const belumCount = Math.max(0, invoices.length - lunasCount)
       const rasioLunasData = [
-        { name: 'Lunas', value: lunasCount || 1, color: '#10b981' }, // fake 1 if empty just to show chart
-        { name: 'Belum Lunas', value: belumCount, color: '#e2e8f0' }
+        { name: 'Lunas', value: lunasCount, color: '#10b981' },
+        { name: 'Belum Lunas', value: belumCount, color: '#f59e0b' }
       ]
 
       // Aggregate by month for trend
@@ -66,27 +66,36 @@ export default function SalesReportReal() {
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des']
       
       orders.forEach((o: any) => {
-        if (!o.order_date) return
-        const d = new Date(o.order_date)
+        const orderDateStr = o.order_date || o.created_at || o.createdAt
+        if (!orderDateStr) return
+        const d = new Date(orderDateStr)
+        if (isNaN(d.getTime())) return
         const m = monthNames[d.getMonth()]
         if (!monthlyData[m]) monthlyData[m] = { name: m, tagihan: 0, pemesanan: 0 }
-        monthlyData[m].pemesanan += o.total_amount || 0
+        monthlyData[m].pemesanan += Number(o.total_amount) || Number(o.total) || 0
       })
 
       invoices.forEach((i: any) => {
-        if (!i.invoice_date) return
-        const d = new Date(i.invoice_date)
+        const invDateStr = i.invoice_date || i.created_at || i.createdAt
+        if (!invDateStr) return
+        const d = new Date(invDateStr)
+        if (isNaN(d.getTime())) return
         const m = monthNames[d.getMonth()]
         if (!monthlyData[m]) monthlyData[m] = { name: m, tagihan: 0, pemesanan: 0 }
-        monthlyData[m].tagihan += i.total_amount || 0
+        monthlyData[m].tagihan += Number(i.total) || Number(i.total_amount) || 0
       })
 
       const trendData = Object.values(monthlyData)
 
-      // Dummy sales person data since we might not have it in basic order schema
-      const salesPersonData = [
-        { name: 'Sistem', value: totalSales || 0 },
-      ]
+      // Sales person or customer breakdown
+      const customerMap: Record<string, number> = {}
+      orders.forEach((o: any) => {
+        const custName = o.customer?.name || 'Pelanggan Umum'
+        customerMap[custName] = (customerMap[custName] || 0) + (Number(o.total_amount) || Number(o.total) || 0)
+      })
+      const salesPersonData = Object.keys(customerMap).length > 0
+        ? Object.entries(customerMap).slice(0, 5).map(([name, value]) => ({ name, value }))
+        : [{ name: 'Penjualan Langsung', value: totalSales }]
 
       setData({
         quotations: quotations.length,

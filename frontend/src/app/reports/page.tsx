@@ -112,7 +112,7 @@ export default function ReportsHubPage() {
           id: "utang-pemasok",
           title: "Daftar Utang Pemasok",
           description: "Daftar tagihan vendor yang jatuh tempo dan belum dibayar untuk menjaga arus kas perusahaan.",
-          href: "/purchasing/bills",
+          href: "/purchasing/invoices",
         },
         {
           id: "pesanan-pembelian",
@@ -172,13 +172,13 @@ export default function ReportsHubPage() {
           id: "rekening-koran",
           title: "Mutasi Kas & Rekening Koran",
           description: "Riwayat arus penerimaan kas, pengeluaran kas operasional, dan transfer antar akun bank.",
-          href: "/cash-bank",
+          href: "/finance/cash",
         },
         {
           id: "rekonsiliasi-bank",
           title: "Rekonsiliasi Bank",
           description: "Penyamaan saldo buku catatan kas perusahaan dengan mutasi rekening bank secara otomatis.",
-          href: "/cash-bank",
+          href: "/finance/cash-reconciliation",
         },
       ]
     },
@@ -190,14 +190,14 @@ export default function ReportsHubPage() {
           id: "perintah-kerja",
           title: "Laporan Perintah Kerja (Work Order)",
           description: "Proses produksi bertahap, alokasi bahan baku (BOM), dan penghitungan biaya produksi (HPP).",
-          href: "/production/sawmill",
+          href: "/production/reports",
           badge: "Khusus",
         },
         {
           id: "rendemen-kayu",
           title: "Rendemen Sawmill & Log Kayu",
           description: "Kalkulasi rasio rendemen kayu bulat ke papan sawn timber, kubikasi, dan sisa bahan.",
-          href: "/production/sawmill",
+          href: "/production/reports/rendement",
           badge: "Sawmill",
         },
       ]
