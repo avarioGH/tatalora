@@ -10,6 +10,7 @@ import {
   Request,
   Param,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { FinanceService, FinanceTransactionDto } from './finance.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
