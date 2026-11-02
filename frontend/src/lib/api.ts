@@ -479,3 +479,9 @@ export const ConsultationAPI: any = {
   updateStatus: async (id: string, status: string) => (await api.patch('/admin/consultations/' + id + '/status', { status })).data,
 };
 
+export const AdminAPI: any = {
+  getTenantsAndUsers: async () => (await api.get('/admin/tenants-users')).data,
+  getOverviewStats: async () => (await api.get('/admin/overview-stats')).data,
+  updateUser: async (id: string, data: any) => (await api.patch('/admin/users/' + id, data)).data,
+};
+

@@ -51,10 +51,12 @@ import { ReportsModule as InventoryReportsModule } from './inventory/reports/rep
 import { SalesReturnModule } from './sales/sales-return/sales-return.module';
 
 import { CommunicationModule } from './communication/communication.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
     CommunicationModule,
+    AdminModule,
     SalesReturnModule,
     TimberSalesModule,
     ApprovalModule,
