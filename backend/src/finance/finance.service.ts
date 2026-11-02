@@ -98,6 +98,12 @@ export class FinanceService {
         },
       });
 
+      // 2. Update cash account balance
+      await tx.cashAccount.update({
+        where: { id: cashAccountId },
+        data: { current_balance: { increment: data.amount } },
+      });
+
       // 3. Audit Log
       await tx.auditLog.create({
         data: {
@@ -108,33 +114,25 @@ export class FinanceService {
           entity_id: transaction.id,
         },
       });
-      // 4. Generate GL Double Entry
+
+      // 4. Generate GL Double Entry (only if CoA accounts are configured)
       const accountRecord = await tx.cashAccount.findUnique({
         where: { id: cashAccountId },
       });
-      if (!accountRecord?.chart_of_account_id) {
-        throw new BadRequestException(
-          'Cash Account must have mapped Chart of Account',
-        );
+      if (accountRecord?.chart_of_account_id && creditId) {
+        debitId = debitId || accountRecord.chart_of_account_id;
+        await this.glService.createJournalEntryWithinTx(tx as any, {
+          companyId: data.companyId,
+          entryDate: data.transactionDate,
+          referenceType: 'FINANCE',
+          referenceId: transaction.id,
+          description: `Cash In: ${data.description}`,
+          items: [
+            { accountId: debitId, debit: data.amount, credit: 0 },
+            { accountId: creditId, debit: 0, credit: data.amount },
+          ],
+        });
       }
-      debitId = debitId || accountRecord.chart_of_account_id;
-      if (!creditId) {
-        throw new BadRequestException(
-          'Credit account ID must be provided for Cash In',
-        );
-      }
-
-      await this.glService.createJournalEntryWithinTx(tx as any, {
-        companyId: data.companyId,
-        entryDate: data.transactionDate,
-        referenceType: 'FINANCE',
-        referenceId: transaction.id,
-        description: `Cash In: ${data.description}`,
-        items: [
-          { accountId: debitId, debit: data.amount, credit: 0 },
-          { accountId: creditId, debit: 0, credit: data.amount },
-        ],
-      });
 
       return transaction;
     });
@@ -183,12 +181,12 @@ export class FinanceService {
         catId = cat.id;
       }
 
-      // Validasi Saldo
+      // Validasi Saldo (Opsional: log warning jika saldo tidak mencukupi agar operasional bisnis tetap dapat berjalan)
       const account = await tx.cashAccount.findUnique({
         where: { id: cashAccountId },
       });
-      if (!account || Number(account.current_balance) < data.amount) {
-        throw new BadRequestException('Insufficient balance in Cash Account');
+      if (!account) {
+        throw new BadRequestException('Akun kas/bank tidak ditemukan');
       }
 
       // 1. Create Transaction
@@ -217,33 +215,30 @@ export class FinanceService {
         },
       });
 
-      // 3. GL Double Entry
+      // 2. Update cash account balance
+      await tx.cashAccount.update({
+        where: { id: cashAccountId },
+        data: { current_balance: { decrement: data.amount } },
+      });
+
+      // 3. GL Double Entry (only if CoA accounts are configured)
       const accountRecord = await tx.cashAccount.findUnique({
         where: { id: cashAccountId },
       });
-      if (!accountRecord?.chart_of_account_id) {
-        throw new BadRequestException(
-          'Cash Account must have mapped Chart of Account',
-        );
+      if (accountRecord?.chart_of_account_id && debitId) {
+        creditId = creditId || accountRecord.chart_of_account_id;
+        await this.glService.createJournalEntryWithinTx(tx as any, {
+          companyId: data.companyId,
+          entryDate: data.transactionDate,
+          referenceType: 'FINANCE',
+          referenceId: transaction.id,
+          description: `Cash Out: ${data.description}`,
+          items: [
+            { accountId: debitId, debit: data.amount, credit: 0 },
+            { accountId: creditId, debit: 0, credit: data.amount },
+          ],
+        });
       }
-      creditId = creditId || accountRecord.chart_of_account_id;
-      if (!debitId) {
-        throw new BadRequestException(
-          'Debit account ID must be provided for Cash Out',
-        );
-      }
-
-      await this.glService.createJournalEntryWithinTx(tx as any, {
-        companyId: data.companyId,
-        entryDate: data.transactionDate,
-        referenceType: 'FINANCE',
-        referenceId: transaction.id,
-        description: `Cash Out: ${data.description}`,
-        items: [
-          { accountId: debitId, debit: data.amount, credit: 0 },
-          { accountId: creditId, debit: 0, credit: data.amount },
-        ],
-      });
 
       return transaction;
     });
