@@ -14,11 +14,13 @@ export class AuthService {
   ) {}
 
   async validateUser(identifier: string, pass: string): Promise<any> {
+    const cleanId = (identifier || '').trim();
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [
-          { username: identifier },
-          { email: identifier },
+          { username: cleanId },
+          { email: cleanId },
+          { phone: cleanId },
         ],
       },
       include: {
@@ -53,6 +55,7 @@ export class AuthService {
         id: user.id,
         username: user.username,
         email: user.email,
+        phone: user.phone || null,
         name: user.name,
         role: user.role?.name || 'User',
         accessible_modules: user.accessible_modules || [],

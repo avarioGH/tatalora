@@ -16,6 +16,10 @@ function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState("")
+  const [needsPhoneModal, setNeedsPhoneModal] = useState(false)
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [savingPhone, setSavingPhone] = useState(false)
+  const [pendingUser, setPendingUser] = useState<any>(null)
 
   // Handle Google OAuth Callback redirect params
   useEffect(() => {
@@ -30,6 +34,26 @@ function LoginForm() {
       window.location.href = "/"
     }
   }, [searchParams])
+
+
+  const handleSavePhoneNumber = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!phoneNumber.trim()) return
+    setSavingPhone(true)
+    try {
+      await api.put('/users/profile', { phone: phoneNumber.trim() })
+      if (pendingUser) {
+        pendingUser.phone = phoneNumber.trim()
+        localStorage.setItem("erp_user", JSON.stringify(pendingUser))
+      }
+      window.location.href = "/"
+    } catch (err: any) {
+      console.error("Gagal menyimpan no hp", err)
+      window.location.href = "/" // continue anyway
+    } finally {
+      setSavingPhone(false)
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -119,7 +143,7 @@ function LoginForm() {
         {/* Input Email / Username */}
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1.5">
-            Email
+            Email atau No. WhatsApp / HP
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -129,7 +153,7 @@ function LoginForm() {
               type="text"
               id="username"
               required
-              placeholder="your email"
+              placeholder="Email atau No. WhatsApp (08xxxx)"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 !bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-xs"
@@ -215,6 +239,45 @@ function LoginForm() {
           </Link>
         </p>
       </div>
+
+
+      {/* Phone prompt modal for Google OAuth sign-in */}
+      {needsPhoneModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+              <Mail className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-extrabold text-slate-900">Lengkapi Nomor WhatsApp / HP</h3>
+            <p className="text-xs text-slate-500 mt-1 mb-5">
+              Halo {pendingUser?.name}! Masukkan nomor WhatsApp aktif Anda agar tim kami dapat mengirimkan update dan bantuan setup sistem ERP Anda.
+            </p>
+            <form onSubmit={handleSavePhoneNumber} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Nomor WhatsApp / HP
+                </label>
+                <input
+                  type="tel"
+                  required
+                  autoFocus
+                  placeholder="081234567890"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 !bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all shadow-xs"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={savingPhone || !phoneNumber.trim()}
+                className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {savingPhone ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Lanjutkan ke Dashboard</span>}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   )
