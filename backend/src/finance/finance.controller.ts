@@ -10,6 +10,7 @@ import {
   Request,
   Param,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { FinanceService, FinanceTransactionDto } from './finance.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -150,14 +151,64 @@ export class FinanceController {
 
   @Permissions('finance.view')
   @Get('transactions')
-  async getTransactions(@Request() req) {
+  async getTransactions(
+    @Request() req,
+    @Query('cashAccountId') cashAccountId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('search') search?: string,
+  ) {
+    const where: any = { company_id: req.user.company_id };
+
+    if (cashAccountId && cashAccountId !== 'all') {
+      where.cash_account_id = cashAccountId;
+    }
+
+    if (startDate || endDate) {
+      where.transaction_date = {};
+      if (startDate) where.transaction_date.gte = new Date(startDate);
+      if (endDate) {
+        const eDate = new Date(endDate);
+        eDate.setHours(23, 59, 59, 999);
+        where.transaction_date.lte = eDate;
+      }
+    }
+
+    if (search) {
+      where.OR = [
+        { transaction_no: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
     return this.prisma.financeTransaction.findMany({
-      where: { company_id: req.user.company_id },
+      where,
       orderBy: { transaction_date: 'desc' },
-      take: 100,
+      take: 200,
       include: {
         cash_account: true,
         user_created: { select: { name: true } },
+      },
+    });
+  }
+
+  @Permissions('finance.create')
+  @Post('accounts')
+  async createCashAccount(@Request() req, @Body() data: any) {
+    const companyId = req.user.company_id;
+    if (!data.name || !data.code) {
+      throw new BadRequestException('Nama dan kode akun kas/bank wajib diisi');
+    }
+    return this.prisma.cashAccount.create({
+      data: {
+        company_id: companyId,
+        code: data.code,
+        name: data.name,
+        account_type: data.account_type || 'Cash',
+        opening_balance: Number(data.opening_balance || 0),
+        current_balance: Number(data.opening_balance || 0),
+        currency: data.currency || 'IDR',
+        status: true,
       },
     });
   }

@@ -40,9 +40,9 @@ export default function PurchasingReportPage() {
         api.get('/purchasing/receipts').catch(() => ({ data: { data: [] } }))
       ])
 
-      setOrders(poRes?.data?.data || [])
-      setInvoices(invRes?.data?.data || [])
-      setReceipts(recRes?.data?.data || [])
+      setOrders(poRes?.data?.data || poRes?.data || [])
+      setInvoices(invRes?.data?.data || invRes?.data || [])
+      setReceipts(recRes?.data?.data || recRes?.data || [])
     } catch (err) {
       console.error("Failed to load purchasing report", err)
     } finally {
@@ -55,7 +55,7 @@ export default function PurchasingReportPage() {
   }
 
   // Summary figures
-  const totalPurchaseValue = orders.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0)
+  const totalPurchaseValue = orders.reduce((sum, o) => sum + (Number(o.total_amount) || Number(o.total) || 0), 0)
   const totalPaid = invoices.reduce((sum, i) => sum + (Number(i.paid_amount) || 0), 0)
   const totalOutstanding = invoices.reduce((sum, i) => sum + (Number(i.remaining_amount) || Number(i.outstanding_balance) || 0), 0)
 

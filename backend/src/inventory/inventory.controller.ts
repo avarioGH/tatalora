@@ -31,6 +31,15 @@ export class InventoryController {
     return this.inventoryService.getCategories(req.user.company_id);
   }
 
+  @Permissions('inventory.view')
+  @Get('units')
+  async getUnits(@Request() req) {
+    return this.inventoryService['prisma'].unit.findMany({
+      where: { company_id: req.user.company_id },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   @Permissions('inventory.category.create')
   @Post('categories')
   async createCategory(@Request() req, @Body() data: any) {

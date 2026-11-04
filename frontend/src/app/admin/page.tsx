@@ -9,15 +9,17 @@ import {
   Building2, MessageSquare, ArrowRight, UserCheck, Shield,
   Save, RefreshCw
 } from "lucide-react"
-import { ConsultationAPI } from "@/lib/api"
+import { ConsultationAPI, AdminAPI } from "@/lib/api"
+import { useRouter } from "next/navigation"
 
 type UserTenant = {
   id: string
   name: string
+  username?: string
   email: string
   phone: string
   company: string
-  locationCount?: number
+  role?: string
   plan: "Starter" | "Pro" | "Enterprise" | "Custom"
   storageUsedMB: number
   storageLimitMB: number
@@ -35,72 +37,89 @@ type TodoItem = {
 }
 
 export default function AdminPortalPage() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<"users" | "consultations" | "workspace" | "crm">("users")
+  const [authorized, setAuthorized] = useState(false)
+  const [loadingUsers, setLoadingUsers] = useState(true)
 
-  // --- TAB 1: User & Subscription State ---
-  const [users, setUsers] = useState<UserTenant[]>([
-    {
-      id: "usr-01",
-      name: "Billion Danvers",
-      email: "danvers@tatalora.com",
-      phone: "0812-3456-7890",
-      company: "PT Tatalora Digital Perkasa",
-      plan: "Enterprise",
-      storageUsedMB: 2450,
-      storageLimitMB: 10240,
-      monthlyFee: 1500000,
-      expiredDate: "2027-12-31",
-      status: "Active"
-    },
-    {
-      id: "usr-02",
-      name: "Rian Hidayat",
-      email: "rian@retailnusantara.id",
-      phone: "0857-1122-3344",
-      company: "CV Retail Nusantara",
-      plan: "Pro",
-      storageUsedMB: 1820,
-      storageLimitMB: 5120,
-      monthlyFee: 500000,
-      expiredDate: "2026-11-15",
-      status: "Active"
-    },
-    {
-      id: "usr-03",
-      name: "Siti Rahma",
-      email: "rahma@kulinerberkah.com",
-      phone: "0819-8765-4321",
-      company: "Berkah Kuliner Group",
-      plan: "Starter",
-      storageUsedMB: 890,
-      storageLimitMB: 2048,
-      monthlyFee: 250000,
-      expiredDate: "2026-10-30",
-      status: "Expiring Soon"
-    },
-    {
-      id: "usr-04",
-      name: "Hendro Wijaya",
-      email: "hendro@logistikexpress.co.id",
-      phone: "0821-9988-7766",
-      company: "PT Logistik Sentra Express",
-      plan: "Pro",
-      storageUsedMB: 4900,
-      storageLimitMB: 5120,
-      monthlyFee: 500000,
-      expiredDate: "2026-12-01",
-      status: "Active"
+  // --- TAB 1: User & Subscription State (Real Data from API) ---
+  const [users, setUsers] = useState<UserTenant[]>([])
+  const [overviewStats, setOverviewStats] = useState<{ totalUsers: number; totalCompanies: number; totalLeads: number }>({
+    totalUsers: 0,
+    totalCompanies: 0,
+    totalLeads: 0,
+  })
+
+  // Role check & domain check
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("erp_user")
+      if (!stored) {
+        router.push("/login")
+        return
+      }
+      try {
+        const u = JSON.parse(stored)
+        // Check superadmin or admin
+        const role = u.role?.name || u.role || ""
+        if (role !== "SUPERADMIN" && role !== "Owner" && role !== "Admin") {
+          router.push("/")
+          return
+        }
+      } catch (e) {
+        router.push("/login")
+        return
+      }
+      setAuthorized(true)
     }
-  ])
+  }, [router])
+
+  const loadTenantsAndUsers = async () => {
+    setLoadingUsers(true)
+    try {
+      const [tenantsData, statsData] = await Promise.all([
+        AdminAPI.getTenantsAndUsers(),
+        AdminAPI.getOverviewStats().catch(() => null),
+      ])
+
+      if (Array.isArray(tenantsData)) {
+        setUsers(tenantsData)
+      }
+      if (statsData) {
+        setOverviewStats(statsData)
+      }
+    } catch (err) {
+      console.error("Gagal memuat data admin:", err)
+    } finally {
+      setLoadingUsers(false)
+    }
+  }
+
+  useEffect(() => {
+    if (authorized) {
+      loadTenantsAndUsers()
+      loadConsultations()
+    }
+  }, [authorized])
 
   const [searchUser, setSearchUser] = useState("")
   const [editingUser, setEditingUser] = useState<UserTenant | null>(null)
 
   // Save changes to user
-  const handleSaveUser = () => {
+  const handleSaveUser = async () => {
     if (!editingUser) return
-    setUsers(users.map(u => u.id === editingUser.id ? editingUser : u))
-    setEditingUser(null)
+    try {
+      await AdminAPI.updateUser(editingUser.id, {
+        name: editingUser.name,
+        email: editingUser.email,
+        phone: editingUser.phone,
+        status: editingUser.status === "Active",
+      })
+      setUsers(users.map(u => u.id === editingUser.id ? editingUser : u))
+      setEditingUser(null)
+    } catch (err) {
+      alert("Gagal menyimpan perubahan pengguna")
+    }
   }
 
   // --- TAB 2: Consultations / Leads State ---
@@ -108,24 +127,7 @@ export default function AdminPortalPage() {
   const [loadingLeads, setLoadingLeads] = useState(false)
   const [statusFilter, setStatusFilter] = useState("ALL")
 
-
-  const [loadingUsers, setLoadingUsers] = useState(false);
-
-  const loadLiveUsers = async () => {
-    try {
-      setLoadingUsers(true);
-      const res = await ConsultationAPI.getUsers();
-      if (Array.isArray(res) && res.length > 0) {
-        setUsers(res);
-      }
-    } catch (_err) {
-      // keep initial fallback
-    } finally {
-      setLoadingUsers(false);
-    }
-  };
-
-    const loadConsultations = async () => {
+  const loadConsultations = async () => {
     setLoadingLeads(true)
     try {
       const data = await ConsultationAPI.getAll()
@@ -134,42 +136,13 @@ export default function AdminPortalPage() {
       } else if (data?.data && Array.isArray(data.data)) {
         setConsultations(data.data)
       } else {
-        fallbackLeads()
+        setConsultations([])
       }
     } catch (err) {
-      fallbackLeads()
+      setConsultations([])
     } finally {
       setLoadingLeads(false)
     }
-  }
-
-  const fallbackLeads = () => {
-    setConsultations([
-      {
-        id: "lead-01",
-        name: "Arif Kurniawan",
-        phone: "6281234567891",
-        company_name: "PT Mega Distribusi Utama",
-        position: "Direktur Operasional",
-        industry: "Distribusi & Grosir",
-        budget: "Rp 5.000.000 - Rp 10.000.000",
-        notes: "Membutuhkan sistem manajemen multi-cabang & sinkronisasi stok realtime antar gudang.",
-        status: "NEW",
-        created_at: new Date().toISOString()
-      },
-      {
-        id: "lead-02",
-        name: "Dewi Lestari",
-        phone: "6285678901234",
-        company_name: "Sentosa Retail Fashion",
-        position: "Store Owner",
-        industry: "Retail & Fashion",
-        budget: "Rp 2.000.000 - Rp 5.000.000",
-        notes: "Ingin migrasi dari sistem manual ke POS Cloud + Laporan Laba Rugi otomatis.",
-        status: "CONTACTED",
-        created_at: new Date(Date.now() - 86400000).toISOString()
-      }
-    ])
   }
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
@@ -180,11 +153,6 @@ export default function AdminPortalPage() {
     }
     setConsultations(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c))
   }
-
-  useEffect(() => {
-    loadConsultations()
-    loadLiveUsers()
-  }, [])
 
   // --- TAB 3: Workspace & Todo List State ---
   const [todos, setTodos] = useState<TodoItem[]>([
@@ -405,79 +373,87 @@ export default function AdminPortalPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {filteredUsers.map((u) => {
-                  const storagePercent = Math.min(100, Math.round((u.storageUsedMB / u.storageLimitMB) * 100))
-                  return (
-                    <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-4">
-                        <div className="font-semibold text-slate-900">{u.name}</div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-indigo-600 font-medium">{u.company}</span>
-                          {u.locationCount && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              {u.locationCount} Lokasi/Cabang
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-slate-500 flex items-center gap-3 mt-1">
-                          <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {u.email}</span>
-                          <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {u.phone}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${
-                          u.plan === "Enterprise" ? "bg-purple-100 text-purple-700" :
-                          u.plan === "Pro" ? "bg-blue-100 text-blue-700" :
-                          "bg-slate-100 text-slate-700"
-                        }`}>
-                          {u.plan}
-                        </span>
-                      </td>
-                      <td className="p-4 min-w-[180px]">
-                        <div className="flex justify-between text-xs text-slate-600 mb-1">
-                          <span>{(u.storageUsedMB / 1024).toFixed(1)} GB</span>
-                          <span className="text-slate-400">/ {(u.storageLimitMB / 1024).toFixed(0)} GB ({storagePercent}%)</span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full ${
-                              storagePercent > 85 ? "bg-red-500" :
-                              storagePercent > 60 ? "bg-amber-500" : "bg-indigo-600"
-                            }`}
-                            style={{ width: `${storagePercent}%` }}
-                          />
-                        </div>
-                      </td>
-                      <td className="p-4 font-semibold text-slate-800">
-                        {formatIDR(u.monthlyFee)}
-                        <span className="text-xs font-normal text-slate-400 block">/ bulan</span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-1.5 font-medium text-slate-700">
-                          <Calendar className="w-4 h-4 text-slate-400" />
-                          {u.expiredDate}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          u.status === "Active" ? "bg-emerald-100 text-emerald-700" :
-                          u.status === "Expiring Soon" ? "bg-amber-100 text-amber-700" :
-                          "bg-red-100 text-red-700"
-                        }`}>
-                          {u.status}
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <button
-                          onClick={() => setEditingUser(u)}
-                          className="px-3 py-1.5 text-xs font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
-                        >
-                          Atur Plan & Kuota
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
+                {loadingUsers ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-slate-500">
+                      <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                      Memuat data pengguna & tenant dari database...
+                    </td>
+                  </tr>
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-slate-500">
+                      Tidak ada data pengguna ditemukan.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((u) => {
+                    const storagePercent = Math.min(100, Math.round((u.storageUsedMB / u.storageLimitMB) * 100))
+                    return (
+                      <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-4">
+                          <div className="font-semibold text-slate-900">{u.name}</div>
+                          <div className="text-xs text-indigo-600 font-medium">{u.company}</div>
+                          <div className="text-xs text-slate-500 flex items-center gap-3 mt-1">
+                            <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {u.email}</span>
+                            <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {u.phone}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${
+                            u.plan === "Enterprise" ? "bg-purple-100 text-purple-700" :
+                            u.plan === "Pro" ? "bg-blue-100 text-blue-700" :
+                            "bg-slate-100 text-slate-700"
+                          }`}>
+                            {u.plan}
+                          </span>
+                        </td>
+                        <td className="p-4 min-w-[180px]">
+                          <div className="flex justify-between text-xs text-slate-600 mb-1">
+                            <span>{(u.storageUsedMB / 1024).toFixed(1)} GB</span>
+                            <span className="text-slate-400">/ {(u.storageLimitMB / 1024).toFixed(0)} GB ({storagePercent}%)</span>
+                          </div>
+                          <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full ${
+                                storagePercent > 85 ? "bg-red-500" :
+                                storagePercent > 60 ? "bg-amber-500" : "bg-indigo-600"
+                              }`}
+                              style={{ width: `${storagePercent}%` }}
+                            />
+                          </div>
+                        </td>
+                        <td className="p-4 font-semibold text-slate-800">
+                          {formatIDR(u.monthlyFee)}
+                          <span className="text-xs font-normal text-slate-400 block">/ bulan</span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                            <Calendar className="w-4 h-4 text-slate-400" />
+                            {u.expiredDate}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            u.status === "Active" ? "bg-emerald-100 text-emerald-700" :
+                            u.status === "Expiring Soon" ? "bg-amber-100 text-amber-700" :
+                            "bg-red-100 text-red-700"
+                          }`}>
+                            {u.status}
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={() => setEditingUser(u)}
+                            className="px-3 py-1.5 text-xs font-medium bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+                          >
+                            Atur Plan & Kuota
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
               </tbody>
             </table>
           </div>

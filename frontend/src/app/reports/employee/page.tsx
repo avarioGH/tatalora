@@ -31,7 +31,7 @@ export default function EmployeeReportPage() {
  // Mencoba ambil data dari API HR (Mungkin Phase 4 belum terimplementasi 100%)
  const res = await api.get('/hr/employees').catch(() => ({ data: [] }))
  
- let data = res.data
+ let data = Array.isArray(res.data) ? res.data : (res.data?.data || [])
  
  // MOCK DATA FALLBACK REMOVED
 

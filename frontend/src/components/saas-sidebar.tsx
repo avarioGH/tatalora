@@ -58,24 +58,40 @@ const settings: MenuItem[] = [
 ]
 
 export function SaasSidebar() {
- const pathname = usePathname()
- const [user, setUser] = useState<any>(null)
+  const pathname = usePathname()
+  const [user, setUser] = useState<any>(null)
+  const [isAdminDomain, setIsAdminDomain] = useState(false)
 
- useEffect(() => {
-   if (typeof window !== 'undefined') {
-     const stored = localStorage.getItem("erp_user")
-     if (stored) {
-       try {
-         setUser(JSON.parse(stored))
-       } catch(e) {}
-     }
-   }
- }, [])
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname
+      if (hostname.startsWith('admin.') || hostname.startsWith('adminku.') || hostname === 'localhost') {
+        setIsAdminDomain(true)
+      }
+      const stored = localStorage.getItem("erp_user")
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored))
+        } catch(e) {}
+      }
+    }
+  }, [])
 
- const isActive = (url: string) => {
-   if (url === "/" && pathname !== "/") return false
-   return pathname.startsWith(url)
- }
+  const userRole = user?.role?.name || user?.role || ""
+  const isSuperadmin = userRole === "SUPERADMIN" || userRole === "Owner"
+  const showAdminPortal = isAdminDomain || isSuperadmin
+
+  const visibleSettings = settings.filter(item => {
+    if (item.id === "admin") {
+      return showAdminPortal
+    }
+    return true
+  })
+
+  const isActive = (url: string) => {
+    if (url === "/" && pathname !== "/") return false
+    return pathname.startsWith(url)
+  }
 
  return (
    <Sidebar className="border-r border-sidebar-border bg-sidebar h-full">
@@ -141,7 +157,7 @@ export function SaasSidebar() {
        <SidebarGroup className="mt-6 mb-4">
          <SidebarGroupContent>
            <SidebarMenu className="gap-[2px]">
-             {settings.map((item) => {
+             {visibleSettings.map((item) => {
                const active = isActive(item.url)
                return (
                  <SidebarMenuItem key={item.title}>

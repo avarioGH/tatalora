@@ -140,19 +140,32 @@ function SelectLabel({
  )
 }
 
+function extractTextFromChildren(node: React.ReactNode): string {
+  if (node == null || typeof node === "boolean") return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(extractTextFromChildren).join("");
+  if (React.isValidElement(node) && (node.props as any)?.children) {
+    return extractTextFromChildren((node.props as any).children);
+  }
+  return "";
+}
+
 function SelectItem({
  className,
  children,
  value,
+ label,
  ...props
-}: SelectPrimitive.Item.Props & { value?: any }) {
+}: SelectPrimitive.Item.Props & { value?: any; label?: string }) {
  // Base UI Error 31 fix: always ensure value is provided even if undefined
  const safeValue = value ?? `fallback-${React.useId()}`;
+ const derivedLabel = label !== undefined ? label : extractTextFromChildren(children);
  
  return (
  <SelectPrimitive.Item
  data-slot="select-item"
  value={safeValue}
+ label={derivedLabel || undefined}
  className={cn(
  "relative flex w-full cursor-default items-center gap-1.5 rounded-md py-1 pr-8 pl-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
  className

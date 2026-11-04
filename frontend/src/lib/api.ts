@@ -239,7 +239,9 @@ export const FinanceAPI: any = {
   postInvoice: async (id: string) => (await api.post('/finance/invoices/' + id + '/post')).data,
   getPayments: async (params?: any) => (await api.get('/finance/payments', { params })).data,
   createPayment: async (data: any) => (await api.post('/finance/payments', data)).data,
-  getTransactions: async () => (await api.get('/finance/transactions').catch(() => ({ data: [] }))).data,
+  getCashAccounts: async () => (await api.get('/finance/payments/cash-accounts').catch(() => ({ data: [] }))).data,
+  createCashAccount: async (data: any) => (await api.post('/finance/accounts', data)).data,
+  getTransactions: async (params?: any) => (await api.get('/finance/transactions', { params }).catch(() => ({ data: [] }))).data,
   getSummary: async () => (await api.get('/finance/summary').catch(() => ({ data: { cashInHand: 0, cashInBank: 0 } }))).data,
   createExpense: async (data: any) => (await api.post('/finance/cash-out', data)).data,
   getCategories: async () => (await api.get('/finance/categories').catch(() => ({ data: [] }))).data,
@@ -479,5 +481,11 @@ export const ConsultationAPI: any = {
   updateStatus: async (id: string, status: string) => (await api.patch('/admin/consultations/' + id + '/status', { status })).data,
   getUsers: async () => (await api.get('/admin/consultations/users')).data,
   getCrmLeads: async () => (await api.get('/admin/consultations/leads')).data,
+};
+
+export const AdminAPI: any = {
+  getTenantsAndUsers: async () => (await api.get('/admin/tenants-users')).data,
+  getOverviewStats: async () => (await api.get('/admin/overview-stats')).data,
+  updateUser: async (id: string, data: any) => (await api.patch('/admin/users/' + id, data)).data,
 };
 

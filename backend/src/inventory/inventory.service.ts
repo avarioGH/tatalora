@@ -326,14 +326,32 @@ export class InventoryService {
   }
 
   async createProduct(data: any) {
-    // We need a unit to create a product. Let's find or create a default 'PCS' unit.
-    let unit = await this.prisma.unit.findFirst({
-      where: { company_id: data.companyId, name: 'PCS' },
-    });
-    if (!unit) {
-      unit = await this.prisma.unit.create({
-        data: { company_id: data.companyId, name: 'PCS' },
+    // If unitId or unit name is provided, resolve or create unit
+    let unit: any = null;
+    if (data.unitId) {
+      unit = await this.prisma.unit.findFirst({
+        where: { company_id: data.companyId, id: data.unitId },
       });
+    } else if (data.unitName) {
+      unit = await this.prisma.unit.findFirst({
+        where: { company_id: data.companyId, name: { equals: data.unitName.trim(), mode: 'insensitive' } },
+      });
+      if (!unit) {
+        unit = await this.prisma.unit.create({
+          data: { company_id: data.companyId, name: data.unitName.trim().toUpperCase() },
+        });
+      }
+    }
+
+    if (!unit) {
+      unit = await this.prisma.unit.findFirst({
+        where: { company_id: data.companyId, name: 'PCS' },
+      });
+      if (!unit) {
+        unit = await this.prisma.unit.create({
+          data: { company_id: data.companyId, name: 'PCS' },
+        });
+      }
     }
 
     const productCode =
@@ -375,6 +393,10 @@ export class InventoryService {
           data.weight !== ''
             ? Number(data.weight)
             : undefined,
+        length: data.length ? Number(data.length) : undefined,
+        width: data.width ? Number(data.width) : undefined,
+        height: data.height ? Number(data.height) : undefined,
+        minimum_stock: data.minStock ? Number(data.minStock) : 0,
         unit_id: unit.id,
         category_id:
           data.categoryId &&

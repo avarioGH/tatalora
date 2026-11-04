@@ -52,10 +52,12 @@ import { SalesReturnModule } from './sales/sales-return/sales-return.module';
 import { CustomerCreditModule } from './sales/customer-credit/customer-credit.module';
 
 import { CommunicationModule } from './communication/communication.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
     CommunicationModule,
+    AdminModule,
     SalesReturnModule,
     CustomerCreditModule,
     TimberSalesModule,
