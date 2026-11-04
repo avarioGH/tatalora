@@ -19,6 +19,7 @@ export class SalesReportService {
       if (filters.end_date) where.invoice_date.lte = new Date(filters.end_date);
     }
     if (filters.customer_id) where.customer_id = filters.customer_id;
+    if (filters.warehouse_id) where.warehouse_id = filters.warehouse_id;
 
     const invoices = await this.prisma.invoice.findMany({
       where,
@@ -74,6 +75,7 @@ export class SalesReportService {
         where.invoice_date.gte = new Date(filters.start_date);
       if (filters.end_date) where.invoice_date.lte = new Date(filters.end_date);
     }
+    if (filters.warehouse_id) where.warehouse_id = filters.warehouse_id;
     const invoices = await this.prisma.invoice.findMany({
       where,
       include: { customer: true, sales_order: true },

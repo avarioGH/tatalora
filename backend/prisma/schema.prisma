@@ -26,6 +26,7 @@ model Company {
   settings        CompanySetting?
   roles           Role[]
   users           User[]
+  user_accesses   UserCompanyAccess[]
   warehouses      Warehouse[]
   categories      Category[]
   units           Unit[]
@@ -141,6 +142,7 @@ model CompanySetting {
 }
 
 model Role {
+  user_companies UserCompanyAccess[]
   id          String   @id @default(uuid()) @db.Uuid
   company_id  String?  @db.Uuid
   company     Company? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -255,6 +257,7 @@ model User {
   approved_disposals InventoryDisposal[]   @relation("DisposalApprover")
   // RBAC Warehouse Access
   warehouse_accesses UserWarehouseAccess[]
+  company_accesses   UserCompanyAccess[]
 
   created_at          DateTime              @default(now())
   updated_at          DateTime              @updatedAt
@@ -4182,4 +4185,19 @@ model PasswordResetToken {
   expires_at DateTime
   used       Boolean  @default(false)
   created_at DateTime @default(now())
+}
+
+
+model UserCompanyAccess {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  company_id String   @db.Uuid
+  company    Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  role_id    String?  @db.Uuid
+  role       Role?    @relation(fields: [role_id], references: [id], onDelete: SetNull)
+  is_default Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@unique([user_id, company_id])
 }

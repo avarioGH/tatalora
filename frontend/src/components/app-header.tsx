@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-import { Bell, Search, ChevronDown, MapPin, Check, Command, User, Settings, LogOut } from "lucide-react"
+import { Bell, Search, ChevronDown, MapPin, Check, Command, User, Settings, LogOut, Building2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ThemeToggle } from "./theme-toggle"
 import { 
@@ -63,6 +63,25 @@ export function AppHeader() {
       setUnreadCount(countRes.data?.count || 0)
     } catch (_e) { /* silent */ }
   }
+
+
+  const handleSwitchCompany = async (company: any) => {
+    if (switchingCompany || company.id === activeCompany?.id) return;
+    try {
+      setSwitchingCompany(true);
+      const res = await api.post('/auth/switch-company', { company_id: company.id });
+      if (res.data?.access_token) {
+        localStorage.setItem("erp_token", res.data.access_token);
+        localStorage.setItem("erp_user", JSON.stringify(res.data.user));
+        localStorage.removeItem("active_warehouse");
+        window.location.reload();
+      }
+    } catch (err: any) {
+      console.error("Gagal beralih bisnis", err);
+    } finally {
+      setSwitchingCompany(false);
+    }
+  };
 
   const handleSelectWarehouse = (wh: any) => {
  setActiveWarehouse(wh)

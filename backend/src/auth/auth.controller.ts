@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -67,5 +68,18 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async resetPassword(@Body() body: { token: string; password: string }) {
     return this.authService.resetPassword(body.token, body.password);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('user-companies')
+  async getUserCompanies(@Req() req: any) {
+    const userId = req.user?.sub || req.user?.id;
+    return this.authService.getUserCompanies(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('switch-company')
+  async switchCompany(@Req() req: any, @Body() body: { company_id: string }) {
+    const userId = req.user?.sub || req.user?.id;
+    return this.authService.switchCompany(userId, body.company_id);
   }
 }

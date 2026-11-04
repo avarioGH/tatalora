@@ -251,6 +251,33 @@ export class AuthService {
       },
     });
 
+    // Link multi-company access
+    await (this.prisma as any).userCompanyAccess?.create({
+      data: {
+        user_id: newUser.id,
+        company_id: newCompany.id,
+        role_id: ownerRole.id,
+        is_default: true,
+      },
+    }).catch(() => null);
+
+    // Save as CRM Lead for future CRM and sales follow-up
+    await this.prisma.lead.create({
+      data: {
+        company_id: newCompany.id,
+        lead_code: `REG-${Date.now()}`,
+        name: data.name,
+        company_name: data.company_name || newCompany.name,
+        email: data.email,
+        phone: data.phone || null,
+        source: 'WEBSITE',
+        status: 'NEW',
+        notes: 'Pendaftaran mandiri akun baru melalui portal TATALORA ERP',
+      },
+    }).catch((err) => {
+      this.logger.warn(`Auto CRM lead creation skipped: ${err.message}`);
+    });
+
     return this.login(newUser);
   }
 
@@ -384,5 +411,79 @@ export class AuthService {
       success: true,
       message: 'Kata sandi berhasil diperbarui. Silakan login kembali.',
     };
+  }
+  async getUserCompanies(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        company: true,
+      },
+    });
+
+    if (!user) throw new BadRequestException('User tidak ditemukan');
+
+    // Get direct company and multi-company accesses
+    const companyAccesses = await (this.prisma as any).userCompanyAccess?.findMany({
+      where: { user_id: userId },
+      include: { company: true, role: true },
+    }).catch(() => []) || [];
+
+    const list = [];
+    if (user.company) {
+      list.push({
+        id: user.company.id,
+        name: user.company.name,
+        logo: user.company.logo,
+        is_active: true,
+      });
+    }
+
+    for (const ca of companyAccesses) {
+      if (ca.company && !list.some((c) => c.id === ca.company.id)) {
+        list.push({
+          id: ca.company.id,
+          name: ca.company.name,
+          logo: ca.company.logo,
+          is_active: false,
+        });
+      }
+    }
+
+    return list;
+  }
+
+  async switchCompany(userId: string, targetCompanyId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        company_accesses: true,
+      },
+    });
+
+    if (!user) throw new BadRequestException('User tidak ditemukan');
+
+    // Verify company access
+    const hasAccess =
+      user.company_id === targetCompanyId ||
+      user.company_accesses?.some((ca: any) => ca.company_id === targetCompanyId);
+
+    if (!hasAccess) {
+      throw new BadRequestException('Anda tidak memiliki akses ke bisnis/perusahaan ini.');
+    }
+
+    // Update active company_id on User
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { company_id: targetCompanyId },
+      include: {
+        role: true,
+        company: true,
+        warehouse_accesses: {
+          include: { warehouse: true },
+        },
+      },
+    });
+
+    return this.login(updatedUser);
   }
 }
