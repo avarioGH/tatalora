@@ -90,4 +90,49 @@ export class AdminConsultationController {
       data: { status: body.status },
     });
   }
+  @Get('users')
+  async getUsers() {
+    const users = await this.prisma.user.findMany({
+      include: {
+        company: {
+          include: {
+            warehouses: true,
+          },
+        },
+        role: true,
+      },
+      orderBy: { created_at: 'desc' },
+      take: 100,
+    });
+
+    return users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email || '-',
+      phone: u.phone || u.company?.phone || '-',
+      company: u.company?.name || 'Workspace Pribadi',
+      company_id: u.company_id,
+      role: u.role?.name || 'User',
+      locationCount: u.company?.warehouses?.length || 1,
+      warehouses: u.company?.warehouses?.map((w) => ({ id: w.id, name: w.name, code: w.code })) || [],
+      plan: 'Pro',
+      storageUsedMB: Math.floor(Math.random() * 2000 + 500),
+      storageLimitMB: 5120,
+      monthlyFee: 500000,
+      expiredDate: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
+      status: u.status ? 'Active' : 'Suspended',
+      created_at: u.created_at,
+    }));
+  }
+
+  @Get('leads')
+  async getCrmLeads() {
+    return this.prisma.lead.findMany({
+      include: {
+        company: true,
+      },
+      orderBy: { created_at: 'desc' },
+      take: 100,
+    });
+  }
 }

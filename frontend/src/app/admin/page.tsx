@@ -17,6 +17,7 @@ type UserTenant = {
   email: string
   phone: string
   company: string
+  locationCount?: number
   plan: "Starter" | "Pro" | "Enterprise" | "Custom"
   storageUsedMB: number
   storageLimitMB: number
@@ -107,7 +108,24 @@ export default function AdminPortalPage() {
   const [loadingLeads, setLoadingLeads] = useState(false)
   const [statusFilter, setStatusFilter] = useState("ALL")
 
-  const loadConsultations = async () => {
+
+  const [loadingUsers, setLoadingUsers] = useState(false);
+
+  const loadLiveUsers = async () => {
+    try {
+      setLoadingUsers(true);
+      const res = await ConsultationAPI.getUsers();
+      if (Array.isArray(res) && res.length > 0) {
+        setUsers(res);
+      }
+    } catch (_err) {
+      // keep initial fallback
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+    const loadConsultations = async () => {
     setLoadingLeads(true)
     try {
       const data = await ConsultationAPI.getAll()
@@ -165,6 +183,7 @@ export default function AdminPortalPage() {
 
   useEffect(() => {
     loadConsultations()
+    loadLiveUsers()
   }, [])
 
   // --- TAB 3: Workspace & Todo List State ---
@@ -392,7 +411,14 @@ export default function AdminPortalPage() {
                     <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-4">
                         <div className="font-semibold text-slate-900">{u.name}</div>
-                        <div className="text-xs text-indigo-600 font-medium">{u.company}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-indigo-600 font-medium">{u.company}</span>
+                          {u.locationCount && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              {u.locationCount} Lokasi/Cabang
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-slate-500 flex items-center gap-3 mt-1">
                           <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {u.email}</span>
                           <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {u.phone}</span>
