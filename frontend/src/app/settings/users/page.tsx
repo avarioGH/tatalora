@@ -65,6 +65,17 @@ export default function UsersSettingsPage() {
  }
  }
 
+
+ const handleToggleCompany = (compId: string) => {
+   setFormData(prev => {
+     if (prev.company_ids.includes(compId)) {
+       return { ...prev, company_ids: prev.company_ids.filter(id => id !== compId) }
+     } else {
+       return { ...prev, company_ids: [...prev.company_ids, compId] }
+     }
+   })
+ }
+
  const handleToggleWarehouse = (whId: string) => {
  setFormData(prev => {
  if (prev.warehouse_ids.includes(whId)) {
@@ -103,7 +114,7 @@ export default function UsersSettingsPage() {
  fetchData()
  
  // Reset form
- setFormData({ username:"", name:"", email:"", password:"", warehouse_ids: [], modules: [] })
+ setFormData({ username:"", name:"", email:"", password:"", company_ids: [], warehouse_ids: [], modules: [] })
  setTimeout(() => setSuccess(""), 4000)
  } catch (err: any) {
  setError((err.response?.data?.error?.message || err.response?.data?.message) ||"Gagal membuat pengguna. Pastikan Anda login sebagai Owner.")
@@ -226,6 +237,28 @@ export default function UsersSettingsPage() {
  ))
  )}
  </div>
+ </div>
+ </div>
+
+ <div className="space-y-4 pt-4 border-t border-border/60">
+ <h3 className="font-semibold text-lg border-b pb-2 flex items-center gap-2"><Building2 className="w-4 h-4 text-purple-600"/> Hak Akses Bisnis / Entitas</h3>
+ <p className="text-sm text-muted-foreground">Pilih bisnis/perusahaan mana saja yang boleh dibuka dan diakses oleh admin ini.</p>
+ 
+ <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+ {companies.length > 0 ? (
+   companies.map(comp => (
+     <div key={comp.id} className="flex flex-row items-center space-x-3 p-3 bg-muted/40 rounded-xl border border-border hover:bg-muted/50 transition-colors">
+       <Checkbox 
+         id={`comp-${comp.id}`} 
+         checked={formData.company_ids.includes(comp.id) || formData.company_ids.length === 0}
+         onCheckedChange={() => handleToggleCompany(comp.id)}
+       />
+       <Label htmlFor={`comp-${comp.id}`} className="font-medium text-sm cursor-pointer flex-1 truncate">{comp.name}</Label>
+     </div>
+   ))
+ ) : (
+   <div className="text-xs text-muted-foreground p-3 border rounded-lg bg-muted/20">Bisnis Utama (Default)</div>
+ )}
  </div>
  </div>
 

@@ -58,6 +58,22 @@ export class UsersService {
         });
       }
 
+      // Record company accesses for multi-business authorization
+      const targetCompanyIds = (data.company_ids && Array.isArray(data.company_ids) && data.company_ids.length > 0)
+        ? data.company_ids
+        : [creatorCompanyId];
+
+      for (const compId of targetCompanyIds) {
+        await (tx as any).userCompanyAccess?.create({
+          data: {
+            user_id: newUser.id,
+            company_id: compId,
+            role_id: adminRole.id,
+            is_default: compId === creatorCompanyId,
+          },
+        }).catch(() => null);
+      }
+
       return tx.user.findUnique({
         where: { id: newUser.id },
         select: {
