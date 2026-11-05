@@ -40,7 +40,8 @@ export default function UsersSettingsPage() {
  name:"",
  email:"",
  password:"",
- warehouse_ids: [] as string[],
+ company_ids: [] as string[],
+  warehouse_ids: [] as string[],
  modules: [] as string[]
  })
 
