@@ -29,6 +29,7 @@ export default function UsersSettingsPage() {
  const [loading, setLoading] = useState(true)
  const [users, setUsers] = useState<any[]>([])
  const [warehouses, setWarehouses] = useState<any[]>([])
+  const [companies, setCompanies] = useState<any[]>([])
  
  const [showForm, setShowForm] = useState(false)
  const [processing, setProcessing] = useState(false)
