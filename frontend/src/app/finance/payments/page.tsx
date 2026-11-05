@@ -41,31 +41,6 @@ export default function PaymentsPage() {
     }
   };
 
-  const handleRefundSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!refundPayment || !refundCashAccountId || refundAmount <= 0) {
-      alert('Pilih akun kas/bank dan masukkan nominal refund yang valid');
-      return;
-    }
-    setRefunding(true);
-    try {
-      await api.post(`/finance/payments/${refundPayment.id}/refund-advance`, {
-        cashAccountId: refundCashAccountId,
-        amount: Number(refundAmount),
-        reference: refundReference,
-        idempotencyKey: `ADV-REF-${Date.now()}`,
-      });
-      alert('Pengembalian uang muka pelanggan (advance refund) berhasil diproses.');
-      setRefundDialogOpen(false);
-      setRefundPayment(null);
-      fetchPayments();
-    } catch (err: any) {
-      console.error(err);
-      alert('Gagal memproses refund uang muka: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setRefunding(false);
-    }
-  };
 
   const handleReverse = async () => {
     if (!selectedPayment) return;

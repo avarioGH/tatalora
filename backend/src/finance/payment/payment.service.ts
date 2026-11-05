@@ -11,6 +11,56 @@ import { SequenceService } from '../../reports/sequence.service';
 
 @Injectable()
 export class PaymentService {
+  
+  private async resolveAccount(
+    tx: any,
+    companyId: string,
+    codes: string[],
+    names: string[],
+    expectedNormalBalance: 'Debit' | 'Credit' = 'Debit',
+  ): Promise<string> {
+    for (const code of codes) {
+      const acc = await tx.chartOfAccount.findFirst({
+        where: { company_id: companyId, account_code: code },
+      });
+      if (acc) return acc.id;
+    }
+    for (const name of names) {
+      const acc = await tx.chartOfAccount.findFirst({
+        where: { company_id: companyId, account_name: name },
+      });
+      if (acc) return acc.id;
+    }
+
+    let act = await tx.accountType.findFirst({
+      where: { company_id: companyId, normal_balance: expectedNormalBalance },
+    });
+    if (!act) {
+      act = await tx.accountType.findFirst({
+        where: { normal_balance: expectedNormalBalance },
+      });
+    }
+    if (!act) {
+      act = await tx.accountType.create({
+        data: {
+          company_id: companyId,
+          name: expectedNormalBalance === 'Credit' ? 'Kewajiban / Liabilitas' : 'Aset Lancar',
+          normal_balance: expectedNormalBalance,
+          code: (expectedNormalBalance === 'Credit' ? 'LIAB-' : 'ACT-') + Date.now(),
+        },
+      });
+    }
+    const newAcc = await tx.chartOfAccount.create({
+      data: {
+        company_id: companyId,
+        account_code: codes[0],
+        account_name: names[0],
+        account_type_id: act.id,
+      },
+    });
+    return newAcc.id;
+  }
+
   constructor(
     private prisma: PrismaService,
     private eventEmitter: EventEmitter2,

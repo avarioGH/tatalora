@@ -1718,7 +1718,6 @@ model SalesOrder {
   payment_status String? // UNPAID, PARTIAL, PAID
 
   allocations PaymentAllocation[]
-  advance_refunds CustomerAdvanceRefund[]
 
   channel              String?       @default("B2B") // POS, B2B, ECOMMERCE
   ecommerce_session_id String? // Idempotency key for checkout
@@ -2102,6 +2101,7 @@ model InvoiceItem {
 }
 
 model Payment {
+  customer_advance_refunds CustomerAdvanceRefund[]
   id             String    @id @default(uuid()) @db.Uuid
   company_id     String    @db.Uuid
   company        Company   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
