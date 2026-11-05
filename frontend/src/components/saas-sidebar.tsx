@@ -79,7 +79,7 @@ export function SaasSidebar() {
 
   const userRole = user?.role?.name || user?.role || ""
   const isSuperadmin = userRole === "SUPERADMIN" || userRole === "Owner"
-  const showAdminPortal = isAdminDomain || isSuperadmin
+  const showAdminPortal = isAdminDomain
 
   const visibleSettings = settings.filter(item => {
     if (item.id === "admin") {

@@ -53,6 +53,12 @@ export default function AdminPortalPage() {
   // Role check & domain check
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const hostname = window.location.hostname
+      const isAdminDomain = hostname.startsWith("admin.") || hostname.startsWith("adminku.") || hostname === "localhost"
+      if (!isAdminDomain) {
+        router.push("/")
+        return
+      }
       const stored = localStorage.getItem("erp_user")
       if (!stored) {
         router.push("/login")
