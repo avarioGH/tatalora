@@ -22,6 +22,9 @@ export function AppHeader() {
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [switchingCompany, setSwitchingCompany] = useState(false)
+  const [companies, setCompanies] = useState<any[]>([])
+  const [activeCompany, setActiveCompany] = useState<any>(null)
 
  useEffect(() => {
  // Fetch live warehouses
