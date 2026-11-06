@@ -31,7 +31,8 @@ function LoginForm() {
       if (userStr) {
         localStorage.setItem("erp_user", userStr)
       }
-      window.location.href = "/"
+      const isAdminHost = window.location.hostname.startsWith('admin.') || window.location.hostname.startsWith('adminku.');
+      window.location.href = isAdminHost ? "/admin" : "/";
     }
   }, [searchParams])
 
@@ -71,7 +72,8 @@ function LoginForm() {
       localStorage.setItem("erp_token", data.access_token)
       localStorage.setItem("erp_user", JSON.stringify(data.user))
 
-      window.location.href = "/"
+      const isAdminHost = window.location.hostname.startsWith('admin.') || window.location.hostname.startsWith('adminku.');
+      window.location.href = isAdminHost ? "/admin" : "/";
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || "Gagal masuk ke sistem."
       setError(msg)

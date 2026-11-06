@@ -30,9 +30,13 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     if (token) {
       setIsAuthenticated(true)
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : ''
+      const isAdminDomain = hostname.startsWith('admin.') || hostname.startsWith('adminku.')
       const isKasir = user?.role === "Kasir"
       if (pathname === "/login" || pathname === "/register") {
-        if (isKasir) {
+        if (isAdminDomain) {
+          router.push("/admin")
+        } else if (isKasir) {
           router.push("/pos/new-transaction")
         } else {
           router.push("/")
