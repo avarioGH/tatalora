@@ -337,7 +337,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 text-xs text-slate-400">
-          © 2026 TATALORA by Avario. Seluruh hak cipta dilindungi.
+          © 2026 TATALORA. Seluruh hak cipta dilindungi.
         </div>
       </div>
 
@@ -368,7 +368,7 @@ export default function LoginPage() {
         </Suspense>
 
         <div className="md:hidden text-center text-[11px] text-slate-400">
-          © 2026 TATALORA by Avario.
+          © 2026 TATALORA.
         </div>
 
       </div>

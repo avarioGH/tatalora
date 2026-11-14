@@ -86,7 +86,7 @@ export default function IntegrationsPage() {
  <div className="space-y-6 max-w-4xl mx-auto pb-10 animate-in fade-in duration-500">
  <div>
  <h1 className="text-[28px] font-bold tracking-tight text-foreground">Integrasi Sistem</h1>
- <p className="text-muted-foreground">Hubungkan ERP Boostup dengan platform pihak ketiga.</p>
+ <p className="text-muted-foreground">Hubungkan TATALORA ERP dengan platform pihak ketiga.</p>
  </div>
 
  <Card className="border-t-4 border-t-orange-500 shadow-md">

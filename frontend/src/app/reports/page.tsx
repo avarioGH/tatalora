@@ -87,8 +87,8 @@ export default function ReportsHubPage() {
         {
           id: "piutang-pelanggan",
           title: "Daftar Piutang Pelanggan",
-          description: "Lacak seluruh piutang usaha yang belum tertagih lengkap dengan umur piutang (aging receivables).",
-          href: "/sales/invoices",
+          description: "Lacak seluruh piutang usaha yang belum tertagih lengkap dengan kelompok umur piutang (AR aging report).",
+          href: "/finance/reports/ar-aging",
         },
         {
           id: "pesanan-penjualan",
@@ -111,8 +111,8 @@ export default function ReportsHubPage() {
         {
           id: "utang-pemasok",
           title: "Daftar Utang Pemasok",
-          description: "Daftar tagihan vendor yang jatuh tempo dan belum dibayar untuk menjaga arus kas perusahaan.",
-          href: "/purchasing/invoices",
+          description: "Daftar tagihan vendor yang jatuh tempo dan kelompok umur utang (AP aging report) untuk menjaga arus kas perusahaan.",
+          href: "/finance/reports/ap-aging",
         },
         {
           id: "pesanan-pembelian",

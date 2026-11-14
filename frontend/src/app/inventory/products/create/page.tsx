@@ -239,7 +239,7 @@ export default function CreateProductPage() {
               <Box className="w-6 h-6 text-indigo-600" /> Tambah Produk Standar
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              Kelola detail barang, informasi harga beli/jual, akun akuntansi, dan pemantauan stok sesuai standar Mekari Jurnal.
+              Kelola detail barang, informasi harga beli/jual, akun akuntansi, dan pemantauan stok sesuai standar pencatatan persediaan.
             </p>
           </div>
         </div>

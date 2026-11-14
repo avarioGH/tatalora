@@ -134,8 +134,8 @@ const SETTINGS_SECTIONS = [
         color: "text-purple-600 bg-purple-50 border-purple-100",
       },
       {
-        title: "Integrasi & API Keys",
-        description: "Kelola API token dan webhook pihak ketiga",
+        title: "Integrasi E-Commerce & Marketplace",
+        description: "Koneksi sinkronisasi pesanan Shopee Open Platform",
         icon: Key,
         href: "/settings/integrations",
         color: "text-blue-600 bg-blue-50 border-blue-100",

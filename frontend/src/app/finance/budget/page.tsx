@@ -291,7 +291,7 @@ export default function BudgetManagementPage() {
             <CardTitle className="text-2xl font-bold text-foreground">{budgets.length} Pos</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Database Supabase PostgreSQL</p>
+            <p className="text-xs text-muted-foreground">Database Terpusat</p>
           </CardContent>
         </Card>
       </div>

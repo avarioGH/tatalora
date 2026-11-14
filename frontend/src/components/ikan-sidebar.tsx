@@ -287,7 +287,7 @@ export function IkanSidebar() {
  <div className="h-9 w-9 bg-primary rounded-xl flex items-center justify-center text-sidebar-primary-foreground shadow-sm">
  <Hexagon className="h-5 w-5" />
  </div>
- <span className="font-bold text-lg tracking-tight text-sidebar-foreground">ERP Boostup</span>
+ <span className="font-bold text-lg tracking-tight text-sidebar-foreground">TATALORA ERP</span>
  </SidebarHeader>
  
  <SidebarContent className="px-3 py-4 custom-scrollbar">

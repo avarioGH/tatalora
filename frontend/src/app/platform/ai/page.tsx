@@ -64,7 +64,7 @@ export default function AIInsightsPage() {
  <div>
  <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent flex items-center gap-2">
  <BrainCircuit className="w-8 h-8 text-primary" />
- Boostup AI Insights
+ TATALORA AI Insights
  </h1>
  <p className="text-muted-foreground mt-1">
  Chat with your intelligent ERP assistant to analyze data, spot trends, and get business advice.
@@ -122,7 +122,7 @@ export default function AIInsightsPage() {
  <div className="flex justify-start">
  <div className="bg-muted rounded-2xl rounded-tl-none p-4 max-w-[80%] border flex items-center gap-3">
  <Sparkles className="w-4 h-4 animate-spin text-indigo-500" />
- <span className="text-sm text-muted-foreground animate-pulse">Boostup AI is thinking...</span>
+ <span className="text-sm text-muted-foreground animate-pulse">TATALORA AI is thinking...</span>
  </div>
  </div>
  )}
@@ -131,7 +131,7 @@ export default function AIInsightsPage() {
  <div className="p-4 bg-muted/20 border-t">
  <form onSubmit={askAi} className="flex gap-2">
  <Input 
- placeholder="Ask Boostup AI about your business data..." 
+ placeholder="Ask TATALORA AI about your business data..." 
  value={prompt}
  onChange={(e) => setPrompt(e.target.value)}
  className="flex-1 bg-background"

@@ -307,7 +307,7 @@ export default function CreatePurchaseInvoicePage() {
             </div>
             Buat Faktur Pembelian (Tagihan Vendor)
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Dicocokkan dengan standar form pembelian Mekari Jurnal & langsung terhubung ke database.</p>
+          <p className="text-muted-foreground text-sm mt-1">Form faktur pembelian terhubung langsung dengan buku besar utang & persediaan.</p>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">

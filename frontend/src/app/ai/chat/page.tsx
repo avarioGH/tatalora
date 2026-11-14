@@ -9,7 +9,7 @@ import Link from"next/link"
 
 export default function AiChatPage() {
  const [messages, setMessages] = useState([
- { role: 'ai', content:"Halo! Saya adalah Boostup AI Assistant, penasihat bisnis pribadi Anda. Anda bisa menanyakan analisis performa toko, ketersediaan stok di berbagai gudang, laporan keuangan, maupun performa karyawan. Ada yang bisa saya bantu hari ini?" }
+ { role: 'ai', content:"Halo! Saya adalah TATALORA AI Assistant, penasihat bisnis pribadi Anda. Anda bisa menanyakan analisis performa toko, ketersediaan stok di berbagai gudang, laporan keuangan, maupun performa karyawan. Ada yang bisa saya bantu hari ini?" }
  ])
  const [input, setInput] = useState("")
  const [isLoading, setIsLoading] = useState(false)
@@ -69,7 +69,7 @@ export default function AiChatPage() {
  <Bot className="w-6 h-6" />
  </div>
  <div>
- <h2 className="font-bold text-foreground dark:text-white">Boostup AI Assistant</h2>
+ <h2 className="font-bold text-foreground dark:text-white">TATALORA AI Assistant</h2>
  <div className="flex items-center gap-1.5 text-xs text-primary dark:text-primary">
  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
  Online & Siap Membantu
@@ -92,7 +92,7 @@ export default function AiChatPage() {
  </div>
  <div className="flex flex-col gap-1">
  <div className={`text-xs font-semibold ${msg.role === 'user' ? 'text-right text-muted-foreground' : 'text-left text-muted-foreground'}`}>
- {msg.role === 'user' ? 'Anda' : 'Boostup AI'} <span className="font-normal opacity-70 ml-1">{new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</span>
+ {msg.role === 'user' ? 'Anda' : 'TATALORA AI'} <span className="font-normal opacity-70 ml-1">{new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}</span>
  </div>
  <div className={`p-4 rounded-2xl text-[15px] leading-relaxed shadow-sm ${
  msg.role === 'user' 
@@ -142,7 +142,7 @@ export default function AiChatPage() {
  </Button>
  </form>
  <div className="text-center mt-2 text-[10px] text-muted-foreground">
- Boostup AI dapat membuat kesalahan. Harap periksa kembali analisis data kritikal.
+ TATALORA AI dapat membuat kesalahan. Harap periksa kembali analisis data kritikal.
  </div>
  </div>
  </div>

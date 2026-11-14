@@ -12,7 +12,7 @@ interface ChatMessage {
 export default function AiAssistant() {
  const [isOpen, setIsOpen] = useState(false);
  const [messages, setMessages] = useState<ChatMessage[]>([
- { role: 'model', text: 'Halo! Saya Boostup AI. Ada yang bisa saya bantu terkait laporan atau pengubahan data?' }
+ { role: 'model', text: 'Halo! Saya TATALORA AI. Ada yang bisa saya bantu terkait laporan atau pengubahan data?' }
  ]);
  const [input, setInput] = useState('');
  const [isLoading, setIsLoading] = useState(false);
@@ -90,7 +90,7 @@ export default function AiAssistant() {
  <div className="bg-indigo-600 text-white px-4 py-3 flex justify-between items-center">
  <div className="flex items-center gap-2">
  <Bot size={20} />
- <h3 className="font-semibold text-sm">Boostup AI Assistant</h3>
+ <h3 className="font-semibold text-sm">TATALORA AI Assistant</h3>
  </div>
  <button onClick={() => setIsOpen(false)} className="text-indigo-200 hover:text-white transition-colors">
  <Minimize2 size={18} />

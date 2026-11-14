@@ -4,11 +4,22 @@ import React, { useEffect, useState } from "react"
 import Link from "next/link"
 import { 
   ShoppingCart, Box, TrendingUp, MonitorSmartphone, 
-  Truck, Users, UserCheck, BarChart3, Wallet, Settings
+  Truck, Users, UserCheck, BarChart3, Wallet, Settings,
+  AlertTriangle, Clock, ArrowRight, CheckCircle2, ShieldAlert
 } from "lucide-react"
+import { api } from "@/lib/api"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 
 export default function HomeLauncher() {
   const [userName, setUserName] = useState("Admin")
+  const [urgentStats, setUrgentStats] = useState({
+    overdueSales: 0,
+    overduePurchases: 0,
+    negativeStock: 0,
+    pendingDeliveries: 0,
+    loading: true
+  })
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -20,6 +31,59 @@ export default function HomeLauncher() {
         } catch(e) {}
       }
     }
+
+    // Fetch operational priorities
+    const fetchPriorities = async () => {
+      try {
+        const [salesRes, purRes, prodRes, delRes] = await Promise.allSettled([
+          api.get('/sales/invoices?status=UNPAID'),
+          api.get('/purchasing/invoices?status=UNPAID'),
+          api.get('/inventory/products'),
+          api.get('/sales/deliveries?status=PENDING')
+        ])
+
+        let overdueS = 0
+        let overdueP = 0
+        let negStock = 0
+        let pendDel = 0
+
+        const today = new Date()
+
+        if (salesRes.status === 'fulfilled' && Array.isArray(salesRes.value?.data)) {
+          overdueS = salesRes.value.data.filter((inv: any) => {
+            const due = inv.due_date ? new Date(inv.due_date) : null
+            return due && due < today && inv.payment_status !== 'PAID'
+          }).length
+        }
+
+        if (purRes.status === 'fulfilled' && Array.isArray(purRes.value?.data)) {
+          overdueP = purRes.value.data.filter((inv: any) => {
+            const due = inv.due_date ? new Date(inv.due_date) : null
+            return due && due < today && inv.payment_status !== 'PAID'
+          }).length
+        }
+
+        if (prodRes.status === 'fulfilled' && Array.isArray(prodRes.value?.data)) {
+          negStock = prodRes.value.data.filter((p: any) => (Number(p.stock || 0) < 0)).length
+        }
+
+        if (delRes.status === 'fulfilled' && Array.isArray(delRes.value?.data)) {
+          pendDel = delRes.value.data.length
+        }
+
+        setUrgentStats({
+          overdueSales: overdueS,
+          overduePurchases: overdueP,
+          negativeStock: negStock,
+          pendingDeliveries: pendDel,
+          loading: false
+        })
+      } catch (_e) {
+        setUrgentStats(prev => ({ ...prev, loading: false }))
+      }
+    }
+
+    fetchPriorities()
   }, [])
 
   const apps = [
@@ -105,48 +169,150 @@ export default function HomeLauncher() {
     },
   ]
 
+  const totalUrgent = urgentStats.overdueSales + urgentStats.overduePurchases + urgentStats.negativeStock + urgentStats.pendingDeliveries
+
   return (
     <div className="w-full flex flex-col items-center pt-2 sm:pt-6 pb-12 px-2 sm:px-6">
       
-      <div className="text-center mb-8 max-w-2xl mx-auto flex flex-col items-center">
-        <div className="flex items-center gap-3 mb-3">
+      <div className="text-center mb-6 max-w-2xl mx-auto flex flex-col items-center">
+        <div className="flex items-center gap-3 mb-2">
           <img src="/logo.png" alt="TATALORA" className="w-10 h-10 object-contain drop-shadow-sm" />
           <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">
             TATALORA Workspace
           </h1>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Selamat datang kembali, <span className="font-semibold text-foreground">{userName}</span>. Apa yang ingin Anda kerjakan hari ini?
+          Selamat datang kembali, <span className="font-semibold text-foreground">{userName}</span>. Kelola operasional bisnis Anda dengan efisien.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6 max-w-6xl w-full">
-        {apps.map((app, index) => (
-          <Link href={app.url} key={index} className="group flex flex-col items-center">
-            
-            <div className={`
-              w-20 h-20 sm:w-26 sm:h-26 rounded-2xl sm:rounded-3xl bg-gradient-to-br ${app.color} 
-              flex items-center justify-center text-white mb-3
-              shadow-md ${app.shadow} transition-all duration-300 ease-out
-              group-hover:-translate-y-1.5 group-hover:scale-105 group-hover:shadow-xl
-              ring-1 ring-border/50 inset-ring inset-ring-border/20
-            `}>
-              <div className="drop-shadow-sm transition-transform duration-300 group-hover:scale-110">
-                {app.icon}
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <h2 className="text-xs sm:text-sm font-bold text-foreground tracking-tight group-hover:text-indigo-600 transition-colors">
-                {app.title}
-              </h2>
-              <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground mt-0.5">
-                {app.desc}
-              </p>
-            </div>
+      {/* PRIORITAS KERJA & TINDAKAN MENDESAK (UX-05) */}
+      <div className="max-w-6xl w-full mb-8">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+              Prioritas Kerja & Tindakan Mendesak
+            </h2>
+          </div>
+          {totalUrgent > 0 ? (
+            <Badge variant="destructive" className="text-xs px-2 py-0.5 font-semibold">
+              {totalUrgent} Perlu Tindakan
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-xs px-2 py-0.5 text-emerald-600 border-emerald-200 bg-emerald-50 font-medium flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" /> Semua Terkendali
+            </Badge>
+          )}
+        </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Piutang Jatuh Tempo */}
+          <Link href="/finance/reports/ar-aging">
+            <Card className="hover:border-rose-400 transition-all cursor-pointer border shadow-xs bg-card hover:shadow-sm">
+              <CardContent className="p-3.5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Piutang Jatuh Tempo</p>
+                  <p className={`text-xl font-bold mt-0.5 ${urgentStats.overdueSales > 0 ? 'text-rose-600' : 'text-foreground'}`}>
+                    {urgentStats.loading ? '...' : urgentStats.overdueSales} <span className="text-xs font-normal text-muted-foreground">faktur</span>
+                  </p>
+                </div>
+                <div className={`p-2.5 rounded-xl ${urgentStats.overdueSales > 0 ? 'bg-rose-100 text-rose-600' : 'bg-muted text-muted-foreground'}`}>
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
           </Link>
-        ))}
+
+          {/* Utang Pemasok Jatuh Tempo */}
+          <Link href="/finance/reports/ap-aging">
+            <Card className="hover:border-amber-400 transition-all cursor-pointer border shadow-xs bg-card hover:shadow-sm">
+              <CardContent className="p-3.5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Utang Jatuh Tempo</p>
+                  <p className={`text-xl font-bold mt-0.5 ${urgentStats.overduePurchases > 0 ? 'text-amber-600' : 'text-foreground'}`}>
+                    {urgentStats.loading ? '...' : urgentStats.overduePurchases} <span className="text-xs font-normal text-muted-foreground">tagihan</span>
+                  </p>
+                </div>
+                <div className={`p-2.5 rounded-xl ${urgentStats.overduePurchases > 0 ? 'bg-amber-100 text-amber-600' : 'bg-muted text-muted-foreground'}`}>
+                  <Clock className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          {/* Pengecualian Stok Negatif */}
+          <Link href="/inventory/products">
+            <Card className="hover:border-rose-400 transition-all cursor-pointer border shadow-xs bg-card hover:shadow-sm">
+              <CardContent className="p-3.5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Stok Negatif / Kritis</p>
+                  <p className={`text-xl font-bold mt-0.5 ${urgentStats.negativeStock > 0 ? 'text-rose-600' : 'text-foreground'}`}>
+                    {urgentStats.loading ? '...' : urgentStats.negativeStock} <span className="text-xs font-normal text-muted-foreground">produk</span>
+                  </p>
+                </div>
+                <div className={`p-2.5 rounded-xl ${urgentStats.negativeStock > 0 ? 'bg-rose-100 text-rose-600' : 'bg-muted text-muted-foreground'}`}>
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          {/* Pengiriman Pending */}
+          <Link href="/sales/deliveries">
+            <Card className="hover:border-blue-400 transition-all cursor-pointer border shadow-xs bg-card hover:shadow-sm">
+              <CardContent className="p-3.5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Pengiriman Menunggu</p>
+                  <p className={`text-xl font-bold mt-0.5 ${urgentStats.pendingDeliveries > 0 ? 'text-blue-600' : 'text-foreground'}`}>
+                    {urgentStats.loading ? '...' : urgentStats.pendingDeliveries} <span className="text-xs font-normal text-muted-foreground">surat jalan</span>
+                  </p>
+                </div>
+                <div className={`p-2.5 rounded-xl ${urgentStats.pendingDeliveries > 0 ? 'bg-blue-100 text-blue-600' : 'bg-muted text-muted-foreground'}`}>
+                  <Truck className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+      </div>
+
+      {/* DAFTAR MODUL ERP */}
+      <div className="max-w-6xl w-full">
+        <div className="flex items-center justify-between mb-4 px-1">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Aplikasi & Modul Operasional
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6">
+          {apps.map((app, index) => (
+            <Link href={app.url} key={index} className="group flex flex-col items-center">
+              
+              <div className={`
+                w-20 h-20 sm:w-26 sm:h-26 rounded-2xl sm:rounded-3xl bg-gradient-to-br ${app.color} 
+                flex items-center justify-center text-white mb-3
+                shadow-md ${app.shadow} transition-all duration-300 ease-out
+                group-hover:-translate-y-1.5 group-hover:scale-105 group-hover:shadow-xl
+                ring-1 ring-border/50 inset-ring inset-ring-border/20
+              `}>
+                <div className="drop-shadow-sm transition-transform duration-300 group-hover:scale-110">
+                  {app.icon}
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <h2 className="text-xs sm:text-sm font-bold text-foreground tracking-tight group-hover:text-indigo-600 transition-colors">
+                  {app.title}
+                </h2>
+                <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground mt-0.5">
+                  {app.desc}
+                </p>
+              </div>
+
+            </Link>
+          ))}
+        </div>
       </div>
       
     </div>

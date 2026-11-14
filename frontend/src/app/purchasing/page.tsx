@@ -304,7 +304,7 @@ export default function PurchasesMainPage() {
           <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/40">
               <div>
-                <p className="text-sm font-medium">Format Template CSV Mekari Jurnal</p>
+                <p className="text-sm font-medium">Format Template CSV Standar</p>
                 <p className="text-xs text-muted-foreground">Unduh format kolom yang sesuai standar sistem</p>
               </div>
               <Button variant="outline" size="sm" onClick={handleDownloadTemplate} className="gap-1.5">

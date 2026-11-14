@@ -66,7 +66,7 @@ export default function ProfitLossPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground dark:text-white">Laporan Laba Rugi</h1>
-            <p className="text-muted-foreground text-sm">Profit & Loss Statement (Standar SAK EMKM / Mekari Jurnal)</p>
+            <p className="text-muted-foreground text-sm">Profit & Loss Statement (Standar SAK EMKM)</p>
           </div>
         </div>
 
