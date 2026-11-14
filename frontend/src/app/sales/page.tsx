@@ -392,9 +392,40 @@ export default function UnifiedSalesPage() {
                 <TableCell>{new Date(o.order_date).toLocaleDateString('id-ID')}</TableCell>
                 <TableCell className="text-indigo-600 font-medium">{o.order_number}</TableCell>
                 <TableCell className="text-indigo-600 font-medium">{o.customer?.name || '-'}</TableCell>
-                <TableCell><Badge variant="outline">{o.status}</Badge></TableCell>
-                <TableCell><Badge variant="outline">{o.delivery_status}</Badge></TableCell>
-                <TableCell><Badge variant="outline">{o.invoice_status}</Badge></TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={
+                    o.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    o.status === 'CONFIRMED' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                    'bg-slate-50 text-slate-700 border-slate-200'
+                  }>
+                    {o.status === 'COMPLETED' ? 'Selesai' : o.status === 'CONFIRMED' ? 'Dikonfirmasi' : o.status || 'Draf'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={
+                    o.delivery_status === 'DELIVERED' || o.delivery_status === 'COMPLETED' || o.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    o.delivery_status === 'PARTIAL' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                    'bg-slate-50 text-slate-600 border-slate-200'
+                  }>
+                    {o.delivery_status === 'DELIVERED' || o.delivery_status === 'COMPLETED' ? 'Terkirim Penuh' :
+                     o.delivery_status === 'PARTIAL' ? 'Sebagian' :
+                     o.status === 'COMPLETED' ? 'Selesai (Langsung/POS)' :
+                     o.delivery_status || 'Belum Dikirim'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={
+                    o.invoice_status === 'INVOICED' || o.invoice_status === 'PAID' || o.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    o.invoice_status === 'PARTIAL' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                    'bg-slate-50 text-slate-600 border-slate-200'
+                  }>
+                    {o.invoice_status === 'PAID' ? 'Lunas' :
+                     o.invoice_status === 'INVOICED' ? 'Tertagih' :
+                     o.invoice_status === 'PARTIAL' ? 'Sebagian' :
+                     o.status === 'COMPLETED' ? 'Selesai (Langsung/POS)' :
+                     o.invoice_status || 'Belum Ditagih'}
+                  </Badge>
+                </TableCell>
                 <TableCell className="text-right font-medium">{formatIDR(o.total_amount)}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

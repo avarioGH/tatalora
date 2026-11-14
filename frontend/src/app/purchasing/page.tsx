@@ -11,7 +11,8 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { 
-  Search, ChevronDown, Download, CheckCircle2, Eye, Edit, Trash2, MoreHorizontal, Plus, Loader2, Upload, FileSpreadsheet
+  Search, ChevronDown, Download, CheckCircle2, Eye, Edit, Trash2, MoreHorizontal, Plus, Loader2, Upload, FileSpreadsheet,
+  FileText, ShoppingCart, Truck
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -374,6 +375,34 @@ export default function PurchasesMainPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Workflow Navigation Tabs (PUR-09) */}
+      <div className="flex flex-wrap items-center gap-2 border-b pb-3 mb-2 text-sm">
+        <span className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mr-2">Alur Pengadaan:</span>
+        <Link href="/purchasing/requests/create">
+          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 hover:border-cyan-500 hover:text-cyan-600">
+            <FileText className="w-3.5 h-3.5" /> Permintaan (PR)
+          </Button>
+        </Link>
+        <Link href="/purchasing/rfqs/create">
+          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 hover:border-cyan-500 hover:text-cyan-600">
+            <FileText className="w-3.5 h-3.5" /> Penawaran (RFQ)
+          </Button>
+        </Link>
+        <Link href="/purchasing/orders">
+          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 hover:border-cyan-500 hover:text-cyan-600">
+            <ShoppingCart className="w-3.5 h-3.5" /> Pesanan (PO)
+          </Button>
+        </Link>
+        <Link href="/inventory/receipts">
+          <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 hover:border-cyan-500 hover:text-cyan-600">
+            <Truck className="w-3.5 h-3.5" /> Penerimaan (GRN)
+          </Button>
+        </Link>
+        <Button variant="secondary" size="sm" className="h-8 text-xs font-semibold bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-200 border border-cyan-300">
+          Faktur Tagihan (Bills)
+        </Button>
+      </div>
 
       {/* Summary KPI Cards Jurnal Mekari */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">

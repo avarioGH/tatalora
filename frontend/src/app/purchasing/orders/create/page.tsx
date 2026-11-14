@@ -71,7 +71,11 @@ export default function CreateOrderPage() {
       const rawProducts = prodRes?.data || (Array.isArray(prodRes) ? prodRes : [])
       const rawWarehouses = whRes?.data || (Array.isArray(whRes) ? whRes : [])
 
-      setSuppliers(rawSuppliers)
+      const validSuppliers = rawSuppliers.filter((s: any) => {
+        const type = (s.type || s.category || '').toLowerCase()
+        return type.includes('supplier') || type.includes('vendor') || type.includes('both') || !type
+      })
+      setSuppliers(validSuppliers.length > 0 ? validSuppliers : rawSuppliers)
       setProducts(rawProducts)
       setWarehouses(rawWarehouses)
 
@@ -258,7 +262,7 @@ export default function CreateOrderPage() {
                   {suppliers.map(s => (
                     <SelectItem key={s.id} value={s.id}>
                       <div className="flex flex-col text-left py-0.5">
-                        <span className="font-semibold text-foreground">{s.name}</span>
+                        <span className="font-semibold text-foreground">{s.name} {s.type ? `(${s.type})` : ''}</span>
                         {s.phone && <span className="text-[11px] text-muted-foreground">{s.phone}</span>}
                       </div>
                     </SelectItem>

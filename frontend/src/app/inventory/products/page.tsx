@@ -588,7 +588,9 @@ export default function ProductInventory() {
           </Card>
           <Card className="w-[220px] shadow-sm border-l-4 border-l-blue-500">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground font-medium mb-2">Total Nilai Produk</p>
+              <p className="text-xs text-muted-foreground font-medium mb-2" title="Estimasi nilai pasar (Qty × Harga Jual)">
+                Total Nilai Produk (Jual)
+              </p>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><CreditCard className="w-4 h-4" /></div>
                 <span className="text-xl font-bold">{formatIDR(totalNilai)}</span>
@@ -597,7 +599,9 @@ export default function ProductInventory() {
           </Card>
           <Card className="w-[220px] shadow-sm border-l-4 border-l-pink-500">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground font-medium mb-2">Total HPP</p>
+              <p className="text-xs text-muted-foreground font-medium mb-2" title="Valuasi persediaan berbasis biaya perolehan (Qty × Harga Beli)">
+                Total HPP (Nilai Pokok)
+              </p>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600"><FileText className="w-4 h-4" /></div>
                 <span className="text-xl font-bold">{formatIDR(totalHPP)}</span>
@@ -864,7 +868,15 @@ export default function ProductInventory() {
                   return (
                     <TableRow key={p.id} className="border-border/60 hover:bg-muted/20 transition-colors group">
                       <TableCell className="text-center"><input type="checkbox" className="rounded" /></TableCell>
-                      <TableCell className="font-medium text-foreground">{p.name}</TableCell>
+                      <TableCell className="font-medium text-foreground">
+                        <Link 
+                          href={`/inventory/movements?product_id=${p.id}`} 
+                          className="hover:text-primary hover:underline font-semibold flex items-center gap-1.5"
+                          title="Klik untuk melihat riwayat mutasi / kartu stok produk ini"
+                        >
+                          {p.name}
+                        </Link>
+                      </TableCell>
                       <TableCell className="text-muted-foreground flex items-center gap-2"><LayoutGrid className="w-3 h-3"/> {p.sku}</TableCell>
                       <TableCell>{p.category}</TableCell>
                       <TableCell>Pcs</TableCell>
@@ -886,8 +898,9 @@ export default function ProductInventory() {
                             <MoreHorizontal className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(p)} className="cursor-pointer"><Edit2 className="mr-2 h-4 w-4 text-indigo-500" /> Edit</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDelete(p.id)} className="cursor-pointer text-rose-600 focus:bg-rose-50"><Trash2 className="mr-2 h-4 w-4" /> Hapus</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEdit(p)} className="cursor-pointer"><Edit2 className="mr-2 h-4 w-4 text-indigo-500" /> Ubah Produk</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => router.push(`/inventory/movements?product_id=${p.id}`)} className="cursor-pointer"><FileText className="mr-2 h-4 w-4 text-emerald-500" /> Kartu Stok / Mutasi</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(p.id)} className="cursor-pointer text-rose-600 focus:bg-rose-50"><Trash2 className="mr-2 h-4 w-4" /> Hapus Produk</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

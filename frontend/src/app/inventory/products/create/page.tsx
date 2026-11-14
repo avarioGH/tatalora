@@ -545,7 +545,7 @@ export default function CreateProductPage() {
                     <SelectValue placeholder="(5-50000) - Beban Pokok Pendapatan" />
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
-                    <SelectItem value="default_cogs">(5-50000) - Beban Pokok Pendapatan (HPP)</SelectItem>
+                    <SelectItem value="default_cogs">Default: 5-5000 - Beban Pokok Penjualan (HPP)</SelectItem>
                     {accounts.filter(a => a.category === 'EXPENSE' || a.account_type?.category === 'EXPENSE').map(a => (
                       <SelectItem key={a.id} value={a.id}>({a.account_code}) - {a.account_name}</SelectItem>
                     ))}
@@ -612,7 +612,7 @@ export default function CreateProductPage() {
                     <SelectValue placeholder="(4-40000) - Pendapatan Penjualan" />
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
-                    <SelectItem value="default_revenue">(4-40000) - Pendapatan Penjualan</SelectItem>
+                    <SelectItem value="default_revenue">Default: 4-4000 - Pendapatan Penjualan</SelectItem>
                     {accounts.filter(a => a.category === 'REVENUE' || a.account_type?.category === 'REVENUE').map(a => (
                       <SelectItem key={a.id} value={a.id}>({a.account_code}) - {a.account_name}</SelectItem>
                     ))}
@@ -676,7 +676,7 @@ export default function CreateProductPage() {
                     <SelectValue placeholder="(1-10200) - Persediaan Barang" />
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
-                    <SelectItem value="default_inventory">(1-10200) - Persediaan Barang Dagang</SelectItem>
+                    <SelectItem value="default_inventory">Default: 1-1020 - Persediaan Barang Dagang</SelectItem>
                     {accounts.filter(a => a.category === 'ASSET' || a.account_type?.category === 'ASSET').map(a => (
                       <SelectItem key={a.id} value={a.id}>({a.account_code}) - {a.account_name}</SelectItem>
                     ))}

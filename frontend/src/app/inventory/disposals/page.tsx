@@ -15,7 +15,7 @@ import {
 import { 
   Search, Plus, Flame, Filter, ChevronDown, FolderOpen, Loader2
 } from "lucide-react"
-import { DisposalAPI } from "@/lib/api"
+import { DisposalAPI, api } from "@/lib/api"
 
 export default function DisposalsPage() {
   const router = useRouter()
@@ -116,16 +116,18 @@ export default function DisposalsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border hover:bg-transparent bg-muted/10">
-                    <TableHead className="font-semibold text-foreground pl-6">ID Pemusnahan</TableHead>
+                    <TableHead className="font-semibold text-foreground pl-6">No. / ID Pemusnahan</TableHead>
                     <TableHead className="font-semibold text-foreground">Tanggal</TableHead>
-                    <TableHead className="font-semibold text-foreground">Alasan</TableHead>
+                    <TableHead className="font-semibold text-foreground">Item & Kuantitas</TableHead>
+                    <TableHead className="font-semibold text-foreground">Alasan Pemusnahan</TableHead>
                     <TableHead className="font-semibold text-foreground text-center">Status</TableHead>
+                    <TableHead className="font-semibold text-foreground text-right pr-6">Tindakan</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredDisposals.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-16 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-16 text-muted-foreground">
                         <FolderOpen className="w-10 h-10 mx-auto text-muted-foreground/40 mb-2" />
                         <p className="text-base font-medium">Belum ada riwayat pemusnahan stok.</p>
                         <p className="text-xs text-muted-foreground mt-1">Data pemusnahan yang dicatat akan tersinkron di sini.</p>
@@ -134,11 +136,43 @@ export default function DisposalsPage() {
                   ) : (
                     filteredDisposals.map((item) => (
                       <TableRow key={item.id} className="hover:bg-muted/30 border-border transition-colors">
-                        <TableCell className="font-mono text-xs font-semibold text-foreground pl-6">{item.id.slice(0, 12)}...</TableCell>
-                        <TableCell className="text-muted-foreground">{item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-'}</TableCell>
-                        <TableCell className="text-foreground">{item.reason || '-'}</TableCell>
+                        <TableCell className="font-mono text-xs font-semibold text-foreground pl-6">
+                          <span className="bg-muted/80 px-2 py-0.5 rounded font-mono">DSP-{item.id.slice(0, 8).toUpperCase()}</span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs">{item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-'}</TableCell>
+                        <TableCell className="text-foreground font-medium text-xs">
+                          {item.items && item.items.length > 0 ? (
+                            <span>{item.items[0]?.product?.name || item.items[0]?.item?.name || 'Produk'} ({item.items[0]?.quantity || 1} pcs){item.items.length > 1 ? ` +${item.items.length - 1} lainnya` : ''}</span>
+                          ) : (
+                            <span className="text-muted-foreground italic">1 Item Dimusnahkan</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-foreground text-xs">{item.reason || '-'}</TableCell>
                         <TableCell className="text-center">
                           {getStatusBadge(item.status)}
+                        </TableCell>
+                        <TableCell className="text-right pr-6">
+                          {item.status === 'PENDING' || item.status === 'Menunggu Persetujuan' ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="h-7 text-xs text-emerald-600 border-emerald-300 hover:bg-emerald-50"
+                              onClick={async () => {
+                                if (confirm('Setujui pemusnahan stok ini? Stok akan disesuaikan di gudang.')) {
+                                  try {
+                                    await api.patch(`/inventory/disposals/${item.id}/status`, { status: 'COMPLETED' }).catch(() => api.post(`/inventory/disposals/${item.id}/approve`));
+                                    fetchDisposals();
+                                  } catch (e: any) {
+                                    alert('Gagal menyetujui pemusnahan');
+                                  }
+                                }
+                              }}
+                            >
+                              Setujui
+                            </Button>
+                          ) : (
+                            <span className="text-[11px] text-muted-foreground">Terverifikasi</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))

@@ -208,14 +208,22 @@ export default function PurchaseOrdersPage() {
                       <TableCell className="text-center">{getStatusBadge(item.status)}</TableCell>
                       <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-center gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0 text-rose-600 hover:bg-rose-50"
-                            onClick={(e) => handleDelete(e, item.id, item.order_number)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {item.status === 'COMPLETED' ? (
+                            <span className="text-[11px] text-muted-foreground italic" title="PO Selesai tidak dapat dihapus">
+                              Terkunci
+                            </span>
+                          ) : (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 text-rose-600 hover:bg-rose-50"
+                              title="Hapus Pesanan Pembelian"
+                              aria-label={`Hapus Pesanan Pembelian ${item.order_number}`}
+                              onClick={(e) => handleDelete(e, item.id, item.order_number)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
