@@ -41,6 +41,8 @@ export default function CreateExpensePage() {
   const [reference, setReference] = useState("")
   const [memo, setMemo] = useState("")
   const [categoryId, setCategoryId] = useState("")
+  const [paymentMode, setPaymentMode] = useState<"NOW" | "LATER">("NOW")
+  const [dueDate, setDueDate] = useState("")
 
   // Line items
   const [items, setItems] = useState([
@@ -168,7 +170,21 @@ export default function CreateExpensePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label className="text-foreground font-semibold">Dibayar Dari Rekening <span className="text-rose-500">*</span></Label>
+                    <div className="flex items-center gap-3">
+                      <Label className="text-foreground font-semibold">
+                        {paymentMode === "NOW" ? "Dibayar Dari Rekening" : "Alokasi Akun Utang Beban"} <span className="text-rose-500">*</span>
+                      </Label>
+                      <div className="flex items-center gap-2 text-xs">
+                        <label className="inline-flex items-center gap-1 cursor-pointer">
+                          <input type="radio" name="paymode" checked={paymentMode === "NOW"} onChange={() => setPaymentMode("NOW")} />
+                          Bayar Sekarang
+                        </label>
+                        <label className="inline-flex items-center gap-1 cursor-pointer text-amber-700 dark:text-amber-400 font-semibold">
+                          <input type="radio" name="paymode" checked={paymentMode === "LATER"} onChange={() => setPaymentMode("LATER")} />
+                          Biaya Terutang (Bayar Nanti)
+                        </label>
+                      </div>
+                    </div>
                     {cashAccounts.length === 0 && !loading && (
                       <Link href="/finance/cash-reconciliation" className="text-xs text-blue-600 hover:underline">
                         + Tambah Kas/Bank

@@ -19,6 +19,7 @@ export default function FinanceCashIn() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [categories, setCategories] = useState<any[]>([])
+  const [contacts, setContacts] = useState<any[]>([])
   const [cashAccounts, setCashAccounts] = useState<any[]>([])
 
   const [formData, setFormData] = useState({
@@ -35,9 +36,10 @@ export default function FinanceCashIn() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [catData, accData] = await Promise.all([
+        const [catData, accData, contactRes] = await Promise.all([
           FinanceAPI.getCategories().catch(() => []),
-          FinanceAPI.getCashAccounts().catch(() => [])
+          FinanceAPI.getCashAccounts().catch(() => []),
+          api.get('/contacts').catch(() => ({ data: [] }))
         ])
 
         const filteredCats = (Array.isArray(catData) ? catData : []).filter((c: any) => c.type === "INCOME")
@@ -45,6 +47,9 @@ export default function FinanceCashIn() {
         
         const accounts = Array.isArray(accData?.data) ? accData.data : (Array.isArray(accData) ? accData : [])
         setCashAccounts(accounts)
+
+        const contactList = Array.isArray(contactRes?.data) ? contactRes.data : []
+        setContacts(contactList)
         
         if (accounts.length > 0) {
           setFormData(prev => ({
@@ -166,17 +171,26 @@ export default function FinanceCashIn() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="payer" className="text-foreground font-semibold flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-emerald-600" /> Yang Membayar (Customer / Kontak)
+                <Label htmlFor="payer" className="text-foreground font-semibold flex items-center justify-between">
+                  <span className="flex items-center gap-1.5"><UserCheck className="w-4 h-4 text-emerald-600" /> Yang Membayar (Customer / Kontak)</span>
+                  <Link href="/crm/partners" className="text-xs text-blue-600 hover:underline">+ Master Kontak</Link>
                 </Label>
-                <Input 
-                  id="payer" 
-                  placeholder="Nama pembayar / pelanggan..." 
-                  className="bg-background"
-                  value={formData.payer}
-                  onChange={(e) => setFormData({...formData, payer: e.target.value})}
-                />
-                <p className="text-xs text-muted-foreground">Nama pihak yang menyetor atau mentransfer uang.</p>
+                <div className="space-y-1">
+                  <Input 
+                    id="payer" 
+                    placeholder="Ketik atau pilih kontak pembayar..." 
+                    className="bg-background"
+                    value={formData.payer}
+                    list="contacts-list"
+                    onChange={(e) => setFormData({...formData, payer: e.target.value})}
+                  />
+                  <datalist id="contacts-list">
+                    {contacts.map((c) => (
+                      <option key={c.id} value={c.name}>{c.company_name ? `${c.name} (${c.company_name})` : c.name}</option>
+                    ))}
+                  </datalist>
+                </div>
+                <p className="text-xs text-muted-foreground">Pilih dari master kontak atau ketik nama pihak pembayar.</p>
               </div>
             </div>
 

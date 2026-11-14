@@ -19,6 +19,7 @@ export default function FinanceCashOut() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [categories, setCategories] = useState<any[]>([])
+  const [contacts, setContacts] = useState<any[]>([])
   const [cashAccounts, setCashAccounts] = useState<any[]>([])
 
   const [formData, setFormData] = useState({
@@ -35,9 +36,10 @@ export default function FinanceCashOut() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [catData, accData] = await Promise.all([
+        const [catData, accData, contactRes] = await Promise.all([
           FinanceAPI.getCategories().catch(() => []),
-          FinanceAPI.getCashAccounts().catch(() => [])
+          FinanceAPI.getCashAccounts().catch(() => []),
+          api.get('/contacts').catch(() => ({ data: [] }))
         ])
 
         const filteredCats = (Array.isArray(catData) ? catData : []).filter((c: any) => c.type === "EXPENSE")
@@ -45,6 +47,9 @@ export default function FinanceCashOut() {
         
         const accounts = Array.isArray(accData?.data) ? accData.data : (Array.isArray(accData) ? accData : [])
         setCashAccounts(accounts)
+
+        const contactList = Array.isArray(contactRes?.data) ? contactRes.data : []
+        setContacts(contactList)
         
         if (accounts.length > 0) {
           setFormData(prev => ({
@@ -166,17 +171,26 @@ export default function FinanceCashOut() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="recipient" className="text-foreground font-semibold flex items-center gap-1.5">
-                  <User className="w-4 h-4 text-rose-600" /> Penerima Pembayaran (Vendor / Kontak)
+                <Label htmlFor="recipient" className="text-foreground font-semibold flex items-center justify-between">
+                  <span className="flex items-center gap-1.5"><User className="w-4 h-4 text-rose-600" /> Penerima Pembayaran (Vendor / Kontak)</span>
+                  <Link href="/crm/partners" className="text-xs text-blue-600 hover:underline">+ Master Kontak</Link>
                 </Label>
-                <Input 
-                  id="recipient" 
-                  placeholder="Nama penerima / supplier / staf..." 
-                  className="bg-background"
-                  value={formData.recipient}
-                  onChange={(e) => setFormData({...formData, recipient: e.target.value})}
-                />
-                <p className="text-xs text-muted-foreground">Pihak yang menerima pembayaran dana ini.</p>
+                <div className="space-y-1">
+                  <Input 
+                    id="recipient" 
+                    placeholder="Ketik atau pilih kontak penerima..." 
+                    className="bg-background"
+                    value={formData.recipient}
+                    list="contacts-out-list"
+                    onChange={(e) => setFormData({...formData, recipient: e.target.value})}
+                  />
+                  <datalist id="contacts-out-list">
+                    {contacts.map((c) => (
+                      <option key={c.id} value={c.name}>{c.company_name ? `${c.name} (${c.company_name})` : c.name}</option>
+                    ))}
+                  </datalist>
+                </div>
+                <p className="text-xs text-muted-foreground">Pilih dari master vendor/kontak atau ketik manual.</p>
               </div>
             </div>
 
