@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { 
-  Search, Plus, Download, Upload, FileSpreadsheet, Loader2, Building, RefreshCw, Eye, Trash2, ChevronDown
+  Search, Plus, Download, Upload, FileSpreadsheet, Loader2, Building, RefreshCw, Eye, Trash2, ChevronDown, FolderOpen
 } from "lucide-react"
 import {
   Dialog,
@@ -330,6 +330,36 @@ export default function FixedAssetsPage() {
           {loading ? (
             <div className="p-12 text-center text-muted-foreground flex items-center justify-center gap-2">
               <Loader2 className="w-5 h-5 animate-spin" /> Memuat data aset dari database...
+            </div>
+          ) : activeTab === "Penyusutan" ? (
+            <div className="p-12 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto">
+                <RefreshCw className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground">Jadwal & Riwayat Penyusutan Aset</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Penyusutan dihitung otomatis setiap akhir periode bulan/tahun buku berdasarkan metode garis lurus. Saat ini belum ada depresiasi yang diposting ke jurnal buku besar untuk periode berjalan.
+              </p>
+              <div className="pt-2">
+                <Button variant="outline" size="sm" onClick={() => setActiveTab("Daftar Aset")}>
+                  Kembali ke Daftar Aset Tetap
+                </Button>
+              </div>
+            </div>
+          ) : activeTab === "Aset Dijual/Dilepas" ? (
+            <div className="p-12 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-muted text-muted-foreground flex items-center justify-center mx-auto">
+                <FolderOpen className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground">Belum Ada Aset yang Dilepas atau Dijual</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Semua aset tetap perusahaan masih aktif beroperasi. Bila aset rusak total atau dilepas, catat disposisi melalui menu tindakan aset untuk menghentikan akumulasi beban depresiasi.
+              </p>
+              <div className="pt-2">
+                <Button variant="outline" size="sm" onClick={() => setActiveTab("Daftar Aset")}>
+                  Lihat Aset Aktif
+                </Button>
+              </div>
             </div>
           ) : (
             <Table>

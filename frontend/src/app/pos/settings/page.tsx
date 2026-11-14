@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter 
 } from "@/components/ui/dialog"
@@ -226,24 +227,46 @@ export default function PosSettingsPage() {
           {/* TAB: PEMBAYARAN NON TUNAI */}
           {activeTab === "Pembayaran Non Tunai" && (
             <Card className="border border-border shadow-sm bg-card overflow-hidden min-h-[400px]">
+              <div className="p-4 bg-muted/20 border-b flex justify-between items-center">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Daftar Metode Non-Tunai Aktif di Kasir</h3>
+                  <p className="text-xs text-muted-foreground">Setiap metode wajib terpetakan ke rekening Kas & Bank (COA) untuk penjurnalan otomatis.</p>
+                </div>
+                <Button size="sm" onClick={() => setIsNonTunaiModalOpen(true)} className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white">
+                  + Tambah Metode
+                </Button>
+              </div>
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableHead className="font-semibold">Jenis Pembayaran</TableHead>
-                    <TableHead className="font-semibold">Nama Pembayaran</TableHead>
-                    <TableHead className="font-semibold">Provider/Bank</TableHead>
-                    <TableHead className="font-semibold">Akun COA</TableHead>
-                    <TableHead className="w-20"></TableHead>
+                    <TableHead className="font-semibold">Jenis</TableHead>
+                    <TableHead className="font-semibold">Nama Tampilan Kasir</TableHead>
+                    <TableHead className="font-semibold">Provider / Gateway</TableHead>
+                    <TableHead className="font-semibold">Akun Penampung (COA)</TableHead>
+                    <TableHead className="text-center font-semibold">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-64 text-center">
-                      <div className="flex flex-col items-center justify-center text-muted-foreground">
-                        <CreditCard className="w-12 h-12 mb-4 opacity-20" />
-                        <p>Belum ada data Pembayaran Non Tunai di sini</p>
-                      </div>
-                    </TableCell>
+                  <TableRow className="border-b">
+                    <TableCell><Badge variant="outline" className="font-medium">EDC</Badge></TableCell>
+                    <TableCell className="font-medium text-foreground">Mesin EDC BCA Kasir</TableCell>
+                    <TableCell>Bank Central Asia (BCA)</TableCell>
+                    <TableCell className="font-mono text-xs text-indigo-600">1-1002 - Bank BCA</TableCell>
+                    <TableCell className="text-center"><Badge className="bg-emerald-50 text-emerald-700 border-emerald-300">Aktif</Badge></TableCell>
+                  </TableRow>
+                  <TableRow className="border-b">
+                    <TableCell><Badge variant="outline" className="font-medium">QRIS</Badge></TableCell>
+                    <TableCell className="font-medium text-foreground">QRIS Dinamis / Statis</TableCell>
+                    <TableCell>QRIS Nasional</TableCell>
+                    <TableCell className="font-mono text-xs text-indigo-600">1-1001 - Kas Toko / Kasir</TableCell>
+                    <TableCell className="text-center"><Badge className="bg-emerald-50 text-emerald-700 border-emerald-300">Aktif</Badge></TableCell>
+                  </TableRow>
+                  <TableRow className="border-b">
+                    <TableCell><Badge variant="outline" className="font-medium">Transfer</Badge></TableCell>
+                    <TableCell className="font-medium text-foreground">Transfer Bank Mandiri</TableCell>
+                    <TableCell>Bank Mandiri</TableCell>
+                    <TableCell className="font-mono text-xs text-indigo-600">1-1003 - Bank Mandiri</TableCell>
+                    <TableCell className="text-center"><Badge className="bg-emerald-50 text-emerald-700 border-emerald-300">Aktif</Badge></TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

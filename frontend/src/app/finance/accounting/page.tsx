@@ -47,6 +47,8 @@ export default function ChartOfAccountsPage() {
     account_code: "",
     account_name: "",
     account_type_id: "",
+    parent_id: "",
+    opening_balance: 0,
     currency: "IDR",
     is_header: false
   })
@@ -183,6 +185,8 @@ export default function ChartOfAccountsPage() {
         account_code: "",
         account_name: "",
         account_type_id: "",
+        parent_id: "",
+        opening_balance: 0,
         currency: "IDR",
         is_header: false
       })
@@ -386,7 +390,34 @@ export default function ChartOfAccountsPage() {
               />
             </div>
 
+            <div className="space-y-1.5">
+              <Label className="text-xs">Akun Induk (Sub-Akun dari)</Label>
+              <Select 
+                value={form.parent_id} 
+                onValueChange={val => setForm({ ...form, parent_id: val || "" })}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Pilih Akun Induk (Opsional)" />
+                </SelectTrigger>
+                <SelectContent className="bg-card max-h-56">
+                  <SelectItem value="none">-- Tanpa Akun Induk (Tingkat Utama) --</SelectItem>
+                  {accounts.filter(a => a.is_header || a.account_code.endsWith('000') || a.account_code.length <= 4).map(a => (
+                    <SelectItem key={a.id} value={a.id}>({a.account_code}) - {a.account_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Saldo Awal Pembukuan (Rp)</Label>
+                <Input 
+                  type="number"
+                  value={form.opening_balance} 
+                  onChange={e => setForm({ ...form, opening_balance: Number(e.target.value) || 0 })} 
+                  placeholder="0"
+                />
+              </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">Mata Uang</Label>
                 <Input 
@@ -394,6 +425,7 @@ export default function ChartOfAccountsPage() {
                   onChange={e => setForm({ ...form, currency: e.target.value })} 
                 />
               </div>
+            </div>
               <div className="flex items-center gap-2 pt-6">
                 <input 
                   type="checkbox" 
@@ -406,7 +438,6 @@ export default function ChartOfAccountsPage() {
                   Jadikan sebagai Akun Induk (Header)
                 </Label>
               </div>
-            </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)}>

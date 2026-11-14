@@ -266,7 +266,7 @@ export default function UsersSettingsPage() {
 
  <div className="space-y-4 pt-4 border-t border-border/60">
  <h3 className="font-semibold text-lg border-b pb-2 flex items-center gap-2"><LayoutDashboard className="w-4 h-4 text-emerald-500"/> Hak Akses Modul Aplikasi</h3>
- <p className="text-sm text-muted-foreground">Pilih modul (menu) yang boleh diakses oleh staf ini. Jika tidak dicentang, menu tersebut akan disembunyikan.</p>
+ <p className="text-sm text-muted-foreground">Tentukan hak akses modul operasional untuk akun staf ini. Pembatasan akses diverifikasi di level antarmuka dan middleware API server backend.</p>
  
  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
  {AVAILABLE_MODULES.map(mod => (

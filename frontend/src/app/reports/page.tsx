@@ -176,8 +176,8 @@ export default function ReportsHubPage() {
         },
         {
           id: "rekonsiliasi-bank",
-          title: "Rekonsiliasi Bank",
-          description: "Penyamaan saldo buku catatan kas perusahaan dengan mutasi rekening bank secara otomatis.",
+          title: "Rekonsiliasi Kas & Buku Besar (GL)",
+          description: "Penyamaan saldo operasional akun kas/bank dengan saldo akun buku besar (General Ledger).",
           href: "/finance/cash-reconciliation",
         },
       ]

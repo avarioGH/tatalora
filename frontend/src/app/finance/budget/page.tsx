@@ -195,15 +195,20 @@ export default function BudgetManagementPage() {
                   </div>
 
                   <div>
-                    <label className="block font-semibold mb-1">Periode Anggaran</label>
-                    <Input
-                      type="text"
-                      placeholder="Contoh: 2026 atau 2026-Q1"
+                    <label className="block font-semibold mb-1">Periode Anggaran (Tahun / Kuartal)</label>
+                    <select
                       value={formData.period}
                       onChange={(e) => setFormData({ ...formData, period: e.target.value })}
-                      className="bg-background border-border text-foreground"
+                      className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                       required
-                    />
+                    >
+                      <option value="2026">Tahun Fiskal 2026 (Tahunan Penuh)</option>
+                      <option value="2026-Q1">Kuartal 1 2026 (Jan - Mar)</option>
+                      <option value="2026-Q2">Kuartal 2 2026 (Apr - Jun)</option>
+                      <option value="2026-Q3">Kuartal 3 2026 (Jul - Sep)</option>
+                      <option value="2026-Q4">Kuartal 4 2026 (Okt - Des)</option>
+                      <option value="2027">Tahun Fiskal 2027</option>
+                    </select>
                   </div>
 
                   <div>
@@ -219,7 +224,7 @@ export default function BudgetManagementPage() {
                   </div>
 
                   <div>
-                    <label className="block font-semibold mb-1">Realisasi Belanja Awal (Opsional - Rp)</label>
+                    <label className="block font-semibold mb-1">Realisasi Belanja Awal (Saldo Awal Sebelum Cut-off - Rp)</label>
                     <Input
                       type="number"
                       placeholder="0"
@@ -227,6 +232,9 @@ export default function BudgetManagementPage() {
                       onChange={(e) => setFormData({ ...formData, used_amount: e.target.value })}
                       className="bg-background border-border text-foreground"
                     />
+                    <p className="text-[11px] text-muted-foreground mt-1">
+                      *Catatan: Digunakan jika anggaran baru dimasukkan di tengah tahun berjalan sebagai saldo pembuka sebelum cut-off sistem. Pengeluaran setelah cut-off akan dijumlahkan otomatis dari jurnal transaksi operasional.
+                    </p>
                   </div>
                 </div>
 
@@ -311,8 +319,16 @@ export default function BudgetManagementPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Periode Anggaran:</span>
-            <Badge variant="outline" className="px-3 py-1 font-semibold">{activeYear}</Badge>
+            <span className="text-xs text-muted-foreground font-medium">Filter Tahun:</span>
+            <select
+              value={activeYear}
+              onChange={(e) => setActiveYear(e.target.value)}
+              className="text-xs font-semibold px-2.5 py-1 rounded border border-border bg-background text-foreground outline-none"
+            >
+              <option value="2026">Tahun Fiskal 2026</option>
+              <option value="2025">Tahun Fiskal 2025</option>
+              <option value="2027">Tahun Fiskal 2027</option>
+            </select>
           </div>
         </div>
 

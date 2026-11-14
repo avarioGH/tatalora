@@ -35,7 +35,7 @@ export default function ConsolidationPage() {
   const [companies, setCompanies] = useState([
     {
       id: "comp-1",
-      name: "BOOSTUP INDONESIA (Holding)",
+      name: "TATALORA INDONESIA (Holding)",
       code: "ID-833072",
       role: "Parent Company",
       currency: "IDR",
@@ -75,6 +75,13 @@ export default function ConsolidationPage() {
   const totalConsolidatedRevenue = companies.reduce((a, c) => a + c.revenue, 0)
   const totalConsolidatedProfit = companies.reduce((a, c) => a + c.net_profit, 0)
   const totalConsolidatedAssets = companies.reduce((a, c) => a + c.assets, 0)
+
+  // Perhitungan Atribusi Laba Bersih Sesuai PSAK 65 (CSL-03)
+  const holdingAttributableProfit = companies.reduce((acc, c) => {
+    const pct = parseFloat(c.ownership) / 100 || 1.0;
+    return acc + (c.net_profit * pct);
+  }, 0);
+  const nonControllingInterestProfit = totalConsolidatedProfit - holdingAttributableProfit;
 
   const handleAddEntity = (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,7 +230,9 @@ export default function ConsolidationPage() {
             <CardTitle className="text-2xl font-bold text-emerald-600">{formatIDR(totalConsolidatedProfit)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Setelah alokasi laba kepentingan non-pengendali</p>
+            <p className="text-xs text-muted-foreground">
+              Induk: <strong className="text-foreground">{formatIDR(holdingAttributableProfit)}</strong> | Non-Pengendali: <strong className="text-foreground">{formatIDR(nonControllingInterestProfit)}</strong>
+            </p>
           </CardContent>
         </Card>
 
