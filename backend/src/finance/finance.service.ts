@@ -482,19 +482,44 @@ export class FinanceService {
       0,
     );
 
-    const totalAssets = totalCash + inventoryValue + fixedAssetValue;
+    // 4. Accounts Receivable (AR) from active sales invoices
+    const arInvoices = await this.prisma.invoice.findMany({
+      where: {
+        company_id: companyId,
+        type: 'AR',
+        status: { in: ['POSTED', 'PARTIALLY PAID'] },
+      },
+    });
+    const totalAR = arInvoices.reduce(
+      (sum, inv) => sum + (Number(inv.remaining_amount) || 0),
+      0,
+    );
 
-    // For MVP, Liabilities = 0, Equity = Assets - Liabilities
-    const totalLiabilities = 0;
-    const totalEquity = totalAssets;
+    // 5. Accounts Payable (AP) from active purchase invoices / vendor bills
+    const apInvoices = await this.prisma.invoice.findMany({
+      where: {
+        company_id: companyId,
+        type: 'AP',
+        status: { in: ['POSTED', 'PARTIALLY PAID'] },
+      },
+    });
+    const totalAP = apInvoices.reduce(
+      (sum, inv) => sum + (Number(inv.remaining_amount) || 0),
+      0,
+    );
+
+    const totalAssets = totalCash + inventoryValue + fixedAssetValue + totalAR;
+    const totalLiabilities = totalAP;
+    const totalEquity = totalAssets - totalLiabilities;
 
     return {
       assets: [
         { name: 'Kas & Bank', amount: totalCash },
+        { name: 'Piutang Usaha', amount: totalAR },
         { name: 'Persediaan Barang', amount: inventoryValue },
         { name: 'Aset Tetap', amount: fixedAssetValue },
       ],
-      liabilities: [{ name: 'Hutang Dagang', amount: 0 }],
+      liabilities: [{ name: 'Hutang Dagang (AP)', amount: totalAP }],
       equity: [{ name: 'Modal Pemilik', amount: totalEquity }],
       totalAssets,
       totalLiabilities,

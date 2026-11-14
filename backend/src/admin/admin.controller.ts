@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -15,6 +15,12 @@ export class AdminController {
   @Get('overview-stats')
   async getOverviewStats() {
     return this.adminService.getOverviewStats();
+  }
+
+  @Get('audit-logs')
+  async getAuditLogs(@Request() req: any) {
+    const companyId = req?.user?.company_id || req?.user?.companyId;
+    return this.adminService.getAuditLogs(companyId);
   }
 
   @Patch('users/:id')

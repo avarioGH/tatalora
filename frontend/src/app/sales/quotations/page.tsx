@@ -226,7 +226,7 @@ export default function QuotationsPage() {
  <h1 className="text-[28px] font-bold tracking-tight text-foreground">Quotations</h1>
  <p className="text-muted-foreground mt-1">Manage sales offers and proposals for your customers.</p>
  </div>
- <Button className="shadow-sm"><Plus className="w-4 h-4 mr-2" /> New Quotation</Button>
+ <Button onClick={() => window.location.href = "/sales/quotations/create"} className="shadow-sm"><Plus className="w-4 h-4 mr-2" /> New Quotation</Button>
  </div>
 
  <Card className="shadow-sm">

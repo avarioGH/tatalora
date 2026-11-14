@@ -122,4 +122,12 @@ export class AdminService {
       },
     });
   }
+
+  async getAuditLogs(companyId: string) {
+    return this.prisma.auditLog.findMany({
+      where: companyId ? { company_id: companyId } : {},
+      orderBy: { created_at: 'desc' },
+      take: 100,
+    });
+  }
 }
