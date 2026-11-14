@@ -267,23 +267,31 @@ export default function CreateQuotationPage() {
         memo,
         currency,
         subtotal,
-        discount_percent: discountType === "percent" ? globalDiscountVal : 0,
+        discount_percent: discountType === "percent" ? Number(globalDiscountVal || 0) : 0,
         discount_amount: globalDiscount,
+        tax: lineTaxTotal,
         total,
         total_amount: total,
         status,
-        items: validItems.map(it => ({
-          productId: it.product_id,
-          product_id: it.product_id,
-          description: it.description,
-          qty: Number(it.qty),
-          unit: it.unit,
-          price: Number(it.price),
-          unit_price: Number(it.price),
-          discount: (Number(it.qty) * Number(it.price) * (Number(it.discount_percent) || 0)) / 100,
-          tax: lineTaxTotal,
-          subtotal: it.total
-        }))
+        items: validItems.map(it => {
+          const itemGross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+          const itemDisc = (itemGross * (Number(it.discount_percent) || 0)) / 100
+          const itemBase = Math.max(0, itemGross - itemDisc)
+          const itemTax = (itemBase * (Number(it.tax_percent) || 0)) / 100
+          return {
+            productId: it.product_id,
+            product_id: it.product_id,
+            description: it.description,
+            qty: Number(it.qty),
+            unit: it.unit,
+            price: Number(it.price),
+            unit_price: Number(it.price),
+            discount: itemDisc,
+            tax: itemTax,
+            taxRate: (Number(it.tax_percent) || 0) / 100,
+            subtotal: Number(it.total) || (itemBase + itemTax)
+          }
+        })
       }
 
       await B2BApi.createQuotation(payload)

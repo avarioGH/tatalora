@@ -148,20 +148,25 @@ export default function QuotationsPage() {
  </tr>
  </thead>
  <tbody>
- {(details.lines || []).length === 0 ? (
+ {((details.items || details.lines || []).length === 0) ? (
  <tr><td colSpan={4} className="text-center p-4 md:p-8 text-muted-foreground">No lines available.</td></tr>
  ) : (
- details.lines.map((line: any, i: number) => (
- <tr key={i} className="border-b last:border-0 hover:bg-muted/60 transition-colors">
- <td className="p-4">
- <p className="font-medium">{line.product?.name || line.product_id}</p>
- {line.description && <p className="text-xs text-muted-foreground mt-0.5">{line.description}</p>}
- </td>
- <td className="p-4 text-center">{line.quantity}</td>
- <td className="p-4 text-right">Rp {Number(line.unit_price || 0).toLocaleString('id-ID')}</td>
- <td className="p-4 text-right font-medium">Rp {Number(line.subtotal || (line.quantity * line.unit_price) || 0).toLocaleString('id-ID')}</td>
- </tr>
- ))
+ (details.items || details.lines || []).map((line: any, i: number) => {
+   const lineQty = Number(line.qty || line.quantity || 1);
+   const linePrice = Number(line.price || line.unit_price || 0);
+   const lineSubtotal = Number(line.subtotal || (lineQty * linePrice) || 0);
+   return (
+     <tr key={i} className="border-b last:border-0 hover:bg-muted/60 transition-colors">
+     <td className="p-4">
+     <p className="font-medium">{line.product?.name || line.product_name || line.product_id}</p>
+     {line.description && <p className="text-xs text-muted-foreground mt-0.5">{line.description}</p>}
+     </td>
+     <td className="p-4 text-center">{lineQty} {line.unit || 'Pcs'}</td>
+     <td className="p-4 text-right">Rp {linePrice.toLocaleString('id-ID')}</td>
+     <td className="p-4 text-right font-medium">Rp {lineSubtotal.toLocaleString('id-ID')}</td>
+     </tr>
+   );
+ })
  )}
  </tbody>
  </table>

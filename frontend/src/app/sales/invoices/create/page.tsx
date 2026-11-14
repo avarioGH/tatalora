@@ -207,9 +207,12 @@ export default function CreateSalesInvoicePage() {
     const qty = Number(item.qty || 0)
     const price = Number(item.price || 0)
     const discPct = Number(item.discount_percent || 0)
+    const taxPct = Number(item.tax_percent || 0)
     const gross = qty * price
     const lineDiscount = (gross * discPct) / 100
-    item.total = Math.max(0, gross - lineDiscount)
+    const taxableBase = Math.max(0, gross - lineDiscount)
+    const lineTax = (taxableBase * taxPct) / 100
+    item.total = taxableBase + lineTax
 
     updated[index] = item
     setItems(updated)
@@ -239,7 +242,17 @@ export default function CreateSalesInvoicePage() {
   }
 
   // Calculations
-  const subtotal = items.reduce((acc, it) => acc + (it.total || 0), 0)
+  const subtotal = items.reduce((acc, it) => {
+    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
+    return acc + Math.max(0, gross - disc)
+  }, 0)
+  const lineTaxTotal = items.reduce((acc, it) => {
+    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
+    const base = Math.max(0, gross - disc)
+    return acc + ((base * (Number(it.tax_percent) || 0)) / 100)
+  }, 0)
   const lineDiscountTotal = items.reduce((acc, it) => {
     const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
     return acc + (gross * (Number(it.discount_percent) || 0) / 100)
@@ -249,7 +262,7 @@ export default function CreateSalesInvoicePage() {
     ? (subtotal * Number(globalDiscountVal || 0)) / 100
     : Number(globalDiscountVal || 0)
 
-  const total = Math.max(0, subtotal - globalDiscount)
+  const total = Math.max(0, subtotal - globalDiscount + lineTaxTotal)
   const balanceDue = total
 
   // Format Rupiah
@@ -292,19 +305,26 @@ export default function CreateSalesInvoicePage() {
         memo,
         currency,
         subtotal,
-        discount_percent: discountType === "percent" ? globalDiscountVal : 0,
+        discount_percent: discountType === "percent" ? Number(globalDiscountVal || 0) : 0,
         discount_amount: globalDiscount,
+        tax: lineTaxTotal,
         total,
         status: shouldPost ? "POSTED" : "DRAFT",
-        items: validItems.map(it => ({
-          product_id: it.product_id,
-          description: it.description,
-          qty: Number(it.qty),
-          unit_price: Number(it.price),
-          discount: (Number(it.qty) * Number(it.price) * (Number(it.discount_percent) || 0)) / 100,
-          tax: 0,
-          subtotal: it.total
-        }))
+        items: validItems.map(it => {
+          const itemGross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+          const itemDisc = (itemGross * (Number(it.discount_percent) || 0)) / 100
+          const itemBase = Math.max(0, itemGross - itemDisc)
+          const itemTax = (itemBase * (Number(it.tax_percent) || 0)) / 100
+          return {
+            product_id: it.product_id,
+            description: it.description,
+            qty: Number(it.qty),
+            unit_price: Number(it.price),
+            discount: itemDisc,
+            tax: itemTax,
+            subtotal: Number(it.total) || (itemBase + itemTax)
+          }
+        })
       }
 
       const res = await api.post("/finance/invoices", payload)
@@ -629,14 +649,23 @@ export default function CreateSalesInvoicePage() {
                       </TableCell>
 
                       <TableCell className="p-2 text-center">
-                        <Select defaultValue="none">
+                        <Select 
+                          value={row.tax_percent === 0 ? "0" : String(row.tax_percent)}
+                          onValueChange={(val) => {
+                            let rate = 0
+                            if (val === "ppn11") rate = 11
+                            else if (val === "ppn12") rate = 12
+                            else rate = parseFloat(val || "0") || 0
+                            handleItemChange(index, "tax_percent", rate)
+                          }}
+                        >
                           <SelectTrigger className="h-9 bg-background border-border text-xs">
                             <SelectValue placeholder="Pajak" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">0%</SelectItem>
-                            <SelectItem value="ppn11">PPN 11%</SelectItem>
-                            <SelectItem value="ppn12">PPN 12%</SelectItem>
+                            <SelectItem value="0">Bebas Pajak (0%)</SelectItem>
+                            <SelectItem value="11">PPN 11%</SelectItem>
+                            <SelectItem value="12">PPN 12%</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -743,6 +772,13 @@ export default function CreateSalesInvoicePage() {
                     {formatIDR(globalDiscount)}
                   </span>
                 </div>
+              </div>
+
+              <div className="flex justify-between items-center py-1">
+                <span className="text-sm text-muted-foreground font-medium">Pajak (PPN)</span>
+                <span className="text-sm text-foreground font-semibold">
+                  {formatIDR(lineTaxTotal)}
+                </span>
               </div>
 
               <div className="border-t border-border my-2 pt-3 flex justify-between items-center">

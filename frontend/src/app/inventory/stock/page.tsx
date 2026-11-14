@@ -52,6 +52,7 @@ export default function StockAvailablePage() {
   products.forEach(p => {
     const totalQty = p.warehouse_stocks?.reduce((s: number, ws: any) => s + (Number(ws.quantity) || 0), 0) || Number(p.stock) || 0
     const minQty = Number(p.min_stock) || 10
+    const unitName = typeof p.unit === 'object' && p.unit !== null ? (p.unit.name || 'Pcs') : (typeof p.unit === 'string' ? p.unit : 'Pcs')
     
     let defaultStatus = "Tersedia"
     if (totalQty === 0) defaultStatus = "Habis"
@@ -73,7 +74,7 @@ export default function StockAvailablePage() {
           warehouse: whName,
           warehouseId: ws.warehouse_id,
           qty: q,
-          unit: p.unit || 'Pcs',
+          unit: unitName,
           status: st
         })
       })
@@ -86,7 +87,7 @@ export default function StockAvailablePage() {
         warehouse: 'Gudang Utama',
         warehouseId: 'default',
         qty: totalQty,
-        unit: p.unit || 'Pcs',
+        unit: unitName,
         status: defaultStatus
       })
     }
