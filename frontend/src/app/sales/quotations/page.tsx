@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Loader2, Plus, Eye, Search, Filter, ChevronLeft, Send, CheckCircle2, FileText, Download, X } from 'lucide-react'
+import { Loader2, Plus, Eye, Edit3, Search, Filter, ChevronLeft, Send, CheckCircle2, FileText, Download, X } from 'lucide-react'
 
 export default function QuotationsPage() {
  const [data, setData] = useState<any[]>([])
@@ -113,6 +113,9 @@ export default function QuotationsPage() {
  <Button variant="outline"><Download className="w-4 h-4 mr-2" /> PDF</Button>
  {details.status === 'DRAFT' && (
  <>
+ <Button onClick={() => window.location.href = `/sales/quotations/create?edit_id=${details.id}`} variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
+   <Edit3 className="w-4 h-4 mr-2" /> Ubah Draf
+ </Button>
  <Button variant="secondary"><Send className="w-4 h-4 mr-2" /> Send by Email</Button>
  <Button onClick={handleReject} variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50"><X className="w-4 h-4 mr-2" /> Tolak Penawaran</Button>
                   <Button onClick={handleConfirm} className="">

@@ -176,7 +176,11 @@ export default function ContactsPage() {
                   <TableRow key={c.id} className="hover:bg-muted/30">
                     <TableCell><input type="checkbox" className="rounded border-gray-300" /></TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">{c.code || '-'}</TableCell>
-                    <TableCell className="font-semibold text-foreground">{c.name}</TableCell>
+                    <TableCell>
+                      <Link href={`/crm/partners/${c.id}`} className="font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                        {c.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{getTypeBadge(c.roles)}</TableCell>
                     <TableCell className="text-muted-foreground text-xs">{c.company_name || '-'}</TableCell>
                     <TableCell className="font-medium text-xs flex items-center gap-1.5 py-4">
@@ -189,15 +193,26 @@ export default function ContactsPage() {
                       {c.address || '-'}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(c.id, c.name)}
-                        className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 w-8"
-                        title="Hapus Kontak"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center justify-center gap-1">
+                        <Link href={`/crm/partners/${c.id}`}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 h-8 text-xs font-medium"
+                          >
+                            Detail / Ubah
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(c.id, c.name)}
+                          className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 w-8"
+                          title="Hapus Kontak"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

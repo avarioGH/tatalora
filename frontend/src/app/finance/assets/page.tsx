@@ -34,6 +34,7 @@ import { downloadCSV, parseCSV } from "@/lib/csv-helper"
 export default function FixedAssetsPage() {
   const [assets, setAssets] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
+  const [accounts, setAccounts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState("Daftar Aset")
@@ -46,9 +47,14 @@ export default function FixedAssetsPage() {
     asset_name: "",
     category_id: "",
     purchase_price: "",
+    salvage_value: "0",
     purchase_date: new Date().toISOString().split("T")[0],
+    depreciation_start_date: new Date().toISOString().split("T")[0],
     depreciation_method: "Garis Lurus",
     useful_life: "48", // 4 tahun
+    asset_account_id: "",
+    accum_deprec_account_id: "",
+    deprec_expense_account_id: "",
     condition: "GOOD",
     location: "",
     notes: ""
@@ -64,12 +70,14 @@ export default function FixedAssetsPage() {
   const fetchAssets = async () => {
     setLoading(true)
     try {
-      const [resAssets, resCats] = await Promise.all([
+      const [resAssets, resCats, resAccs] = await Promise.all([
         AssetAPI.getAssets().catch(() => []),
-        api.get('/asset/categories').catch(() => ({ data: [] }))
+        api.get('/asset/categories').catch(() => ({ data: [] })),
+        api.get('/gl/accounts').catch(() => ({ data: [] }))
       ])
       setAssets(Array.isArray(resAssets) ? resAssets : [])
       setCategories(Array.isArray(resCats.data) ? resCats.data : [])
+      setAccounts(Array.isArray(resAccs.data) ? resAccs.data : [])
     } catch (err) {
       console.error(err)
     } finally {
@@ -187,9 +195,14 @@ export default function FixedAssetsPage() {
         asset_name: "",
         category_id: "",
         purchase_price: "",
+        salvage_value: "0",
         purchase_date: new Date().toISOString().split("T")[0],
+        depreciation_start_date: new Date().toISOString().split("T")[0],
         depreciation_method: "Garis Lurus",
         useful_life: "48",
+        asset_account_id: "",
+        accum_deprec_account_id: "",
+        deprec_expense_account_id: "",
         condition: "GOOD",
         location: "",
         notes: ""
@@ -441,6 +454,26 @@ export default function FixedAssetsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
+                <Label className="text-xs">Nilai Residu / Sisa (Rp)</Label>
+                <Input 
+                  type="number" 
+                  value={form.salvage_value} 
+                  onChange={e => setForm({ ...form, salvage_value: e.target.value })} 
+                  placeholder="0" 
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Mulai Disusutkan</Label>
+                <Input 
+                  type="date" 
+                  value={form.depreciation_start_date} 
+                  onChange={e => setForm({ ...form, depreciation_start_date: e.target.value })} 
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
                 <Label className="text-xs">Metode Penyusutan</Label>
                 <Select 
                   value={form.depreciation_method} 
@@ -465,6 +498,58 @@ export default function FixedAssetsPage() {
                   placeholder="48" 
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-border/50 pt-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Akun Aset Tetap</Label>
+                <Select 
+                  value={form.asset_account_id} 
+                  onValueChange={val => setForm({ ...form, asset_account_id: val || "" })}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Pilih Akun Aset Tetap..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card">
+                    {accounts.filter(a => a.account_code?.startsWith('1-2') || a.account_type?.name?.includes('Tetap')).map(a => (
+                      <SelectItem key={a.id} value={a.id}>{a.account_code} - {a.account_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Akun Akumulasi Penyusutan</Label>
+                <Select 
+                  value={form.accum_deprec_account_id} 
+                  onValueChange={val => setForm({ ...form, accum_deprec_account_id: val || "" })}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Pilih Akun Akumulasi..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card">
+                    {accounts.filter(a => a.account_name?.includes('Akumulasi') || a.account_code?.startsWith('1-20002') || a.account_code?.startsWith('1-20004')).map(a => (
+                      <SelectItem key={a.id} value={a.id}>{a.account_code} - {a.account_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs">Akun Beban Penyusutan</Label>
+              <Select 
+                value={form.deprec_expense_account_id} 
+                onValueChange={val => setForm({ ...form, deprec_expense_account_id: val || "" })}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Pilih Akun Beban Penyusutan..." />
+                </SelectTrigger>
+                <SelectContent className="bg-card">
+                  {accounts.filter(a => a.account_name?.includes('Penyusutan') && a.account_code?.startsWith('6-')).map(a => (
+                    <SelectItem key={a.id} value={a.id}>{a.account_code} - {a.account_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-1.5">
