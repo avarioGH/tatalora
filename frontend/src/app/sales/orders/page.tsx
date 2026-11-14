@@ -87,16 +87,17 @@ export default function SalesOrdersPage() {
    }
  }
 
- const getStatusBadge = (status: string) => {
- switch (status) {
- case 'PENDING': return <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300">Pending</Badge>
- case 'CONFIRMED': return <Badge className="">Confirmed</Badge>
- case 'DELIVERED': return <Badge className="">Delivered</Badge>
- case 'INVOICED': return <Badge variant="outline" className="border-emerald-500 text-primary">Invoiced</Badge>
- case 'CANCELLED': return <Badge variant="destructive">Cancelled</Badge>
- default: return <Badge variant="outline">{status}</Badge>
- }
- }
+  const getStatusBadge = (status: string, fulfillmentType?: string) => {
+    switch (status) {
+      case 'PENDING': return <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300">Pending</Badge>
+      case 'CONFIRMED': return <Badge className="bg-blue-600 text-white">Confirmed</Badge>
+      case 'DELIVERED': return <Badge className="bg-emerald-600 text-white">Delivered</Badge>
+      case 'COMPLETED': return <Badge className="bg-emerald-700 text-white">Selesai {fulfillmentType === 'POS' ? '(POS/Langsung)' : ''}</Badge>
+      case 'INVOICED': return <Badge variant="outline" className="border-emerald-500 text-primary">Invoiced</Badge>
+      case 'CANCELLED': return <Badge variant="destructive">Cancelled</Badge>
+      default: return <Badge variant="outline">{status}</Badge>
+    }
+  }
 
  const filtered = (Array.isArray(data) ? data : []).filter(item => 
  item.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -149,11 +150,11 @@ export default function SalesOrdersPage() {
  <CheckCircle2 className="w-4 h-4" /> Sales Order
  </div>
  <div className="h-px bg-border flex-1 mx-2 min-w-[20px]"></div>
- <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${details.status === 'DELIVERED' || details.status === 'INVOICED' ? 'bg-emerald-100 text-primary' : 'text-muted-foreground'}`}>
- <Truck className="w-4 h-4" /> Delivery
+ <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${details.status === 'DELIVERED' || details.status === 'COMPLETED' || details.status === 'INVOICED' ? 'bg-emerald-100 text-primary' : 'text-muted-foreground'}`}>
+ <Truck className="w-4 h-4" /> {details.status === 'COMPLETED' && (!details.deliveries || details.deliveries.length === 0) ? 'Fulfillment (Langsung/POS)' : 'Delivery'}
  </div>
  <div className="h-px bg-border flex-1 mx-2 min-w-[20px]"></div>
- <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${details.status === 'INVOICED' ? 'bg-emerald-100 text-primary' : 'text-muted-foreground'}`}>
+ <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${details.status === 'INVOICED' || details.status === 'COMPLETED' ? 'bg-emerald-100 text-primary' : 'text-muted-foreground'}`}>
  <FileOutput className="w-4 h-4" /> Invoice
  </div>
  </div>
@@ -189,7 +190,13 @@ export default function SalesOrdersPage() {
  {line.description && <p className="text-xs text-muted-foreground mt-0.5">{line.description}</p>}
  </td>
  <td className="p-4 text-center font-medium">{(line.qty || line.quantity || 0)}</td>
- <td className="p-4 text-center text-muted-foreground">{line.delivered_quantity || 0}</td>
+ <td className="p-4 text-center text-muted-foreground">
+   {line.delivered_quantity !== undefined && line.delivered_quantity !== null && Number(line.delivered_quantity) > 0
+     ? line.delivered_quantity
+     : details.status === 'COMPLETED'
+     ? `${(line.qty || line.quantity || 0)} (Langsung/POS)`
+     : 0}
+ </td>
  <td className="p-4 text-right">Rp {Number(line.unit_price || 0).toLocaleString('id-ID')}</td>
  <td className="p-4 text-right font-medium">Rp {Number(line.subtotal || ((line.qty || line.quantity || 0) * line.unit_price) || 0).toLocaleString('id-ID')}</td>
  </tr>

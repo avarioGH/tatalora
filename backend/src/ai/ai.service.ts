@@ -54,6 +54,15 @@ export class AiService {
       {
         type: 'function',
         function: {
+          name: 'get_ap_debts_summary',
+          description:
+            'Get current outstanding accounts payable (utang usaha / tagihan pembelian vendor) from active AP invoices.',
+          parameters: { type: 'object', properties: {} },
+        },
+      },
+      {
+        type: 'function',
+        function: {
           name: 'get_timber_logs_summary',
           description:
             'Get a summary of timber and logs inventory including raw logs, trimmed logs, and sawn timber stock.',
@@ -246,6 +255,8 @@ HANYA jawab sesuai dengan pertanyaan yang diajukan. Jangan menawarkan hal lain. 
             apiResponse = await this.getTimberLogsSummary(user.company_id);
           } else if (toolCall.function.name === 'get_financial_summary') {
             apiResponse = await this.getFinancialSummary(user.company_id);
+          } else if (toolCall.function.name === 'get_ap_debts_summary') {
+            apiResponse = await this.getApDebtsSummary(user.company_id);
           } else if (toolCall.function.name === 'get_inventory_status') {
             apiResponse = await this.getInventoryStatus(
               user.company_id,
@@ -334,6 +345,37 @@ HANYA jawab sesuai dengan pertanyaan yang diajukan. Jangan menawarkan hal lain. 
   }
 
   // --- Read Tools ---
+  private async getApDebtsSummary(companyId: string) {
+    const apInvoices = await this.prisma.invoice.findMany({
+      where: {
+        company_id: companyId,
+        type: 'AP',
+        status: { in: ['UNPAID', 'PARTIALLY_PAID', 'OVERDUE', 'DRAFT', 'ISSUED'] },
+      },
+      include: {
+        customer: true,
+      },
+    });
+
+    const items = apInvoices.map((inv) => ({
+      invoiceNumber: inv.invoice_number,
+      vendor: inv.customer?.name || 'Vendor',
+      dueDate: inv.due_date,
+      totalAmount: Number(inv.total_amount),
+      remainingAmount: Number(inv.remaining_amount !== undefined && inv.remaining_amount !== null ? inv.remaining_amount : inv.total_amount),
+      status: inv.status,
+    }));
+
+    const totalOutstandingDebt = items.reduce((sum, i) => sum + i.remainingAmount, 0);
+
+    return {
+      totalDebt: totalOutstandingDebt,
+      totalDebtFormatted: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalOutstandingDebt),
+      invoices: items,
+      source: 'Subledger Hutang Usaha (Menu Pembelian > Faktur Pembelian)',
+    };
+  }
+
   private async getFinancialSummary(companyId: string) {
     const accounts = await this.prisma.cashAccount.findMany({
       where: { company_id: companyId },

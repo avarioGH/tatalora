@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { 
   Card, CardContent, CardHeader, CardTitle
 } from "@/components/ui/card"
@@ -166,19 +167,32 @@ export default function CreateExpensePage() {
             <CardContent className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label className="text-foreground font-semibold">Dibayar Dari Rekening <span className="text-rose-500">*</span></Label>
-                  <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val || "")}>
-                    <SelectTrigger className="bg-muted border-border">
-                      <SelectValue placeholder={loading ? "Memuat akun..." : "Pilih Kas/Bank"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cashAccounts.map(acc => (
-                        <SelectItem key={acc.id} value={acc.id}>
-                          {acc.name} ({acc.account_code || "Kas/Bank"})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex justify-between items-center">
+                    <Label className="text-foreground font-semibold">Dibayar Dari Rekening <span className="text-rose-500">*</span></Label>
+                    {cashAccounts.length === 0 && !loading && (
+                      <Link href="/finance/cash-reconciliation" className="text-xs text-blue-600 hover:underline">
+                        + Tambah Kas/Bank
+                      </Link>
+                    )}
+                  </div>
+                  {cashAccounts.length === 0 && !loading ? (
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+                      Belum ada akun Kas/Bank yang dikonfigurasi. Silakan setup akun kas di <Link href="/finance/cash-reconciliation" className="font-semibold underline">Kas & Bank</Link> terlebih dahulu.
+                    </div>
+                  ) : (
+                    <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val || "")}>
+                      <SelectTrigger className="bg-muted border-border">
+                        <SelectValue placeholder={loading ? "Memuat akun..." : "Pilih Kas/Bank"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cashAccounts.map(acc => (
+                          <SelectItem key={acc.id} value={acc.id}>
+                            {acc.name} ({acc.account_code || "Kas/Bank"})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -318,19 +332,26 @@ export default function CreateExpensePage() {
               <div className="pt-6">
                 <Button 
                   type="submit" 
-                  disabled={submitting} 
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg transition-all py-6 text-base font-semibold gap-2"
+                  disabled={submitting || cashAccounts.length === 0} 
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg transition-all py-6 text-base font-semibold gap-2 disabled:opacity-50"
                 >
                   {submitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...
                     </>
+                  ) : cashAccounts.length === 0 ? (
+                    "Setup Kas/Bank Dahulu"
                   ) : (
                     <>
                       <Save className="w-4 h-4" /> Simpan Biaya Operasional
                     </>
                   )}
                 </Button>
+                {cashAccounts.length === 0 && (
+                  <p className="text-xs text-center text-muted-foreground mt-2">
+                    Tombol simpan dinonaktifkan karena belum ada rekening Kas/Bank sumber.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -50,7 +50,9 @@ export default function CreateRFQPage() {
           api.get("/crm/partners").catch(() => ({ data: [] })),
           InventoryAPI.getProducts().catch(() => [])
         ])
-        const rawSuppliers = supRes?.data?.data || supRes?.data || (Array.isArray(supRes) ? supRes : [])
+        const rawSuppliers = (supRes?.data?.data || supRes?.data || (Array.isArray(supRes) ? supRes : [])).filter((s: any) => 
+          !s.type || s.type === 'vendor' || s.type === 'supplier' || s.type === 'both'
+        )
         const rawProducts = prodRes?.data || (Array.isArray(prodRes) ? prodRes : [])
         setSuppliers(rawSuppliers)
         setProducts(rawProducts)

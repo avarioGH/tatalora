@@ -107,6 +107,12 @@ export default function PosNewTransactionPage() {
   )
 
   const addToCart = (product: any) => {
+    if (product.stock <= 0) {
+      const confirmAdd = window.confirm(
+        'PERINGATAN STOK: Produk "' + product.name + '" saat ini memiliki stok ' + product.stock + ' (stok habis/negatif).\n\nApakah Anda tetap ingin memasukkan produk ini ke keranjang penjualan?'
+      );
+      if (!confirmAdd) return;
+    }
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id)
       if (existing) return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item)

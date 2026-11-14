@@ -303,6 +303,7 @@ export default function ProductInventory() {
    const totalTersedia = filteredProducts.filter(p => { const s = warehouses.reduce((sum, wh) => sum + (p.stockMap[wh.id] || 0), 0); return s > 10; }).length;
   const totalHampirHabis = filteredProducts.filter(p => { const s = warehouses.reduce((sum, wh) => sum + (p.stockMap[wh.id] || 0), 0); return s > 0 && s <= 10; }).length;
   const totalHabis = filteredProducts.filter(p => { const s = warehouses.reduce((sum, wh) => sum + (p.stockMap[wh.id] || 0), 0); return s === 0; }).length;
+  const totalNegatif = filteredProducts.filter(p => { const s = warehouses.reduce((sum, wh) => sum + (p.stockMap[wh.id] || 0), 0); return s < 0; }).length;
   const totalStok = filteredProducts.reduce((sum, p) => sum + warehouses.reduce((s, wh) => s + (p.stockMap[wh.id] || 0), 0), 0);
   const totalNilai = filteredProducts.reduce((sum, p) => sum + (p.price * warehouses.reduce((s, wh) => s + (p.stockMap[wh.id] || 0), 0)), 0);
   const totalHPP = filteredProducts.reduce((sum, p) => sum + (Number(p.purchase_price || 0) * warehouses.reduce((s, wh) => s + (p.stockMap[wh.id] || 0), 0)), 0);
@@ -563,6 +564,19 @@ export default function ProductInventory() {
               </div>
             </CardContent>
           </Card>
+          {totalNegatif > 0 && (
+            <Card className="w-[220px] shadow-sm border-l-4 border-l-red-600 bg-red-500/5">
+              <CardContent className="p-4">
+                <p className="text-xs text-red-600 dark:text-red-400 font-semibold mb-2 flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Pengecualian Stok Negatif
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">!</div>
+                  <span className="text-2xl font-bold text-red-600">{totalNegatif} SKU</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           <Card className="w-[200px] shadow-sm border-l-4 border-l-orange-500">
             <CardContent className="p-4">
               <p className="text-xs text-muted-foreground font-medium mb-2">Total Stok</p>
@@ -856,7 +870,15 @@ export default function ProductInventory() {
                       <TableCell>Pcs</TableCell>
                       <TableCell className="text-right">{formatIDR(Number(p.purchase_price || 0))}</TableCell>
                       <TableCell className="text-right">{formatIDR(p.price)}</TableCell>
-                      <TableCell className="text-center font-semibold">{totalStock}</TableCell>
+                      <TableCell className="text-center font-semibold">
+                        {totalStock < 0 ? (
+                          <Badge variant="destructive" className="bg-red-500/10 text-red-600 border border-red-500/30 font-bold">
+                            {totalStock} (Negatif)
+                          </Badge>
+                        ) : (
+                          totalStock
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">{formatIDR(Number(p.purchase_price || 0))}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>

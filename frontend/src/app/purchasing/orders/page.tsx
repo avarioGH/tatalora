@@ -65,6 +65,18 @@ export default function PurchaseOrdersPage() {
     }
   }
 
+
+  const getBillStatusBadge = (billStatus: string) => {
+    const raw = (billStatus || '').toUpperCase();
+    if (raw === 'LUNAS' || raw === 'BILLED') {
+      return <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Lunas</Badge>;
+    }
+    if (raw === 'DITAGIH' || raw === 'PARTIAL') {
+      return <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">Ditagih</Badge>;
+    }
+    return <Badge variant="secondary" className="text-[10px]">Belum Ditagih</Badge>;
+  };
+
   const formatIDR = (val: number) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
   }
@@ -190,7 +202,7 @@ export default function PurchaseOrdersPage() {
                         <Badge variant="secondary" className="text-[10px]">{item.receipt_status || 'PENDING'}</Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="secondary" className="text-[10px]">{item.bill_status || 'PENDING'}</Badge>
+                        {getBillStatusBadge(item.bill_status)}
                       </TableCell>
                       <TableCell className="font-bold text-right text-foreground">{formatIDR(Number(item.total_amount) || 0)}</TableCell>
                       <TableCell className="text-center">{getStatusBadge(item.status)}</TableCell>

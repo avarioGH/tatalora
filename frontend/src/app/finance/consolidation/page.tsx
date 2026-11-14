@@ -1,21 +1,38 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { 
-  Building2, Plus, Download, Search, CheckCircle2, RefreshCcw, Layers, ArrowUpRight, TrendingUp, PieChart, FileText
+  Building2, Plus, Download, Layers, AlertCircle, Info, Sparkles
 } from "lucide-react"
 
 export default function ConsolidationPage() {
   const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState("")
+  const [modalOpen, setModalOpen] = useState(false)
+  const [newEntity, setNewEntity] = useState({
+    name: "",
+    code: "",
+    ownership: "100%",
+    revenue: "",
+    net_profit: "",
+    assets: ""
+  })
 
-  const companies = [
+  const [companies, setCompanies] = useState([
     {
       id: "comp-1",
       name: "BOOSTUP INDONESIA (Holding)",
@@ -49,7 +66,7 @@ export default function ConsolidationPage() {
       assets: 280000000,
       ownership: "70%"
     }
-  ]
+  ])
 
   const formatIDR = (val: number) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
@@ -59,19 +76,43 @@ export default function ConsolidationPage() {
   const totalConsolidatedProfit = companies.reduce((a, c) => a + c.net_profit, 0)
   const totalConsolidatedAssets = companies.reduce((a, c) => a + c.assets, 0)
 
+  const handleAddEntity = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newEntity.name) return
+    const created = {
+      id: "comp-" + Date.now(),
+      name: newEntity.name,
+      code: newEntity.code || `ID-${Math.floor(100000 + Math.random() * 900000)}`,
+      role: "Subsidiary",
+      currency: "IDR",
+      revenue: Number(newEntity.revenue) || 0,
+      net_profit: Number(newEntity.net_profit) || 0,
+      assets: Number(newEntity.assets) || 0,
+      ownership: newEntity.ownership || "100%"
+    }
+    setCompanies([...companies, created])
+    setModalOpen(false)
+    setNewEntity({ name: "", code: "", ownership: "100%", revenue: "", net_profit: "", assets: "" })
+  }
+
   return (
     <div className="p-6 md:p-8 space-y-6 bg-background min-h-screen pb-24">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-            <div className="p-2 bg-indigo-500/10 rounded-lg">
-              <Layers className="h-6 w-6 text-indigo-600" />
-            </div>
-            Konsolidasi Keuangan Antar Perusahaan (Multi-Entity)
-          </h1>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+              <div className="p-2 bg-indigo-500/10 rounded-lg">
+                <Layers className="h-6 w-6 text-indigo-600" />
+              </div>
+              Konsolidasi Keuangan Antar Perusahaan (Multi-Entity)
+            </h1>
+            <Badge variant="outline" className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-300 text-xs">
+              <Sparkles className="w-3 h-3 mr-1" /> Pratinjau Holding
+            </Badge>
+          </div>
           <p className="text-muted-foreground mt-1 text-sm">
-            Gabungkan dan eliminasi transaksi antar entitas anak perusahaan untuk laporan keuangan holding.
+            Gabungkan dan eliminasi transaksi antar entitas anak perusahaan untuk laporan keuangan holding grup (Periode Buku 2026).
           </p>
         </div>
 
@@ -79,27 +120,106 @@ export default function ConsolidationPage() {
           <Button variant="outline" className="gap-2 bg-card border-border" onClick={() => window.print()}>
             <Download className="w-4 h-4" /> Export Laporan Gabungan
           </Button>
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2" onClick={() => alert("Tambah entitas anak perusahaan baru")}>
+          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2" onClick={() => setModalOpen(true)}>
             <Plus className="w-4 h-4" /> Tambah Entitas Anak
           </Button>
         </div>
       </div>
 
+      {/* Info Banner */}
+      <div className="p-4 bg-muted/40 border border-border rounded-xl flex items-start gap-3 text-xs text-muted-foreground">
+        <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+        <div>
+          <p className="font-semibold text-foreground">Catatan Standar Konsolidasi SAK (PSAK 65):</p>
+          <p>
+            Angka di bawah mencerminkan simulasi agregat pendapatan, laba, dan aset dari entitas holding dan anak. 
+            Transaksi antar entitas (intercompany debt/sales) otomatis dieliminasi saat penutupan buku tahunan grup.
+          </p>
+        </div>
+      </div>
+
+      {/* Modal Dialog Tambah Entitas */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-md bg-card border-border">
+          <form onSubmit={handleAddEntity}>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-indigo-600" />
+                Tambah Entitas Anak Perusahaan
+              </DialogTitle>
+              <DialogDescription>
+                Daftarkan anak perusahaan baru untuk dihubungkan ke dalam grup konsolidasi laporan keuangan holding.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4 text-sm">
+              <div className="space-y-1">
+                <Label>Nama Entitas / Perusahaan <span className="text-rose-500">*</span></Label>
+                <Input 
+                  placeholder="Contoh: PT Bahari Nusantara Perkasa"
+                  value={newEntity.name}
+                  onChange={e => setNewEntity({ ...newEntity, name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Kode Entitas</Label>
+                  <Input 
+                    placeholder="Contoh: ID-405819"
+                    value={newEntity.code}
+                    onChange={e => setNewEntity({ ...newEntity, code: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Porsi Kepemilikan Holding</Label>
+                  <Input 
+                    placeholder="Contoh: 80%"
+                    value={newEntity.ownership}
+                    onChange={e => setNewEntity({ ...newEntity, ownership: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label>Estimasi Pendapatan Tahunan (Rp)</Label>
+                <Input 
+                  type="number"
+                  placeholder="0"
+                  value={newEntity.revenue}
+                  onChange={e => setNewEntity({ ...newEntity, revenue: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+                Batal
+              </Button>
+              <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                Simpan Entitas
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="border shadow-sm bg-card">
           <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-medium">Total Pendapatan Terkonsolidasi</CardDescription>
+            <CardDescription className="text-xs uppercase font-medium">Total Pendapatan Terkonsolidasi (2026)</CardDescription>
             <CardTitle className="text-2xl font-bold text-foreground">{formatIDR(totalConsolidatedRevenue)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-muted-foreground">Gabungan 3 entitas bisnis</p>
+            <p className="text-xs text-muted-foreground">Gabungan {companies.length} entitas bisnis</p>
           </CardContent>
         </Card>
 
         <Card className="border shadow-sm bg-card">
           <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-medium">Total Laba Bersih Konsolidasian</CardDescription>
+            <CardDescription className="text-xs uppercase font-medium">Total Laba Bersih Konsolidasian (2026)</CardDescription>
             <CardTitle className="text-2xl font-bold text-emerald-600">{formatIDR(totalConsolidatedProfit)}</CardTitle>
           </CardHeader>
           <CardContent>

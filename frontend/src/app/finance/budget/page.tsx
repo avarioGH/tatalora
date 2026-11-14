@@ -10,9 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { 
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger 
 } from "@/components/ui/dialog"
+import Link from "next/link"
 import { 
   Plus, Target, TrendingUp, AlertCircle, Calendar, ArrowRight, 
-  Download, Filter, Search, Loader2, Trash2, RefreshCw
+  Download, Filter, Search, Loader2, Trash2, RefreshCw, BookOpen
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
@@ -35,19 +36,24 @@ export default function BudgetManagementPage() {
     used_amount: ""
   })
 
+  const [accounts, setAccounts] = useState<any[]>([])
+
   const loadData = async () => {
     setLoading(true)
     try {
-      const [budgetRes, catRes] = await Promise.all([
+      const [budgetRes, catRes, accRes] = await Promise.all([
         api.get('/finance/budgets').catch(() => ({ data: [] })),
         api.get('/finance/categories').catch(() => ({ data: [] })),
+        api.get('/gl/accounts').catch(() => ({ data: [] })),
       ])
 
       const rawBudgets = Array.isArray(budgetRes.data) ? budgetRes.data : budgetRes.data?.data || []
       const rawCategories = Array.isArray(catRes.data) ? catRes.data : catRes.data?.data || []
+      const rawAccounts = Array.isArray(accRes.data) ? accRes.data : accRes.data?.data || []
 
       setBudgets(rawBudgets)
       setCategories(rawCategories)
+      setAccounts(rawAccounts)
     } catch (err) {
       console.error("Error loading budget data:", err)
       toast.error("Gagal memuat data anggaran riil")
@@ -154,20 +160,38 @@ export default function BudgetManagementPage() {
 
                 <div className="space-y-4 py-4 text-sm">
                   <div>
-                    <label className="block font-semibold mb-1">Kategori / Pos Akun</label>
-                    <select
-                      className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                      value={formData.category_id}
-                      onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                      required
-                    >
-                      <option value="">-- Pilih Pos Kategori Akun --</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} ({c.type})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block font-semibold">Kategori / Pos Akun <span className="text-rose-500">*</span></label>
+                      <Link href="/finance/coa" className="text-xs text-blue-600 hover:underline">
+                        + Kelola Akun (COA)
+                      </Link>
+                    </div>
+
+                    {categories.length === 0 && accounts.length === 0 ? (
+                      <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-700 dark:text-amber-300 space-y-1">
+                        <p className="font-semibold">Master Kategori & Akun Belum Tersedia</p>
+                        <p>Silakan buat akun beban di <Link href="/finance/coa" className="underline font-bold">Daftar Akun (COA)</Link> terlebih dahulu untuk menetapkan target anggaran.</p>
+                      </div>
+                    ) : (
+                      <select
+                        className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        value={formData.category_id}
+                        onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                        required
+                      >
+                        <option value="">-- Pilih Pos Kategori Akun --</option>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            [Kategori] {c.name} ({c.type})
+                          </option>
+                        ))}
+                        {accounts.filter(a => a.account_code?.startsWith('5') || a.account_code?.startsWith('6')).map((a) => (
+                          <option key={a.id} value={a.id}>
+                            [COA] {a.account_code} - {a.account_name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
 
                   <div>

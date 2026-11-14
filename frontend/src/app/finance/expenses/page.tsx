@@ -52,11 +52,18 @@ export default function ExpensesPage() {
     try {
       const res = await api.get('/finance/transactions?limit=100').catch(() => ({ data: [] }))
       const list = res.data?.data || res.data || []
-      const filtered = list.filter((tx: any) => 
-        tx.transaction_type === 'Expense' || 
-        tx.transaction_type === 'Cash Out' || 
-        tx.transaction_type === 'Transfer Out'
-      )
+      const filtered = list.filter((tx: any) => {
+        // Exclude AP bill / vendor bill payments from expenses list so they don't show up as unpaid Rp0 operating expenses
+        const isBillPayment = tx.reference_type === 'PAYMENT' || 
+                              tx.reference_type === 'VENDOR_BILL' || 
+                              tx.reference_type === 'BILL_PAYMENT' ||
+                              (tx.description && tx.description.toLowerCase().includes('pembayaran pay-'))
+        if (isBillPayment) return false
+
+        return tx.transaction_type === 'Expense' || 
+               tx.transaction_type === 'Cash Out' || 
+               tx.transaction_type === 'Transfer Out'
+      })
       setExpenses(filtered)
     } catch (err) {
       console.error("Error loading expenses:", err)
