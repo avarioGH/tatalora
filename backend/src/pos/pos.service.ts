@@ -255,7 +255,13 @@ export class PosService {
 
   async getHistory(companyId: string, warehouseId?: string) {
     return this.prisma.salesOrder.findMany({
-      where: { company_id: companyId, ...(warehouseId ? { warehouse_id: warehouseId } : {}) },
+      where: { 
+        company_id: companyId, 
+        ...(warehouseId ? { warehouse_id: warehouseId } : {}),
+        status: { in: ['COMPLETED', 'DELIVERED', 'PAID'] },
+        // POS orders start with POS or are completed cash desk transactions
+        order_number: { startsWith: 'POS' },
+      },
       include: {
         customer: true,
         allocations: true,

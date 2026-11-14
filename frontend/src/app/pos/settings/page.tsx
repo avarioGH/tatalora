@@ -80,10 +80,16 @@ export default function PosSettingsPage() {
       <div className="flex-1 bg-muted/10 overflow-y-auto p-6 md:p-8 relative">
         
         {/* Toast Notification */}
-        <div className={`absolute top-6 left-1/2 -translate-x-1/2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-full shadow-md border border-emerald-200 flex items-center gap-2 transition-all duration-300 z-50 ${showToast ? 'opacity-100 transform-none' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-          <CheckCircle2 className="w-4 h-4" />
-          <span className="text-sm font-medium">Berhasil mengubah data.</span>
-        </div>
+        {showToast && (
+          <div 
+            role="status" 
+            aria-live="polite" 
+            className="absolute top-6 left-1/2 -translate-x-1/2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-full shadow-md border border-emerald-200 flex items-center gap-2 transition-all duration-300 z-50 animate-in fade-in"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            <span className="text-sm font-medium">Berhasil mengubah data.</span>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex justify-between items-center mb-8 max-w-5xl mx-auto">
@@ -304,6 +310,73 @@ export default function PosSettingsPage() {
                   </TableRow>
                 </TableBody>
               </Table>
+            </Card>
+          )}
+
+          {/* TAB: STRUK & BIAYA */}
+          {activeTab === "Struk & Biaya" && (
+            <Card className="border border-border shadow-sm bg-card overflow-hidden">
+              <div className="bg-muted/30 px-6 py-4 border-b border-border">
+                <h3 className="font-semibold text-foreground text-base flex items-center gap-2">
+                  <Receipt className="w-5 h-5 text-indigo-600" /> Pengaturan Struk Kasir & Biaya Layanan
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Atur teks header, footer, dan biaya tambahan kasir.</p>
+              </div>
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold">Teks Catatan / Footer Struk</label>
+                    <Input defaultValue="Terima kasih atas kunjungan Anda!" onChange={saveSettings} />
+                    <p className="text-xs text-muted-foreground">Teks ini dicetak di bagian paling bawah kertas struk.</p>
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/20">
+                    <div>
+                      <h4 className="font-medium text-sm">Cetak Nomor Antrian</h4>
+                      <p className="text-xs text-muted-foreground">Mencetak nomor antrian pesanan besar di bagian atas struk.</p>
+                    </div>
+                    <Switch defaultChecked onCheckedChange={saveSettings} />
+                  </div>
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/20">
+                    <div>
+                      <h4 className="font-medium text-sm">Tampilkan Rincian Pajak (PPN 11%)</h4>
+                      <p className="text-xs text-muted-foreground">Merinci DPP dan nominal pajak di bawah subtotal struk.</p>
+                    </div>
+                    <Switch defaultChecked onCheckedChange={saveSettings} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* TAB: WEB ORDER */}
+          {activeTab === "Web Order" && (
+            <Card className="border border-border shadow-sm bg-card overflow-hidden">
+              <div className="bg-muted/30 px-6 py-4 border-b border-border">
+                <h3 className="font-semibold text-foreground text-base flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-indigo-600" /> Integrasi Pemesanan Online (Web Order)
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Konfigurasi penerimaan pesanan dari katalog web toko.</p>
+              </div>
+              <CardContent className="p-6 space-y-6">
+                <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/20">
+                  <div>
+                    <h4 className="font-medium text-sm">Terima Pesanan Online Otomatis</h4>
+                    <p className="text-xs text-muted-foreground">Pesanan dari web order otomatis masuk ke daftar pesanan kasir sebagai draf.</p>
+                  </div>
+                  <Switch defaultChecked onCheckedChange={saveSettings} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold">Gudang Alokasi Pemenuhan Web Order</label>
+                  <Select defaultValue="gudang-utama">
+                    <SelectTrigger className="w-64">
+                      <SelectValue placeholder="Pilih Gudang" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gudang-utama">Gudang Pusat / Outlet Utama</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
             </Card>
           )}
 

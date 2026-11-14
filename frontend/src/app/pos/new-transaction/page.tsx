@@ -18,6 +18,7 @@ import { InventoryAPI, PosAPI, api } from "@/lib/api"
 
 type CartItem = {
   id: string
+  sku?: string
   name: string
   price: number
   qty: number
@@ -116,7 +117,7 @@ export default function PosNewTransactionPage() {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id)
       if (existing) return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item)
-      return [...prev, { id: product.id, name: product.name, price: product.price, qty: 1 }]
+      return [...prev, { id: product.id, sku: product.sku, name: product.name, price: product.price, qty: 1 }]
     })
   }
 
@@ -348,7 +349,7 @@ export default function PosNewTransactionPage() {
                       <div>
                         <h4 className="font-semibold text-sm leading-tight text-foreground">{item.name}</h4>
                         <div className="flex items-center gap-2 mt-1">
-                          <p className="text-[10px] text-muted-foreground">SKU: {item.id.substring(0,8)}</p>
+                          <p className="text-[10px] text-muted-foreground font-mono">SKU: {item.sku || item.id.substring(0,8)}</p>
                           {isTaxEnabled && <Badge variant="outline" className="text-[9px] h-4 px-1 bg-indigo-50 text-indigo-600 border-indigo-200">PPN (11%)</Badge>}
                         </div>
                       </div>

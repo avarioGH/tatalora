@@ -109,10 +109,10 @@ export default function ContactsPage() {
       <Card className="border-0 shadow-sm ring-1 ring-border overflow-hidden bg-card">
         {/* Filter Bar */}
         <div className="p-4 border-b border-border flex flex-col md:flex-row gap-4 justify-between items-center">
-          <div className="relative w-full md:w-80">
+          <div className="relative w-full md:w-96">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Cari nama, nomor HP, atau email..." 
+              placeholder="Cari nama, kode (CUST/MTR), HP, atau email..." 
               className="pl-9 bg-muted border-border h-9 text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
