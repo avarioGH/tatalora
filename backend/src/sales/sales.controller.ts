@@ -74,6 +74,9 @@ export class SalesController {
       include: {
         customer: true,
         items: { include: { product: true } },
+        sales_orders: {
+          select: { id: true, order_number: true, status: true },
+        },
       },
     });
   }

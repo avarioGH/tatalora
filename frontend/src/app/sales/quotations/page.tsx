@@ -18,7 +18,14 @@ export default function QuotationsPage() {
  const [docDetails, setDocDetails] = useState<any | null>(null)
 
  useEffect(() => {
- fetchQuotations()
+   fetchQuotations()
+   if (typeof window !== 'undefined') {
+     const params = new URLSearchParams(window.location.search)
+     const qid = params.get('id') || params.get('qtn_id')
+     if (qid) {
+       viewDetails({ id: qid })
+     }
+   }
  }, [])
 
  const fetchQuotations = async () => {
@@ -124,8 +131,18 @@ export default function QuotationsPage() {
  </>
  )}
  {details.status === 'CONFIRMED' && (
- <Button onClick={() => window.location.href="/sales/orders"} className="">
- View Sales Order
+ <Button 
+   onClick={() => {
+     const linkedSo = details.sales_orders?.[0];
+     if (linkedSo?.id) {
+       window.location.href = `/sales/orders?so_id=${linkedSo.id}`;
+     } else {
+       window.location.href = "/sales/orders";
+     }
+   }} 
+   className=""
+ >
+   View Sales Order {details.sales_orders?.[0]?.order_number ? `(${details.sales_orders[0].order_number})` : ''}
  </Button>
  )}
  </div>

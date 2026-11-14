@@ -43,8 +43,13 @@ export default function CreateDeliveryPage() {
       setWarehouses(whList)
       if (whList.length > 0) setSourceWarehouseId(whList[0].id)
 
-      // Only show orders that are confirmed or partially delivered
-      const validOrders = (orderRes?.data || []).filter((o: any) => o.order_number?.startsWith('SO') && o.delivery_status !== 'DELIVERED')
+      // Only show orders that are confirmed or partially delivered (exclude cancelled and fully delivered)
+      const validOrders = (orderRes?.data || []).filter((o: any) => 
+        o.order_number?.startsWith('SO') && 
+        o.status !== 'CANCELLED' &&
+        o.status !== 'COMPLETED' &&
+        o.delivery_status !== 'DELIVERED'
+      )
       setOrders(validOrders)
       if (initialSoId && validOrders.find((o: any) => o.id === initialSoId)) {
         setTimeout(() => handleSelectSo(initialSoId), 100);

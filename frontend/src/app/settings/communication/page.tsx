@@ -17,7 +17,16 @@ import {
   Bell, Play, Eye, Clock, AlertTriangle, Calendar
 } from "lucide-react"
 
-export default function CommunicationSettingsPage() {
+export default function CommunicationSettingsPage({ defaultTab = "whatsapp" }: { defaultTab?: string }) {
+  const [activeTab, setActiveTab] = useState(defaultTab)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      const tabParam = params.get("tab")
+      if (tabParam) setActiveTab(tabParam)
+    }
+  }, [])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [runningReminder, setRunningReminder] = useState(false)
@@ -197,7 +206,7 @@ export default function CommunicationSettingsPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="whatsapp" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-muted p-1 border border-border flex flex-wrap h-auto gap-1">
           <TabsTrigger value="reminders" className="gap-2">
             <Bell className="w-4 h-4 text-amber-500" /> Pengingat Otomatis

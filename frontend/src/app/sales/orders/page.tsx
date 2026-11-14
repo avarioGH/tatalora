@@ -44,6 +44,13 @@ export default function SalesOrdersPage() {
 
  useEffect(() => {
    fetchOrders();
+   if (typeof window !== 'undefined') {
+     const params = new URLSearchParams(window.location.search);
+     const soId = params.get('so_id') || params.get('id');
+     if (soId) {
+       viewDetails({ id: soId });
+     }
+   }
  }, [activeWarehouse]);
 
  const fetchOrders = async () => {
@@ -238,7 +245,19 @@ export default function SalesOrdersPage() {
  </div>
  )}
  <div className="pt-4 border-t">
- <Button className="w-full" variant="outline" onClick={() => router.push("/crm/partners")}>View Customer 360</Button>
+ <Button 
+   className="w-full" 
+   variant="outline" 
+   onClick={() => {
+     if (details.customer_id) {
+       router.push(`/crm/partners/${details.customer_id}`)
+     } else {
+       router.push("/crm/partners")
+     }
+   }}
+ >
+   View Customer 360
+ </Button>
  </div>
  </CardContent>
  </Card>
