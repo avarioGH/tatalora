@@ -64,15 +64,47 @@ export default function PurchaseInvoicesPage() {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
   }
 
+
+  const getNormalizedStatus = (inv: any) => {
+    const raw = (inv.status || '').toUpperCase().replace(/\s+/g, '_');
+    const remaining = Number(inv.remaining_amount) || 0;
+    const paid = Number(inv.paid_amount) || 0;
+    const total = Number(inv.total) || 0;
+
+    if (raw === 'PAID' || (remaining <= 0 && total > 0)) {
+      return {
+        label: 'Lunas',
+        className: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      };
+    }
+    if (raw === 'PARTIALLY_PAID' || (paid > 0 && remaining > 0)) {
+      return {
+        label: 'Dibayar Sebagian',
+        className: 'bg-blue-50 text-blue-700 border-blue-200'
+      };
+    }
+    if (raw === 'CANCELLED' || raw === 'VOID') {
+      return {
+        label: 'Dibatalkan',
+        className: 'bg-rose-50 text-rose-700 border-rose-200'
+      };
+    }
+    return {
+      label: 'Belum Dibayar',
+      className: 'bg-amber-50 text-amber-700 border-amber-200'
+    };
+  };
+
   const filteredInvoices = invoices.filter(inv => {
     const matchesSearch = inv.invoice_number?.toLowerCase().includes(search.toLowerCase()) ||
       inv.supplier?.name?.toLowerCase().includes(search.toLowerCase())
 
     if (!matchesSearch) return false
 
-    if (activeTab === "Belum Dibayar") return inv.status !== 'PAID' && inv.paid_amount === 0
-    if (activeTab === "Dibayar Sebagian") return inv.status === 'PARTIALLY_PAID' || (inv.paid_amount > 0 && inv.status !== 'PAID')
-    if (activeTab === "Lunas") return inv.status === 'PAID'
+    const normalized = getNormalizedStatus(inv).label
+    if (activeTab === "Belum Dibayar") return normalized === "Belum Dibayar"
+    if (activeTab === "Dibayar Sebagian") return normalized === "Dibayar Sebagian"
+    if (activeTab === "Lunas") return normalized === "Lunas"
     return true
   })
 
@@ -173,9 +205,14 @@ export default function PurchaseInvoicesPage() {
                     <TableCell className="font-medium text-foreground">{inv.supplier?.name || '-'}</TableCell>
                     <TableCell>{inv.due_date ? new Date(inv.due_date).toLocaleDateString('id-ID') : '-'}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={inv.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'}>
-                        {inv.status === 'PAID' ? 'Lunas' : inv.status}
-                      </Badge>
+                      {(() => {
+                        const s = getNormalizedStatus(inv);
+                        return (
+                          <Badge variant="outline" className={s.className}>
+                            {s.label}
+                          </Badge>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-right font-semibold text-rose-600">{formatIDR(inv.remaining_amount)}</TableCell>
                     <TableCell className="text-right font-semibold text-foreground">{formatIDR(inv.total)}</TableCell>

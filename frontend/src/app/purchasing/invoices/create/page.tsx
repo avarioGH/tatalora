@@ -52,7 +52,7 @@ export default function CreatePurchaseInvoicePage() {
       unit: "Pcs",
       price: 0,
       discount_percent: 0,
-      tax_percent: 11,
+      tax_percent: 0,
       total: 0
     }
   ])
@@ -211,14 +211,31 @@ export default function CreatePurchaseInvoicePage() {
     }
   }
 
-  // Calculation
-  const subtotal = items.reduce((acc, it) => acc + (Number(it.total) || 0), 0)
-  const totalTax = items.reduce((acc, it) => {
-    const rowTotal = Number(it.total) || 0
-    const rate = Number(it.tax_percent) || 0
-    return acc + (rowTotal * (rate / 100))
+  // Calculation (PUR-11 & Standard Mekari Jurnal)
+  const grossSubtotal = items.reduce((acc, it) => acc + ((Number(it.qty) || 0) * (Number(it.price) || 0)), 0)
+  const lineDiscountTotal = items.reduce((acc, it) => {
+    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+    const disc = Math.min(100, Math.max(0, Number(it.discount_percent) || 0))
+    return acc + (gross * disc / 100)
   }, 0)
-  const grandTotal = Math.max(0, subtotal - globalDiscountVal + totalTax + shippingFee - withholdingTax)
+  const netAfterLineDisc = Math.max(0, grossSubtotal - lineDiscountTotal)
+  const subtotal = netAfterLineDisc
+
+  let totalTax = 0
+  items.forEach(it => {
+    const rowNet = ((Number(it.qty) || 0) * (Number(it.price) || 0)) * (1 - (Math.min(100, Math.max(0, Number(it.discount_percent) || 0)) / 100))
+    const rate = (Number(it.tax_percent) || 0) / 100
+    if (taxInclusive && rate > 0) {
+      const base = rowNet / (1 + rate)
+      totalTax += (rowNet - base)
+    } else {
+      totalTax += (rowNet * rate)
+    }
+  })
+
+  const grandTotal = taxInclusive
+    ? Math.max(0, subtotal - globalDiscountVal + shippingFee - withholdingTax)
+    : Math.max(0, subtotal - globalDiscountVal + totalTax + shippingFee - withholdingTax)
 
   const formatIDR = (val: number) => {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
@@ -426,14 +443,15 @@ export default function CreatePurchaseInvoicePage() {
               <Table>
                 <TableHeader className="bg-muted/50">
                   <TableRow>
-                    <TableHead className="w-[30%] font-semibold">Produk</TableHead>
-                    <TableHead className="w-[20%] font-semibold">Deskripsi</TableHead>
-                    <TableHead className="w-[10%] font-semibold text-center">Kuantitas</TableHead>
-                    <TableHead className="w-[10%] font-semibold text-center">Unit</TableHead>
-                    <TableHead className="w-[15%] font-semibold text-right">Harga Satuan</TableHead>
-                    <TableHead className="w-[10%] font-semibold text-right">Diskon (%)</TableHead>
-                    <TableHead className="w-[15%] font-semibold text-right">Jumlah</TableHead>
-                    <TableHead className="w-12"></TableHead>
+                    <TableHead className="w-[25%] font-semibold">Produk</TableHead>
+                    <TableHead className="w-[18%] font-semibold">Deskripsi</TableHead>
+                    <TableHead className="w-[8%] font-semibold text-center">Qty</TableHead>
+                    <TableHead className="w-[8%] font-semibold text-center">Unit</TableHead>
+                    <TableHead className="w-[14%] font-semibold text-right">Harga Satuan</TableHead>
+                    <TableHead className="w-[9%] font-semibold text-center">Diskon %</TableHead>
+                    <TableHead className="w-[12%] font-semibold text-center">Pajak</TableHead>
+                    <TableHead className="w-[14%] font-semibold text-right">Jumlah</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -464,7 +482,22 @@ export default function CreatePurchaseInvoicePage() {
                         <Input type="number" value={row.price} onChange={(e) => handleFieldChange(idx, "price", parseFloat(e.target.value) || 0)} className="bg-muted border-border text-right font-medium" />
                       </TableCell>
                       <TableCell className="align-top py-3">
-                        <Input type="number" min="0" max="100" value={row.discount_percent} onChange={(e) => handleFieldChange(idx, "discount_percent", parseFloat(e.target.value) || 0)} className="bg-muted border-border text-right" />
+                        <Input type="number" min="0" max="100" value={row.discount_percent} onChange={(e) => handleFieldChange(idx, "discount_percent", Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)))} className="bg-muted border-border text-center" />
+                      </TableCell>
+                      <TableCell className="align-top py-3">
+                        <Select 
+                          value={String(row.tax_percent ?? 0)} 
+                          onValueChange={(val) => handleFieldChange(idx, "tax_percent", parseFloat(val || "0") || 0)}
+                        >
+                          <SelectTrigger className="h-9 bg-muted border-border text-xs w-full">
+                            <SelectValue placeholder="Pajak" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">Bebas Pajak (0%)</SelectItem>
+                            <SelectItem value="11">PPN 11%</SelectItem>
+                            <SelectItem value="12">PPN 12%</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="align-top py-3 text-right font-semibold">
                         <div className="h-10 flex items-center justify-end">

@@ -157,13 +157,26 @@ export default function CreateQuotationPage() {
 
     const qty = Number(item.qty || 0)
     const price = Number(item.price || 0)
-    const discPct = Number(item.discount_percent || 0)
+    let discPct = Number(item.discount_percent || 0)
+    if (discPct < 0) discPct = 0
+    if (discPct > 100) discPct = 100
+    item.discount_percent = discPct
+
     const taxPct = Number(item.tax_percent || 0)
     const gross = qty * price
     const lineDiscount = (gross * discPct) / 100
-    const taxableBase = Math.max(0, gross - lineDiscount)
-    const lineTax = (taxableBase * taxPct) / 100
-    item.total = taxableBase + lineTax
+    const netRow = Math.max(0, gross - lineDiscount)
+
+    if (taxInclusive && taxPct > 0) {
+      // Inklusif: gross & netRow sudah termasuk pajak
+      const base = netRow / (1 + (taxPct / 100))
+      const tax = netRow - base
+      item.total = netRow
+    } else {
+      // Eksklusif
+      const tax = (netRow * taxPct) / 100
+      item.total = netRow + tax
+    }
 
     updated[index] = item
     setItems(updated)
@@ -192,29 +205,53 @@ export default function CreateQuotationPage() {
     }
   }
 
-  // Calculations
-  const subtotal = items.reduce((acc, it) => {
-    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
-    return acc + Math.max(0, gross - disc)
+  // Calculations (Mekari Jurnal & Standard Accounting Standard: Subtotal Bruto -> Diskon Baris -> Diskon Tambahan -> Dasar Pajak -> PPN -> Total)
+  const grossSubtotal = items.reduce((acc, it) => {
+    return acc + ((Number(it.qty) || 0) * (Number(it.price) || 0))
   }, 0)
-  const lineTaxTotal = items.reduce((acc, it) => {
-    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
-    const base = Math.max(0, gross - disc)
-    return acc + ((base * (Number(it.tax_percent) || 0)) / 100)
-  }, 0)
+
   const lineDiscountTotal = items.reduce((acc, it) => {
     const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    return acc + (gross * (Number(it.discount_percent) || 0) / 100)
+    const discPct = Math.min(100, Math.max(0, Number(it.discount_percent) || 0))
+    return acc + (gross * discPct / 100)
   }, 0)
 
-  const globalDiscount = discountType === "percent"
-    ? (subtotal * Number(globalDiscountVal || 0)) / 100
-    : Number(globalDiscountVal || 0)
+  const netAfterLineDiscount = Math.max(0, grossSubtotal - lineDiscountTotal)
 
-  const total = Math.max(0, subtotal - globalDiscount + lineTaxTotal)
+  const globalDiscount = discountType === "percent"
+    ? (netAfterLineDiscount * Math.min(100, Math.max(0, Number(globalDiscountVal) || 0))) / 100
+    : Math.min(netAfterLineDiscount, Math.max(0, Number(globalDiscountVal) || 0))
+
+  const subtotalAfterDiscount = Math.max(0, netAfterLineDiscount - globalDiscount)
+
+  // Tax calculations based on taxInclusive flag and discount ratio
+  const discountRatio = netAfterLineDiscount > 0 ? (subtotalAfterDiscount / netAfterLineDiscount) : 1
+
+  let taxableBaseTotal = 0
+  let lineTaxTotal = 0
+
+  items.forEach(it => {
+    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+    const discPct = Math.min(100, Math.max(0, Number(it.discount_percent) || 0))
+    const lineNet = (gross - (gross * discPct / 100)) * discountRatio
+    const taxRate = (Number(it.tax_percent) || 0) / 100
+
+    if (taxInclusive && taxRate > 0) {
+      const base = lineNet / (1 + taxRate)
+      taxableBaseTotal += base
+      lineTaxTotal += (lineNet - base)
+    } else {
+      taxableBaseTotal += lineNet
+      lineTaxTotal += (lineNet * taxRate)
+    }
+  })
+
+  const total = taxInclusive
+    ? subtotalAfterDiscount
+    : (subtotalAfterDiscount + lineTaxTotal)
+
   const balanceDue = total
+  const subtotal = grossSubtotal
 
   // Format Currency
   const formatCurrency = (val: number) => {
@@ -712,11 +749,11 @@ export default function CreateQuotationPage() {
               </div>
             </div>
 
-            {/* Right Summary Calculations */}
-            <div className="bg-muted/20 border border-border rounded-xl p-6 space-y-4">
+            {/* Right Summary Calculations (SAL-05, SAL-06, SAL-07) */}
+            <div className="bg-muted/20 border border-border rounded-xl p-6 space-y-3.5">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-semibold">{formatCurrency(subtotal)}</span>
+                <span className="text-muted-foreground">Subtotal Bruto</span>
+                <span className="font-semibold text-foreground">{formatCurrency(grossSubtotal)}</span>
               </div>
 
               {lineDiscountTotal > 0 && (
@@ -751,11 +788,32 @@ export default function CreateQuotationPage() {
                   <Input 
                     type="number"
                     min="0"
+                    max={discountType === "percent" ? 100 : grossSubtotal}
                     value={globalDiscountVal}
-                    onChange={(e) => setGlobalDiscountVal(Number(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const val = Number(e.target.value) || 0;
+                      setGlobalDiscountVal(discountType === "percent" ? Math.min(100, Math.max(0, val)) : Math.max(0, val));
+                    }}
                     className="h-8 text-right bg-background border-border text-xs"
                   />
                 </div>
+              </div>
+
+              {globalDiscount > 0 && (
+                <div className="flex justify-between items-center text-xs text-emerald-600">
+                  <span>Potongan Tambahan</span>
+                  <span className="font-semibold">- {formatCurrency(globalDiscount)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center text-xs text-muted-foreground pt-1 border-t border-border/40">
+                <span>Dasar Pengenaan Pajak (DPP)</span>
+                <span className="font-medium text-foreground">{formatCurrency(taxableBaseTotal)}</span>
+              </div>
+
+              <div className="flex justify-between items-center text-sm text-foreground">
+                <span className="text-muted-foreground">PPN {taxInclusive ? "(Termasuk)" : "(Ditambahkan)"}</span>
+                <span className="font-semibold">{formatCurrency(lineTaxTotal)}</span>
               </div>
 
               <div className="border-t border-border pt-4 flex justify-between items-center">

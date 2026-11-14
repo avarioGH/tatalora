@@ -2,91 +2,164 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import api from '@/lib/api';
-
-interface ReconciliationResult {
- cashAccountId: string;
- code: string;
- name: string;
- operationalBalance: number;
- glBalance: number | null;
- difference: number | null;
- status: 'RECONCILED' | 'MISMATCH' | 'UNMAPPED';
- mappedAccount?: string;
-}
+import { api } from '@/lib/api';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { RefreshCw, ArrowLeft, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function CashReconciliationPage() {
- const [data, setData] = useState<ReconciliationResult[]>([]);
- const [loading, setLoading] = useState(true);
- const { token } = useAuth();
+  const router = useRouter();
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
- if (token) {
- loadData();
- }
- }, [token]);
+  useEffect(() => {
+    loadData();
+  }, []);
 
- const loadData = async () => {
- try {
- const res = await api.get('/finance/cash-reconciliation');
- setData(res.data);
- } catch (e) {
- console.error(e);
- } finally {
- setLoading(false);
- }
- };
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/finance/cash-reconciliation');
+      setData(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
- const formatCurrency = (val: number | null) => {
- if (val === null) return '-';
- return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(val);
- };
+  const formatCurrency = (val: any) => {
+    const num = Number(val);
+    if (isNaN(num) || val === null || val === undefined) return '-';
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+  };
 
- return (
- <div className="p-6">
- <h1 className="text-2xl font-bold mb-6">Cash & GL Reconciliation</h1>
- 
- {loading ? (
- <p>Loading...</p>
- ) : (
- <div className="bg-card rounded shadow p-4 overflow-x-auto">
- <table className="min-w-[600px] md:min-w-full w-full text-left">
- <thead>
- <tr className="border-b">
- <th className="py-2 px-2">Account Name</th>
- <th className="px-2">Mapped GL Account</th>
- <th className="px-2">Operational Balance</th>
- <th className="px-2">GL Balance</th>
- <th className="px-2">Difference</th>
- <th className="px-2">Status</th>
- </tr>
- </thead>
- <tbody>
- {data.map(row => (
- <tr key={row.cashAccountId} className="border-b hover:bg-gray-50">
- <td className="py-2 px-2">{row.code} - {row.name}</td>
- <td className="px-2">{row.mappedAccount || <span className="text-gray-400">Unmapped</span>}</td>
- <td className="font-mono px-2">{formatCurrency(row.operationalBalance)}</td>
- <td className="font-mono px-2">{formatCurrency(row.glBalance)}</td>
- <td className="font-mono px-2">
- {formatCurrency(row.difference)}
- </td>
- <td className="px-2">
- {row.status === 'RECONCILED' && <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm font-medium">RECONCILED</span>}
- {row.status === 'MISMATCH' && <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-sm font-medium">MISMATCH</span>}
- {row.status === 'UNMAPPED' && <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm font-medium">UNMAPPED</span>}
- </td>
- </tr>
- ))}
- {data.length === 0 && (
- <tr>
- <td colSpan={6} className="py-4 text-center text-gray-500">No Cash Accounts found.</td>
- </tr>
- )}
- </tbody>
- </table>
- </div>
- )}
- </div>
- );
+  return (
+    <div className="p-6 space-y-6 max-w-7xl mx-auto animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => router.push('/finance/cash')}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Rekonsiliasi Kas & Buku Besar (Cash & GL Reconciliation)
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Bandingkan saldo operasional kas fisik dengan saldo akun kas yang tercatat pada General Ledger.
+            </p>
+          </div>
+        </div>
+
+        <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="gap-2">
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Perbarui Rekonsiliasi
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold">Daftar Akun Kas & Status Keseimbangan</CardTitle>
+          <CardDescription>
+            Selisih bernilai Rp0 menandakan transaksi kas operasional dan pencatatan akuntansi double-entry seimbang.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-muted/40 border-y border-border">
+                <tr>
+                  <th className="py-3 px-4 text-left font-semibold text-xs text-muted-foreground uppercase">Akun Kas Operasional</th>
+                  <th className="py-3 px-4 text-left font-semibold text-xs text-muted-foreground uppercase">Pemetaan Akun GL (COA)</th>
+                  <th className="py-3 px-4 text-right font-semibold text-xs text-muted-foreground uppercase">Saldo Operasional</th>
+                  <th className="py-3 px-4 text-right font-semibold text-xs text-muted-foreground uppercase">Saldo GL (Buku Besar)</th>
+                  <th className="py-3 px-4 text-right font-semibold text-xs text-muted-foreground uppercase">Selisih</th>
+                  <th className="py-3 px-4 text-center font-semibold text-xs text-muted-foreground uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="h-32 text-center text-muted-foreground">
+                      <div className="flex items-center justify-center gap-2">
+                        <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
+                        Memuat data rekonsiliasi kas...
+                      </div>
+                    </td>
+                  </tr>
+                ) : data.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="h-32 text-center text-muted-foreground">
+                      Belum ada data akun kas terdaftar.
+                    </td>
+                  </tr>
+                ) : (
+                  data.map((row) => {
+                    const operational = Number(row.operational_balance ?? row.operationalBalance ?? 0);
+                    const gl = row.gl_balance !== null && row.gl_balance !== undefined ? Number(row.gl_balance) : null;
+                    const diff = gl !== null ? Math.abs(operational - gl) : null;
+                    const isReconciled = diff !== null && diff <= 100;
+                    const isUnmapped = !row.mapped_coa && !row.mappedAccount;
+
+                    return (
+                      <tr key={row.cash_account_id || row.id || row.code} className="hover:bg-muted/20">
+                        <td className="py-3 px-4">
+                          <div className="font-semibold text-foreground">{row.account_name || row.name || 'Kas'}</div>
+                          <div className="text-xs font-mono text-muted-foreground">{row.account_code || row.code}</div>
+                        </td>
+                        <td className="py-3 px-4">
+                          {row.mapped_coa ? (
+                            <div className="text-xs">
+                              <span className="font-semibold text-foreground">{row.mapped_coa.code}</span>
+                              <span className="text-muted-foreground"> - {row.mapped_coa.name}</span>
+                            </div>
+                          ) : row.mappedAccount ? (
+                            <span className="text-xs font-medium text-foreground">{row.mappedAccount}</span>
+                          ) : (
+                            <span className="text-xs text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                              Belum Dipetakan (Unmapped)
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-medium">
+                          {formatCurrency(operational)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-medium">
+                          {gl !== null ? formatCurrency(gl) : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-right font-mono font-semibold">
+                          {diff !== null ? (
+                            <span className={diff > 100 ? 'text-rose-600 font-bold' : 'text-emerald-600'}>
+                              {formatCurrency(diff)}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {isUnmapped ? (
+                            <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
+                              UNMAPPED
+                            </Badge>
+                          ) : isReconciled ? (
+                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1">
+                              <CheckCircle2 className="w-3 h-3" /> MATCHED
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 gap-1">
+                              <AlertTriangle className="w-3 h-3" /> MISMATCH
+                            </Badge>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

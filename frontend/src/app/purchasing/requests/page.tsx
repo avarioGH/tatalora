@@ -120,7 +120,7 @@ export default function PurchaseRequestsPage() {
  <h1 className="text-[28px] font-bold tracking-tight text-foreground">Purchase Requests</h1>
  <p className="text-muted-foreground mt-1">Internal procurement requests that initiate the Procure-to-Pay workflow.</p>
  </div>
- <Button className="shadow-sm"><Plus className="w-4 h-4 mr-2" /> New Request</Button>
+ <Button onClick={() => window.location.href = "/purchasing/requests/create"} className="shadow-sm"><Plus className="w-4 h-4 mr-2" /> New Request</Button>
  </div>
  <Card className="shadow-sm">
  <CardHeader className="pb-4 border-b border-border/40">

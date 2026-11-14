@@ -206,13 +206,22 @@ export default function CreateSalesInvoicePage() {
 
     const qty = Number(item.qty || 0)
     const price = Number(item.price || 0)
-    const discPct = Number(item.discount_percent || 0)
+    let discPct = Number(item.discount_percent || 0)
+    if (discPct < 0) discPct = 0
+    if (discPct > 100) discPct = 100
+    item.discount_percent = discPct
+
     const taxPct = Number(item.tax_percent || 0)
     const gross = qty * price
     const lineDiscount = (gross * discPct) / 100
-    const taxableBase = Math.max(0, gross - lineDiscount)
-    const lineTax = (taxableBase * taxPct) / 100
-    item.total = taxableBase + lineTax
+    const netRow = Math.max(0, gross - lineDiscount)
+
+    if (taxInclusive && taxPct > 0) {
+      item.total = netRow
+    } else {
+      const tax = (netRow * taxPct) / 100
+      item.total = netRow + tax
+    }
 
     updated[index] = item
     setItems(updated)
@@ -241,29 +250,51 @@ export default function CreateSalesInvoicePage() {
     }
   }
 
-  // Calculations
-  const subtotal = items.reduce((acc, it) => {
-    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
-    return acc + Math.max(0, gross - disc)
+  // Calculations (Mekari Jurnal Standard: Subtotal Bruto -> Diskon Baris -> Diskon Tambahan -> DPP -> PPN -> Total)
+  const grossSubtotal = items.reduce((acc, it) => {
+    return acc + ((Number(it.qty) || 0) * (Number(it.price) || 0))
   }, 0)
-  const lineTaxTotal = items.reduce((acc, it) => {
-    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
-    const base = Math.max(0, gross - disc)
-    return acc + ((base * (Number(it.tax_percent) || 0)) / 100)
-  }, 0)
+
   const lineDiscountTotal = items.reduce((acc, it) => {
     const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    return acc + (gross * (Number(it.discount_percent) || 0) / 100)
+    const discPct = Math.min(100, Math.max(0, Number(it.discount_percent) || 0))
+    return acc + (gross * discPct / 100)
   }, 0)
 
-  const globalDiscount = discountType === "percent"
-    ? (subtotal * Number(globalDiscountVal || 0)) / 100
-    : Number(globalDiscountVal || 0)
+  const netAfterLineDiscount = Math.max(0, grossSubtotal - lineDiscountTotal)
 
-  const total = Math.max(0, subtotal - globalDiscount + lineTaxTotal)
+  const globalDiscount = discountType === "percent"
+    ? (netAfterLineDiscount * Math.min(100, Math.max(0, Number(globalDiscountVal) || 0))) / 100
+    : Math.min(netAfterLineDiscount, Math.max(0, Number(globalDiscountVal) || 0))
+
+  const subtotalAfterDiscount = Math.max(0, netAfterLineDiscount - globalDiscount)
+  const discountRatio = netAfterLineDiscount > 0 ? (subtotalAfterDiscount / netAfterLineDiscount) : 1
+
+  let taxableBaseTotal = 0
+  let lineTaxTotal = 0
+
+  items.forEach(it => {
+    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+    const discPct = Math.min(100, Math.max(0, Number(it.discount_percent) || 0))
+    const lineNet = (gross - (gross * discPct / 100)) * discountRatio
+    const taxRate = (Number(it.tax_percent) || 0) / 100
+
+    if (taxInclusive && taxRate > 0) {
+      const base = lineNet / (1 + taxRate)
+      taxableBaseTotal += base
+      lineTaxTotal += (lineNet - base)
+    } else {
+      taxableBaseTotal += lineNet
+      lineTaxTotal += (lineNet * taxRate)
+    }
+  })
+
+  const total = taxInclusive
+    ? subtotalAfterDiscount
+    : (subtotalAfterDiscount + lineTaxTotal)
+
   const balanceDue = total
+  const subtotal = grossSubtotal
 
   // Format Rupiah
   const formatIDR = (val: number) => {
