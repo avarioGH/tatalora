@@ -25,12 +25,23 @@ export class GlController {
   @Permissions('gl.view')
   @Get('journals')
   async getJournals(@Request() req: any) {
+    const companyId = req.user.company_id || req.user.companyId;
     return this.prisma.journalEntry.findMany({
-      where: { company_id: req.user.company_id },
+      where: { company_id: companyId },
       orderBy: { journal_date: 'desc' },
-      take: 50,
+      take: 100,
       include: {
-        items: true,
+        items: {
+          include: {
+            account: {
+              select: {
+                id: true,
+                account_code: true,
+                account_name: true,
+              },
+            },
+          },
+        },
       },
     });
   }

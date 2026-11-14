@@ -58,7 +58,7 @@ export default function ReportsHubPage() {
           id: "jurnal",
           title: "Jurnal",
           description: "Menampilkan semua journal entry per transaksi dalam periode tertentu. Anda dapat melacak transaksi yang masuk ke masing-masing akun debit & kredit.",
-          href: "/finance/accounting",
+          href: "/finance/gl",
         },
         {
           id: "arus-kas",
@@ -70,7 +70,7 @@ export default function ReportsHubPage() {
           id: "neraca-saldo",
           title: "Neraca saldo",
           description: "Menampilkan saldo dari setiap akun, termasuk saldo awal, pergerakan debit kredit, dan saldo akhir dalam periode tertentu.",
-          href: "/finance/accounting",
+          href: "/finance/trial-balance",
         },
       ]
     },
@@ -136,7 +136,7 @@ export default function ReportsHubPage() {
           id: "mutasi-stok",
           title: "Kartu Stok & Mutasi Barang",
           description: "Riwayat keluar masuk fisik barang per transaksi gudang untuk audit kepatuhan stok opname.",
-          href: "/inventory/stock",
+          href: "/inventory/movements",
         },
         {
           id: "disposal-penyesuaian",

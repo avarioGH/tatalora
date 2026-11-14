@@ -131,7 +131,7 @@ export default function GeneralLedgerPage() {
  <table className="min-w-[600px] md:min-w-full w-full text-sm">
  <thead>
  <tr className="border-b bg-muted/10 text-xs">
- <th className="p-3 text-left font-medium text-muted-foreground">Account ID</th>
+ <th className="p-3 text-left font-medium text-muted-foreground">Akun & Kode Akun</th>
  <th className="p-3 text-right font-medium text-muted-foreground">Debit</th>
  <th className="p-3 text-right font-medium text-muted-foreground">Credit</th>
  </tr>
@@ -140,9 +140,17 @@ export default function GeneralLedgerPage() {
  {journal.items && journal.items.length > 0 ? (
  journal.items.map((item: any) => (
  <tr key={item.id} className="hover:bg-muted/5 transition-colors">
- <td className="p-3 font-mono text-xs text-muted-foreground dark:text-muted-foreground">
- {item.account_id}
- </td>
+ <td className="p-3 text-xs">
+  {item.account?.account_code ? (
+    <div className="flex items-center gap-2">
+      <span className="font-semibold text-slate-900 dark:text-slate-100">{item.account.account_code}</span>
+      <span className="text-muted-foreground">- {item.account.account_name}</span>
+    </div>
+  ) : (
+    <span className="font-mono text-xs text-muted-foreground">{item.account_id}</span>
+  )}
+  {item.description && <div className="text-[11px] text-slate-400 mt-0.5">{item.description}</div>}
+</td>
  <td className="p-3 text-right text-primary dark:text-primary font-medium">
  {Number(item.debit) > 0 ? formatCurrency(Number(item.debit)) :"-"}
  </td>

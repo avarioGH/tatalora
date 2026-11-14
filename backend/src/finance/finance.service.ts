@@ -346,27 +346,62 @@ export class FinanceService {
     let totalOtherExpenses = 0;
 
     items.forEach((item) => {
-      const typeCode = item.account.account_type.code.toUpperCase();
-      const accountName = item.account.account_name;
+      const typeCode = (item.account?.account_type?.code || '').toUpperCase();
+      const typeName = (item.account?.account_type?.name || '').toUpperCase();
+      const accountName = item.account?.account_name || '';
+      const accountCode = item.account?.account_code || '';
       const creditBal = item.credit - item.debit;
       const debitBal = item.debit - item.credit;
 
-      if (typeCode.includes('REVENUE') || typeCode.includes('INCOME')) {
-        if (typeCode.includes('CONTRA') || accountName.toUpperCase().includes('RETURN') || accountName.toUpperCase().includes('RETUR') || accountName.toUpperCase().includes('DISCOUNT')) {
+      const isRevenue =
+        typeCode.includes('REVENUE') ||
+        typeCode.includes('INCOME') ||
+        typeName.includes('PENDAPATAN') ||
+        accountName.toUpperCase().includes('PENDAPATAN') ||
+        accountName.toUpperCase().includes('PENJUALAN') ||
+        accountCode.startsWith('4-');
+
+      const isCogs =
+        typeCode === 'COGS' ||
+        typeCode.includes('COGS') ||
+        typeName.includes('BEBAN POKOK') ||
+        typeName.includes('HPP') ||
+        accountName.toUpperCase().includes('BEBAN POKOK') ||
+        accountName.toUpperCase().includes('HPP') ||
+        accountCode.startsWith('5-');
+
+      const isExpense =
+        typeCode.includes('EXPENSE') ||
+        typeName.includes('BEBAN') ||
+        typeName.includes('BIAYA') ||
+        accountName.toUpperCase().includes('BEBAN') ||
+        accountName.toUpperCase().includes('BIAYA') ||
+        accountCode.startsWith('6-') ||
+        accountCode.startsWith('7-') ||
+        accountCode.startsWith('9-');
+
+      if (isRevenue) {
+        if (
+          typeCode.includes('CONTRA') ||
+          accountName.toUpperCase().includes('RETURN') ||
+          accountName.toUpperCase().includes('RETUR') ||
+          accountName.toUpperCase().includes('DISCOUNT') ||
+          accountName.toUpperCase().includes('DISKON')
+        ) {
           categories.contraRevenue.set(accountName, (categories.contraRevenue.get(accountName) || 0) + debitBal);
           totalContraRevenue += debitBal;
-        } else if (typeCode.includes('OTHER')) {
+        } else if (typeCode.includes('OTHER') || accountCode.startsWith('8-')) {
           categories.otherIncome.set(accountName, (categories.otherIncome.get(accountName) || 0) + creditBal);
           totalOtherIncome += creditBal;
         } else {
           categories.revenue.set(accountName, (categories.revenue.get(accountName) || 0) + creditBal);
           totalRevenue += creditBal;
         }
-      } else if (typeCode === 'COGS' || typeCode.includes('COGS')) {
+      } else if (isCogs) {
         categories.cogs.set(accountName, (categories.cogs.get(accountName) || 0) + debitBal);
         totalCogs += debitBal;
-      } else if (typeCode.includes('EXPENSE')) {
-        if (typeCode.includes('OTHER')) {
+      } else if (isExpense) {
+        if (typeCode.includes('OTHER') || accountCode.startsWith('9-')) {
           categories.otherExpenses.set(accountName, (categories.otherExpenses.get(accountName) || 0) + debitBal);
           totalOtherExpenses += debitBal;
         } else {
