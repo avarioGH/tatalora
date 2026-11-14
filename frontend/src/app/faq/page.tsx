@@ -183,9 +183,11 @@ export default function FAQPage() {
             Gunakan Asisten AI Tatalora di pojok kanan bawah untuk bertanya seputar transaksi dan pembukuan Anda secara instan.
           </p>
         </div>
-        <Button variant="secondary" size="sm" asChild className="shrink-0 font-semibold">
-          <Link href="/reports">Lihat Katalog Laporan</Link>
-        </Button>
+        <Link href="/reports">
+          <Button variant="secondary" size="sm" className="shrink-0 font-semibold cursor-pointer">
+            Lihat Katalog Laporan
+          </Button>
+        </Link>
       </Card>
     </div>
   )

@@ -6,7 +6,47 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
-const Select = SelectPrimitive.Root
+
+interface SelectItemMappingContextType {
+  registerItem: (value: any, label: string) => void;
+  getLabel: (value: any) => string | undefined;
+}
+
+const SelectItemMappingContext = React.createContext<SelectItemMappingContextType>({
+  registerItem: () => {},
+  getLabel: () => undefined,
+});
+
+function Select({
+  children,
+  ...props
+}: SelectPrimitive.Root.Props<any, any>) {
+  const [map, setMap] = React.useState<Record<string, string>>({});
+
+  const registerItem = React.useCallback((val: any, lbl: string) => {
+    if (val !== undefined && val !== null && lbl) {
+      setMap(prev => {
+        const key = String(val);
+        if (prev[key] === lbl) return prev;
+        return { ...prev, [key]: lbl };
+      });
+    }
+  }, []);
+
+  const getLabel = React.useCallback((val: any) => {
+    if (val === undefined || val === null) return undefined;
+    return map[String(val)];
+  }, [map]);
+
+  return (
+    <SelectItemMappingContext.Provider value={{ registerItem, getLabel }}>
+      <SelectPrimitive.Root {...props}>
+        {children}
+      </SelectPrimitive.Root>
+    </SelectItemMappingContext.Provider>
+  );
+}
+
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
  return (
