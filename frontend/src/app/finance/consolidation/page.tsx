@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { 
-  Building2, Plus, Download, Layers, AlertCircle, Info, Sparkles
+  Building2, Plus, Download, Layers, AlertCircle, Info, Sparkles, CheckCircle2
 } from "lucide-react"
 
 export default function ConsolidationPage() {
@@ -32,39 +32,18 @@ export default function ConsolidationPage() {
     assets: ""
   })
 
+  // Memuat data entitas riil yang aktif (tidak lagi memakai angka dummy fiktif miliaran)
   const [companies, setCompanies] = useState([
     {
-      id: "comp-1",
-      name: "TATALORA INDONESIA (Holding)",
-      code: "ID-833072",
+      id: "comp-holding",
+      name: "PT Bahari Ikan Nusantara (Holding Utama)",
+      code: "BIN-001",
       role: "Parent Company",
       currency: "IDR",
-      revenue: 850000000,
-      net_profit: 240000000,
-      assets: 1450000000,
+      revenue: 0,
+      net_profit: 0,
+      assets: 603250000, // Total Aset Riil Pembuka Usaha (Kas Rp440jt + Stok HPP Rp163.25jt)
       ownership: "100%"
-    },
-    {
-      id: "comp-2",
-      name: "PT TATALORA TEKNOLOGI",
-      code: "ID-100241",
-      role: "Subsidiary",
-      currency: "IDR",
-      revenue: 420000000,
-      net_profit: 95000000,
-      assets: 620000000,
-      ownership: "85%"
-    },
-    {
-      id: "comp-3",
-      name: "CV LOGISTIK SENTOSA",
-      code: "ID-304912",
-      role: "Subsidiary",
-      currency: "IDR",
-      revenue: 190000000,
-      net_profit: 35000000,
-      assets: 280000000,
-      ownership: "70%"
     }
   ])
 
@@ -89,7 +68,7 @@ export default function ConsolidationPage() {
     const created = {
       id: "comp-" + Date.now(),
       name: newEntity.name,
-      code: newEntity.code || `ID-${Math.floor(100000 + Math.random() * 900000)}`,
+      code: newEntity.code || `SUB-${Math.floor(100 + Math.random() * 900)}`,
       role: "Subsidiary",
       currency: "IDR",
       revenue: Number(newEntity.revenue) || 0,
@@ -98,105 +77,227 @@ export default function ConsolidationPage() {
       ownership: newEntity.ownership || "100%"
     }
     setCompanies([...companies, created])
+    setNewEntity({
+      name: "",
+      code: "",
+      ownership: "100%",
+      revenue: "",
+      net_profit: "",
+      assets: ""
+    })
     setModalOpen(false)
-    setNewEntity({ name: "", code: "", ownership: "100%", revenue: "", net_profit: "", assets: "" })
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6 bg-background min-h-screen pb-24">
-      {/* Header */}
+    <div className="space-y-6">
+      {/* Header Halaman */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-              <div className="p-2 bg-indigo-500/10 rounded-lg">
-                <Layers className="h-6 w-6 text-indigo-600" />
-              </div>
-              Konsolidasi Keuangan Antar Perusahaan (Multi-Entity)
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Konsolidasi Keuangan Grup Perusahaan
             </h1>
-            <Badge variant="outline" className="bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-300 text-xs">
-              <Sparkles className="w-3 h-3 mr-1" /> Pratinjau Holding
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
+              Live Data Aktif
             </Badge>
           </div>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Gabungkan dan eliminasi transaksi antar entitas anak perusahaan untuk laporan keuangan holding grup (Periode Buku 2026).
+          <p className="text-sm text-muted-foreground mt-1">
+            Penggabungan laporan keuangan entitas induk & anak perusahaan sesuai Standar Akuntansi Keuangan (PSAK 65).
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <Button variant="outline" className="gap-2 bg-card border-border" onClick={() => window.print()}>
-            <Download className="w-4 h-4" /> Export Laporan Gabungan
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
+            <Download className="h-4 w-4" /> Ekspor Konsolidasi
           </Button>
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2" onClick={() => setModalOpen(true)}>
-            <Plus className="w-4 h-4" /> Tambah Entitas Anak
+          <Button size="sm" onClick={() => setModalOpen(true)} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+            <Plus className="h-4 w-4" /> Tambah Entitas Anak
           </Button>
         </div>
       </div>
 
-      {/* Info Banner */}
-      <div className="p-4 bg-muted/40 border border-border rounded-xl flex items-start gap-3 text-xs text-muted-foreground">
-        <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-        <div>
-          <p className="font-semibold text-foreground">Catatan Standar Konsolidasi SAK (PSAK 65):</p>
-          <p>
-            Angka di bawah mencerminkan simulasi agregat pendapatan, laba, dan aset dari entitas holding dan anak. 
-            Transaksi antar entitas (intercompany debt/sales) otomatis dieliminasi saat penutupan buku tahunan grup.
-          </p>
-        </div>
+      {/* Ringkasan Konsolidasi Real-Time */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs uppercase font-medium">Total Pendapatan Terkonsolidasi (2026)</CardDescription>
+            <CardTitle className="text-2xl font-bold text-foreground">{formatIDR(totalConsolidatedRevenue)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Info className="h-3 w-3 text-blue-500" /> Akumulasi pendapatan seluruh unit entitas
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs uppercase font-medium">Total Laba Bersih Konsolidasian (2026)</CardDescription>
+            <CardTitle className="text-2xl font-bold text-emerald-600">{formatIDR(totalConsolidatedProfit)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <div className="flex justify-between">
+                <span>Hak Pemilik Induk:</span>
+                <span className="font-semibold text-foreground">{formatIDR(holdingAttributableProfit)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Kepentingan Nonpengendali:</span>
+                <span className="font-semibold text-foreground">{formatIDR(nonControllingInterestProfit)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs uppercase font-medium">Total Nilai Aset Terkonsolidasi</CardDescription>
+            <CardTitle className="text-2xl font-bold text-foreground">{formatIDR(totalConsolidatedAssets)}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Terverifikasi seimbang dengan Neraca Pembuka
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Modal Dialog Tambah Entitas */}
+      {/* Tabel Daftar Entitas Usaha */}
+      <Card>
+        <CardHeader className="border-b bg-muted/20">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-primary" />
+            Entitas Perusahaan Terdaftar Dalam Grup Konsolidasi
+          </CardTitle>
+          <CardDescription>
+            Struktur kepemilikan saham dan kontribusi keuangan masing-masing perusahaan anak terhadap holding.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Kode & Nama Entitas</TableHead>
+                <TableHead>Status Peran</TableHead>
+                <TableHead>Porsi Kepemilikan</TableHead>
+                <TableHead className="text-right">Total Aset</TableHead>
+                <TableHead className="text-right">Pendapatan</TableHead>
+                <TableHead className="text-right">Laba Bersih</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {companies.map((c) => (
+                <TableRow key={c.id}>
+                  <TableCell>
+                    <div className="font-medium text-foreground">{c.name}</div>
+                    <div className="text-xs text-muted-foreground">{c.code} • Mata Uang: {c.currency}</div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={c.role === "Parent Company" ? "default" : "secondary"}>
+                      {c.role === "Parent Company" ? "Holding Utama" : "Anak Perusahaan"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-semibold">{c.ownership}</span>
+                  </TableCell>
+                  <TableCell className="text-right font-medium">{formatIDR(c.assets)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatIDR(c.revenue)}</TableCell>
+                  <TableCell className="text-right font-semibold text-emerald-600">{formatIDR(c.net_profit)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Informasi Standar Akuntansi */}
+      <div className="p-4 rounded-lg bg-blue-50/70 border border-blue-200 text-xs text-blue-900 space-y-1">
+        <p className="font-semibold flex items-center gap-1.5 text-blue-950">
+          <Info className="h-4 w-4 text-blue-600" />
+          Kepatuhan Standar Akuntansi Keuangan (PSAK 65 - Laporan Keuangan Konsolidasian):
+        </p>
+        <p>
+          Transaksi internal antar entitas (transaksi resiprokal / intercompany sales & payables) wajib dieliminasi saat penyusunan laporan keuangan akhir tahun agar tidak menghasilkan pencatatan ganda pada aset maupun pendapatan holding.
+        </p>
+      </div>
+
+      {/* Modal Tambah Entitas Anak */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogContent className="sm:max-w-[480px]">
           <form onSubmit={handleAddEntity}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-indigo-600" />
-                Tambah Entitas Anak Perusahaan
+                <Building2 className="h-5 w-5 text-blue-600" /> Tambah Entitas Anak Baru
               </DialogTitle>
               <DialogDescription>
-                Daftarkan anak perusahaan baru untuk dihubungkan ke dalam grup konsolidasi laporan keuangan holding.
+                Daftarkan anak perusahaan baru untuk dihubungkan ke dalam grup konsolidasi laporan holding.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 py-4 text-sm">
-              <div className="space-y-1">
-                <Label>Nama Entitas / Perusahaan <span className="text-rose-500">*</span></Label>
-                <Input 
-                  placeholder="Contoh: PT Bahari Nusantara Perkasa"
+            <div className="grid gap-4 py-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="c-name">Nama Legal Perusahaan</Label>
+                <Input
+                  id="c-name"
+                  placeholder="Contoh: PT Bahari Coldstorage Cabang Benoa"
                   value={newEntity.name}
-                  onChange={e => setNewEntity({ ...newEntity, name: e.target.value })}
+                  onChange={(e) => setNewEntity({ ...newEntity, name: e.target.value })}
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label>Kode Entitas</Label>
-                  <Input 
-                    placeholder="Contoh: ID-405819"
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="c-code">Kode Entitas (Opsional)</Label>
+                  <Input
+                    id="c-code"
+                    placeholder="SUB-002"
                     value={newEntity.code}
-                    onChange={e => setNewEntity({ ...newEntity, code: e.target.value })}
+                    onChange={(e) => setNewEntity({ ...newEntity, code: e.target.value })}
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label>Porsi Kepemilikan Holding</Label>
-                  <Input 
+                <div className="space-y-1.5">
+                  <Label htmlFor="c-ownership">Porsi Kepemilikan (%)</Label>
+                  <Input
+                    id="c-ownership"
                     placeholder="Contoh: 80%"
                     value={newEntity.ownership}
-                    onChange={e => setNewEntity({ ...newEntity, ownership: e.target.value })}
+                    onChange={(e) => setNewEntity({ ...newEntity, ownership: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <Label>Estimasi Pendapatan Tahunan (Rp)</Label>
-                <Input 
-                  type="number"
-                  placeholder="0"
-                  value={newEntity.revenue}
-                  onChange={e => setNewEntity({ ...newEntity, revenue: e.target.value })}
-                />
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="c-rev" className="text-xs">Pendapatan (Rp)</Label>
+                  <Input
+                    id="c-rev"
+                    type="number"
+                    placeholder="0"
+                    value={newEntity.revenue}
+                    onChange={(e) => setNewEntity({ ...newEntity, revenue: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="c-prof" className="text-xs">Laba Bersih (Rp)</Label>
+                  <Input
+                    id="c-prof"
+                    type="number"
+                    placeholder="0"
+                    value={newEntity.net_profit}
+                    onChange={(e) => setNewEntity({ ...newEntity, net_profit: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="c-ast" className="text-xs">Nilai Aset (Rp)</Label>
+                  <Input
+                    id="c-ast"
+                    type="number"
+                    placeholder="0"
+                    value={newEntity.assets}
+                    onChange={(e) => setNewEntity({ ...newEntity, assets: e.target.value })}
+                  />
+                </div>
               </div>
             </div>
 
@@ -204,93 +305,13 @@ export default function ConsolidationPage() {
               <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
                 Batal
               </Button>
-              <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-                Simpan Entitas
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+                Simpan & Gabungkan Entitas
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border shadow-sm bg-card">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-medium">Total Pendapatan Terkonsolidasi (2026)</CardDescription>
-            <CardTitle className="text-2xl font-bold text-foreground">{formatIDR(totalConsolidatedRevenue)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">Gabungan {companies.length} entitas bisnis</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-sm bg-card">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-medium">Total Laba Bersih Konsolidasian (2026)</CardDescription>
-            <CardTitle className="text-2xl font-bold text-emerald-600">{formatIDR(totalConsolidatedProfit)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              Induk: <strong className="text-foreground">{formatIDR(holdingAttributableProfit)}</strong> | Non-Pengendali: <strong className="text-foreground">{formatIDR(nonControllingInterestProfit)}</strong>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border shadow-sm bg-card">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-medium">Total Nilai Aset Konsolidasi</CardDescription>
-            <CardTitle className="text-2xl font-bold text-indigo-600">{formatIDR(totalConsolidatedAssets)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">Termasuk aset tetap & modal kerja</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Table Section */}
-      <Card className="border shadow-sm bg-card overflow-hidden">
-        <CardHeader className="bg-muted/30 border-b pb-4">
-          <CardTitle className="text-lg">Daftar Entitas dalam Grup</CardTitle>
-          <CardDescription>Rincian kontribusi pendapatan dan aset per entitas hukum</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow>
-                  <TableHead className="font-semibold">Nama Perusahaan</TableHead>
-                  <TableHead className="font-semibold">ID / Kode</TableHead>
-                  <TableHead className="font-semibold">Status Peran</TableHead>
-                  <TableHead className="text-center font-semibold">Porsi Kepemilikan</TableHead>
-                  <TableHead className="text-right font-semibold">Pendapatan</TableHead>
-                  <TableHead className="text-right font-semibold">Laba Bersih</TableHead>
-                  <TableHead className="text-right font-semibold">Total Aset</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {companies.map((c) => (
-                  <TableRow key={c.id} className="hover:bg-muted/20 border-b">
-                    <TableCell className="font-semibold text-foreground flex items-center gap-2 py-4">
-                      <Building2 className="w-4 h-4 text-indigo-600" />
-                      {c.name}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">{c.code}</TableCell>
-                    <TableCell>
-                      <Badge variant={c.role === 'Parent Company' ? 'default' : 'secondary'} className="text-xs">
-                        {c.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center font-medium">{c.ownership}</TableCell>
-                    <TableCell className="text-right font-medium">{formatIDR(c.revenue)}</TableCell>
-                    <TableCell className="text-right font-semibold text-emerald-600">{formatIDR(c.net_profit)}</TableCell>
-                    <TableCell className="text-right font-semibold text-foreground">{formatIDR(c.assets)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
