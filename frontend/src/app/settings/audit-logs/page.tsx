@@ -85,7 +85,7 @@ export default function AuditLogsPage() {
         <CardContent>
           <div className="rounded-md border overflow-x-auto">
             <Table>
-              <TableHeader className="bg-slate-50">
+              <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead className="w-[180px]">Waktu & Tanggal</TableHead>
                   <TableHead className="w-[120px]">Aksi</TableHead>
@@ -97,36 +97,36 @@ export default function AuditLogsPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-32 text-center text-slate-500">
+                    <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                       <div className="flex items-center justify-center gap-2">
-                        <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
+                        <RefreshCw className="w-4 h-4 animate-spin text-primary" />
                         Memuat data audit logs...
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : filteredLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-32 text-center text-slate-500">
+                    <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                       <div className="flex flex-col items-center justify-center gap-1">
-                        <FileText className="w-8 h-8 text-slate-300 mb-1" />
-                        <span className="font-medium text-slate-700">Belum ada riwayat audit log</span>
-                        <span className="text-xs text-slate-400">Log transaksi atau perubahan data akan otomatis tersimpan di sini.</span>
+                        <FileText className="w-8 h-8 text-muted-foreground/40 mb-1" />
+                        <span className="font-medium text-foreground">Belum ada riwayat audit log</span>
+                        <span className="text-xs text-muted-foreground">Log transaksi atau perubahan data akan otomatis tersimpan di sini.</span>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredLogs.map((log) => (
-                    <TableRow key={log.id} className="hover:bg-slate-50/50">
-                      <TableCell className="text-xs text-slate-600 whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 font-medium text-slate-900">
-                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <TableRow key={log.id} className="hover:bg-muted/50">
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 font-medium text-foreground">
+                          <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                           {new Date(log.created_at).toLocaleDateString('id-ID', {
                             day: 'numeric',
                             month: 'short',
                             year: 'numeric'
                           })}
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
+                        <div className="text-[11px] text-muted-foreground/70 mt-0.5">
                           {new Date(log.created_at).toLocaleTimeString('id-ID', {
                             hour: '2-digit',
                             minute: '2-digit',

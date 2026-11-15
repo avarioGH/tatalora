@@ -213,7 +213,7 @@ export default function SettingsHubPage() {
                   <Link
                     key={itemIdx}
                     href={item.href}
-                    className="group relative flex flex-col justify-between p-5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50/80 hover:border-blue-400/70 hover:shadow-sm transition-all duration-200 cursor-pointer"
+                    className="group relative flex flex-col justify-between p-5 rounded-xl border border-border bg-card hover:bg-muted/50 hover:border-primary/50 hover:shadow-sm transition-all duration-200 cursor-pointer"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-3.5">
@@ -221,16 +221,16 @@ export default function SettingsHubPage() {
                           <Icon className="w-5 h-5" />
                         </div>
                         {item.badge && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
                             {item.badge === "AI Powered" && <Sparkles className="w-2.5 h-2.5" />}
                             {item.badge}
                           </span>
                         )}
                       </div>
-                      <h3 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">
+                      <h3 className="font-bold text-sm text-foreground group-hover:text-primary transition-colors">
                         {item.title}
                       </h3>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed line-clamp-2">
                         {item.description}
                       </p>
                     </div>
