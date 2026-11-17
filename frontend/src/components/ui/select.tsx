@@ -58,14 +58,36 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
  )
 }
 
-function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
- return (
- <SelectPrimitive.Value
- data-slot="select-value"
- className={cn("flex flex-1 text-left", className)}
- {...props}
- />
- )
+function SelectValue({ className, children, ...props }: SelectPrimitive.Value.Props) {
+  const { getLabel } = React.useContext(SelectItemMappingContext);
+
+  if (children) {
+    return (
+      <SelectPrimitive.Value
+        data-slot="select-value"
+        className={cn("flex flex-1 text-left", className)}
+        {...props}
+      >
+        {children}
+      </SelectPrimitive.Value>
+    );
+  }
+
+  return (
+    <SelectPrimitive.Value
+      data-slot="select-value"
+      className={cn("flex flex-1 text-left", className)}
+      {...props}
+    >
+      {(val: any) => {
+        if (val === undefined || val === null || val === "") {
+          return props.placeholder || null;
+        }
+        const lbl = getLabel(val);
+        return lbl !== undefined ? lbl : String(val);
+      }}
+    </SelectPrimitive.Value>
+  );
 }
 
 function SelectTrigger({
@@ -200,6 +222,12 @@ function SelectItem({
  // Base UI Error 31 fix: always ensure value is provided even if undefined
  const safeValue = value ?? `fallback-${React.useId()}`;
  const derivedLabel = label !== undefined ? label : extractTextFromChildren(children);
+  const { registerItem } = React.useContext(SelectItemMappingContext);
+  React.useEffect(() => {
+    if (safeValue !== undefined && derivedLabel) {
+      registerItem(safeValue, derivedLabel);
+    }
+  }, [safeValue, derivedLabel, registerItem]);
  
  return (
  <SelectPrimitive.Item
