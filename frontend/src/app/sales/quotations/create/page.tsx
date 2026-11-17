@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import React, { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { api, B2BApi } from "@/lib/api"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,17 @@ import {
 } from "lucide-react"
 
 export default function CreateQuotationPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-indigo-600" /> Memuat formulir penawaran...</div>}>
+      <QuotationForm />
+    </Suspense>
+  )
+}
+
+function QuotationForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const editId = searchParams.get("edit_id")
 
   // Master Data
   const [customers, setCustomers] = useState<any[]>([])
@@ -78,7 +88,7 @@ export default function CreateQuotationPage() {
   const [discountType, setDiscountType] = useState<"percent" | "amount">("percent")
   const [globalDiscountVal, setGlobalDiscountVal] = useState(0)
 
-  // Load Initial Master Data
+  // Load Initial Master Data & Edit Data
   useEffect(() => {
     const fetchMaster = async () => {
       setLoading(true)
@@ -91,6 +101,42 @@ export default function CreateQuotationPage() {
         const prodList = pRes.data?.data || pRes.data || []
         setCustomers(custList)
         setProducts(prodList)
+
+        // If editId is provided, fetch existing quotation
+        if (editId) {
+          const qRes = await B2BApi.getQuotation(editId).catch(() => null)
+          if (qRes) {
+            setCustomerId(qRes.customer_id || "")
+            if (qRes.customer) {
+              setEmail(qRes.customer.email || "")
+              setBillingAddress(qRes.customer.address || "")
+            }
+            if (qRes.quotation_date) {
+              setTransactionDate(new Date(qRes.quotation_date).toISOString().split("T")[0])
+            }
+            if (qRes.expiration_date) {
+              setExpirationDate(new Date(qRes.expiration_date).toISOString().split("T")[0])
+            }
+            if (qRes.quotation_number) {
+              setTransactionNo(qRes.quotation_number)
+            }
+            if (qRes.notes) setMessage(qRes.notes)
+
+            if (Array.isArray(qRes.items) && qRes.items.length > 0) {
+              setItems(qRes.items.map((it: any, idx: number) => ({
+                id: idx + 1,
+                product_id: it.product_id,
+                description: it.description || it.product?.name || "",
+                qty: Number(it.qty) || 1,
+                unit: it.unit || it.product?.unit?.name || it.product?.unit || "Pcs",
+                price: Number(it.unit_price) || 0,
+                discount_percent: it.discount ? Math.round((Number(it.discount) / ((Number(it.qty) || 1) * (Number(it.unit_price) || 1))) * 100) : 0,
+                tax_percent: it.tax ? 11 : 0,
+                total: Number(it.subtotal) || 0
+              })))
+            }
+          }
+        }
       } catch (e) {
         console.error("Error fetching master data:", e)
       } finally {
@@ -98,7 +144,7 @@ export default function CreateQuotationPage() {
       }
     }
     fetchMaster()
-  }, [])
+  }, [editId])
 
   // When customer changes, populate email & address
   const handleCustomerChange = (cId: string | null) => {
@@ -331,12 +377,17 @@ export default function CreateQuotationPage() {
         })
       }
 
-      await B2BApi.createQuotation(payload)
-      alert(status === "DRAFT" ? "Draf Penawaran Penjualan berhasil disimpan!" : "Penawaran Penjualan berhasil dibuat & dikirim!")
+      if (editId) {
+        await B2BApi.updateQuotation(editId, payload)
+        alert(status === "DRAFT" ? "Perubahan Draf Penawaran berhasil disimpan!" : "Penawaran Penjualan berhasil diperbarui & dikirim!")
+      } else {
+        await B2BApi.createQuotation(payload)
+        alert(status === "DRAFT" ? "Draf Penawaran Penjualan berhasil disimpan!" : "Penawaran Penjualan berhasil dibuat & dikirim!")
+      }
       router.push("/sales")
     } catch (err: any) {
       console.error(err)
-      alert("Gagal membuat penawaran penjualan: " + (err.response?.data?.message || err.message))
+      alert("Gagal menyimpan penawaran penjualan: " + (err.response?.data?.message || err.message))
     } finally {
       setSubmitting(false)
     }
@@ -359,7 +410,7 @@ export default function CreateQuotationPage() {
             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Penjualan</p>
             <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
               <FileSpreadsheet className="w-6 h-6 text-indigo-600" />
-              Buat Penawaran Penjualan
+              {editId ? "Ubah Penawaran Penjualan" : "Buat Penawaran Penjualan"}
             </h1>
           </div>
         </div>
@@ -817,15 +868,10 @@ export default function CreateQuotationPage() {
               </div>
 
               <div className="border-t border-border pt-4 flex justify-between items-center">
-                <span className="text-base font-bold text-foreground">Total</span>
+                <span className="text-base font-bold text-foreground">Total Penawaran</span>
                 <span className="text-xl font-black text-indigo-600">
                   {formatCurrency(total)}
                 </span>
-              </div>
-
-              <div className="flex justify-between items-center text-sm text-muted-foreground pt-1 border-t border-border/50">
-                <span>Sisa Tagihan</span>
-                <span className="font-bold text-foreground">{formatCurrency(balanceDue)}</span>
               </div>
             </div>
           </div>

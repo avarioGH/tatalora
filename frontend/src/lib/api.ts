@@ -239,7 +239,7 @@ export const FinanceAPI: any = {
   postInvoice: async (id: string) => (await api.post('/finance/invoices/' + id + '/post')).data,
   getPayments: async (params?: any) => (await api.get('/finance/payments', { params })).data,
   createPayment: async (data: any) => (await api.post('/finance/payments', data)).data,
-  getCashAccounts: async () => (await api.get('/finance/payments/cash-accounts').catch(() => ({ data: [] }))).data,
+  getCashAccounts: async () => (await api.get('/finance/accounts').catch(() => ({ data: [] }))).data,
   createCashAccount: async (data: any) => (await api.post('/finance/accounts', data)).data,
   getTransactions: async (params?: any) => (await api.get('/finance/transactions', { params }).catch(() => ({ data: [] }))).data,
   getSummary: async () => (await api.get('/finance/summary').catch(() => ({ data: { cashInHand: 0, cashInBank: 0 } }))).data,

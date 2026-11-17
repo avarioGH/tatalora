@@ -85,6 +85,17 @@ export default function UnifiedSalesPage() {
     }
   }
 
+  const handleConfirmQuotation = async (id: string, number: string) => {
+    if (!confirm(`Konfirmasi penawaran ${number} menjadi Pesanan Penjualan (Sales Order)?`)) return
+    try {
+      await B2BApi.confirmQuotation(id)
+      alert(`Penawaran ${number} berhasil dikonfirmasi menjadi Pesanan Penjualan!`)
+      fetchData()
+    } catch (err: any) {
+      alert("Gagal konfirmasi penawaran: " + (err.response?.data?.message || err.message))
+    }
+  }
+
   useEffect(() => {
     fetchData()
   }, [])
@@ -473,8 +484,15 @@ export default function UnifiedSalesPage() {
               <TableRow key={q.id}>
                 <TableCell><input type="checkbox" className="rounded border-gray-300" /></TableCell>
                 <TableCell>{new Date(q.quotation_date).toLocaleDateString('id-ID')}</TableCell>
-                <TableCell className="text-indigo-600 font-medium">{q.quotation_number}</TableCell>
-                <TableCell className="text-indigo-600 font-medium">{q.customer?.name || '-'}</TableCell>
+                <TableCell>
+                  <span 
+                    onClick={() => router.push(`/sales/quotations?id=${q.id}`)}
+                    className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer hover:underline"
+                  >
+                    {q.quotation_number}
+                  </span>
+                </TableCell>
+                <TableCell className="font-medium text-foreground">{q.customer?.name || '-'}</TableCell>
                 <TableCell><Badge variant="outline">{q.status}</Badge></TableCell>
                 <TableCell className="text-right font-medium">{formatIDR(q.total_amount)}</TableCell>
                 <TableCell className="text-right">
@@ -484,10 +502,15 @@ export default function UnifiedSalesPage() {
                         Tindakan <ChevronDown className="w-3 h-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40 bg-card">
-                      <DropdownMenuItem onClick={() => router.push(`/sales/quotations`)} className="cursor-pointer">
-                        <Eye className="w-3.5 h-3.5 mr-2" /> Detail
+                    <DropdownMenuContent align="end" className="w-48 bg-card">
+                      <DropdownMenuItem onClick={() => router.push(`/sales/quotations?id=${q.id}`)} className="cursor-pointer">
+                        <Eye className="w-3.5 h-3.5 mr-2" /> Detail Penawaran
                       </DropdownMenuItem>
+                      {q.status === 'DRAFT' && (
+                        <DropdownMenuItem onClick={() => handleConfirmQuotation(q.id, q.quotation_number)} className="cursor-pointer text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50 font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Confirm Order
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleDeleteQuotation(q.id, q.quotation_number)} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
                         <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus
                       </DropdownMenuItem>

@@ -134,12 +134,43 @@ export class SalesController {
   @Put('quotations/:id')
   async updateQuotation(@Request() req: any, @Param('id') id: string, @Body() data: any) {
     const companyId = req.user.company_id || req.user.companyId;
+
+    if (data.items) {
+      await this.prisma.quotationItem.deleteMany({ where: { quotation_id: id } });
+    }
+
+    const items = data.items || [];
+    const subtotal = items.reduce(
+      (sum: number, it: any) => sum + (Number(it.subtotal) || Number(it.qty) * Number(it.unit_price) || 0),
+      0,
+    );
+    const totalAmount = data.total_amount !== undefined ? Number(data.total_amount) : (items.length > 0 ? subtotal : undefined);
+
     return this.prisma.quotation.update({
       where: { id },
       data: {
-        status: data.status,
-        notes: data.notes,
-        total_amount: data.total_amount !== undefined ? Number(data.total_amount) : undefined,
+        customer_id: data.customer_id || undefined,
+        status: data.status || undefined,
+        notes: data.notes !== undefined ? data.notes : undefined,
+        quotation_date: data.quotation_date ? new Date(data.quotation_date) : undefined,
+        expiration_date: data.expiration_date ? new Date(data.expiration_date) : undefined,
+        total_amount: totalAmount,
+        items: items.length > 0 ? {
+          create: items.map((it: any) => ({
+            product_id: it.product_id,
+            qty: Number(it.qty || 1),
+            unit: it.unit || 'Pcs',
+            unit_price: Number(it.unit_price || 0),
+            discount: Number(it.discount || 0),
+            tax: Number(it.tax || 0),
+            subtotal: Number(it.subtotal || Number(it.qty || 1) * Number(it.unit_price || 0)),
+            description: it.description || null,
+          })),
+        } : undefined,
+      },
+      include: {
+        customer: true,
+        items: { include: { product: true } },
       },
     });
   }

@@ -50,7 +50,7 @@ export default function StockAvailablePage() {
   // Flatten products with warehouse stock rows
   const stockRows: any[] = []
   products.forEach(p => {
-    const totalQty = p.warehouse_stocks?.reduce((s: number, ws: any) => s + (Number(ws.quantity) || 0), 0) || Number(p.stock) || 0
+    const totalQty = p.warehouse_stocks?.reduce((s: number, ws: any) => s + (Number(ws.current_stock ?? ws.quantity) || 0), 0) || Number(p.stock) || 0
     const minQty = Number(p.min_stock) || 10
     const unitName = typeof p.unit === 'object' && p.unit !== null ? (p.unit.name || 'Pcs') : (typeof p.unit === 'string' ? p.unit : 'Pcs')
     
@@ -60,8 +60,8 @@ export default function StockAvailablePage() {
 
     if (p.warehouse_stocks && p.warehouse_stocks.length > 0) {
       p.warehouse_stocks.forEach((ws: any) => {
-        const whName = ws.warehouse?.name || 'Gudang Utama'
-        const q = Number(ws.quantity) || 0
+        const whName = ws.warehouse?.name || 'Gudang'
+        const q = Number(ws.current_stock ?? ws.quantity) || 0
         let st = "Tersedia"
         if (q === 0) st = "Habis"
         else if (q <= minQty) st = "Hampir Habis"

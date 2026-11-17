@@ -47,14 +47,18 @@ export default function CreateRFQPage() {
     async function loadMaster() {
       try {
         const [supRes, prodRes] = await Promise.all([
-          api.get("/crm/partners").catch(() => ({ data: [] })),
+          api.get("/customers?limit=100").catch(() => ({ data: [] })),
           InventoryAPI.getProducts().catch(() => [])
         ])
-        const rawSuppliers = (supRes?.data?.data || supRes?.data || (Array.isArray(supRes) ? supRes : [])).filter((s: any) => 
-          !s.type || s.type === 'vendor' || s.type === 'supplier' || s.type === 'both'
-        )
+        const list = supRes?.data?.data || supRes?.data || (Array.isArray(supRes) ? supRes : [])
+        const rawSuppliers = list.filter((s: any) => {
+          const type = (s.type || s.category || '').toLowerCase()
+          const roles = Array.isArray(s.roles) ? s.roles.map((r: string) => r.toUpperCase()) : []
+          const isVendorRole = roles.includes('VENDOR') || roles.includes('SUPPLIER')
+          return isVendorRole || type.includes('supplier') || type.includes('vendor') || type.includes('both') || !type
+        })
         const rawProducts = prodRes?.data || (Array.isArray(prodRes) ? prodRes : [])
-        setSuppliers(rawSuppliers)
+        setSuppliers(rawSuppliers.length > 0 ? rawSuppliers : list)
         setProducts(rawProducts)
       } catch (err) {
         console.error("Failed to load RFQ master data:", err)

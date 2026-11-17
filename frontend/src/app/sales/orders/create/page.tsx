@@ -786,9 +786,14 @@ export default function CreateSalesOrderPage() {
                 </div>
               </div>
 
+              <div className="flex justify-between items-center py-1 text-sm text-foreground">
+                <span className="text-sm text-muted-foreground font-medium">PPN</span>
+                <span className="text-base font-semibold text-foreground">{formatIDR(lineTaxTotal)}</span>
+              </div>
+
               <div className="border-t border-border my-2 pt-3 flex justify-between items-center">
                 <span className="text-base font-bold text-foreground">Total</span>
-                <span className="text-lg font-bold text-foreground">{formatIDR(total)}</span>
+                <span className="text-lg font-bold text-indigo-600">{formatIDR(total)}</span>
               </div>
 
               <div className="border-t-2 border-indigo-600/30 pt-3 flex justify-between items-center">

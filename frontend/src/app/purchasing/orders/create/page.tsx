@@ -73,7 +73,9 @@ export default function CreateOrderPage() {
 
       const validSuppliers = rawSuppliers.filter((s: any) => {
         const type = (s.type || s.category || '').toLowerCase()
-        return type.includes('supplier') || type.includes('vendor') || type.includes('both') || !type
+        const roles = Array.isArray(s.roles) ? s.roles.map((r: string) => r.toUpperCase()) : []
+        const isVendorRole = roles.includes('VENDOR') || roles.includes('SUPPLIER')
+        return isVendorRole || type.includes('supplier') || type.includes('vendor') || type.includes('both') || !type
       })
       setSuppliers(validSuppliers.length > 0 ? validSuppliers : rawSuppliers)
       setProducts(rawProducts)

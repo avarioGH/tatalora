@@ -126,7 +126,11 @@ export class InventoryService {
         category: true,
         unit: true,
         brand: true,
-        warehouse_stocks: true,
+        warehouse_stocks: {
+          include: {
+            warehouse: true,
+          },
+        },
         images: true,
       },
       orderBy: { created_at: 'desc' },

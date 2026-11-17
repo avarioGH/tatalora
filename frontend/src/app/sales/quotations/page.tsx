@@ -297,9 +297,32 @@ export default function QuotationsPage() {
  <td className="p-4 px-6 text-right font-medium">Rp {Number(item.total_amount || 0).toLocaleString('id-ID')}</td>
  <td className="py-3.5 px-6 text-center text-[13px]">{getStatusBadge(item.status)}</td>
  <td className="py-3.5 px-6 text-center text-[13px]">
- <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
- View
+ <div className="flex items-center justify-center gap-2">
+ <Button variant="outline" size="sm" onClick={() => viewDetails(item)} className="h-8 text-xs">
+ Detail
  </Button>
+ {item.status === 'DRAFT' && (
+ <Button 
+ size="sm" 
+ onClick={async (e) => {
+ e.stopPropagation();
+ if (!confirm(`Konfirmasi penawaran ${item.quotation_number} menjadi Pesanan Penjualan?`)) return;
+ try {
+ setLoading(true);
+ await B2BApi.confirmQuotation(item.id);
+ await fetchQuotations();
+ } catch (err: any) {
+ alert('Gagal konfirmasi: ' + (err.message || err));
+ } finally {
+ setLoading(false);
+ }
+ }}
+ className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs h-8"
+ >
+ Confirm Order
+ </Button>
+ )}
+ </div>
  </td>
  </tr>
  ))}

@@ -31,6 +31,15 @@ export class FinanceController {
   }
 
   @Permissions('finance.view')
+  @Get('accounts')
+  async getCashAccounts(@Request() req) {
+    return this.prisma.cashAccount.findMany({
+      where: { company_id: req.user.company_id },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  @Permissions('finance.view')
   @Get('summary')
   async getSummary(@Request() req) {
     const companyId = req.user.company_id;
