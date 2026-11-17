@@ -205,7 +205,6 @@ function QuotationForm() {
     const price = Number(item.price || 0)
     let discPct = Number(item.discount_percent || 0)
     if (discPct < 0) discPct = 0
-    if (discPct > 100) discPct = 100
     item.discount_percent = discPct
 
     const taxPct = Number(item.tax_percent || 0)
@@ -682,8 +681,11 @@ function QuotationForm() {
                         max="100"
                         value={item.discount_percent}
                         onChange={(e) => handleItemChange(index, "discount_percent", e.target.value)}
-                        className="h-9 bg-background border-border text-center text-xs"
+                        className={`h-9 bg-background border-border text-center text-xs ${Number(item.discount_percent) > 100 ? 'border-rose-500 text-rose-600 font-semibold' : ''}`}
                       />
+                      {Number(item.discount_percent) > 100 && (
+                        <p className="text-[10px] text-rose-500 mt-1 font-medium leading-none">Maks. 100% (dibatasi 100%)</p>
+                      )}
                     </TableCell>
 
                     {/* Pajak % */}

@@ -83,10 +83,10 @@ export default function QuotationsPage() {
 
  const getStatusBadge = (status: string) => {
  switch (status) {
- case 'DRAFT': return <Badge variant="secondary" className="bg-muted/50 text-foreground">Draft</Badge>
- case 'SENT': return <Badge variant="outline" className="text-primary border-indigo-200 bg-indigo-50 dark:border-indigo-900 dark:bg-indigo-900/30 dark:text-primary">Sent</Badge>
- case 'CONFIRMED': return <Badge className="">Confirmed</Badge>
- case 'CANCELLED': return <Badge variant="destructive">Cancelled</Badge>
+ case 'DRAFT': return <Badge variant="secondary" className="bg-muted/50 text-foreground">Draf</Badge>
+ case 'SENT': return <Badge variant="outline" className="text-primary border-indigo-200 bg-indigo-50 dark:border-indigo-900 dark:bg-indigo-900/30 dark:text-primary">Terkirim</Badge>
+ case 'CONFIRMED': return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">Dikonfirmasi (SO)</Badge>
+ case 'CANCELLED': return <Badge variant="destructive">Dibatalkan</Badge>
  default: return <Badge variant="outline">{status}</Badge>
  }
  }
@@ -111,7 +111,7 @@ export default function QuotationsPage() {
  {getStatusBadge(details.status)}
  </div>
  <p className="text-muted-foreground flex items-center gap-2 mt-1 text-sm">
- <FileText className="h-4 w-4" /> Quotation Document
+ <FileText className="h-4 w-4" /> Dokumen Penawaran Penjualan
  </p>
  </div>
  </div>
@@ -123,7 +123,7 @@ export default function QuotationsPage() {
  <Button onClick={() => window.location.href = `/sales/quotations/create?edit_id=${details.id}`} variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
    <Edit3 className="w-4 h-4 mr-2" /> Ubah Draf
  </Button>
- <Button variant="secondary"><Send className="w-4 h-4 mr-2" /> Send by Email</Button>
+ <Button variant="secondary"><Send className="w-4 h-4 mr-2" /> Kirim Email</Button>
  <Button onClick={handleReject} variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50"><X className="w-4 h-4 mr-2" /> Tolak Penawaran</Button>
                   <Button onClick={handleConfirm} className="">
  <CheckCircle2 className="w-4 h-4 mr-2" /> Buat Jadi Pesanan
@@ -142,7 +142,7 @@ export default function QuotationsPage() {
    }} 
    className=""
  >
-   View Sales Order {details.sales_orders?.[0]?.order_number ? `(${details.sales_orders[0].order_number})` : ''}
+   Lihat Pesanan Penjualan (SO) {details.sales_orders?.[0]?.order_number ? `(${details.sales_orders[0].order_number})` : ''}
  </Button>
  )}
  </div>
@@ -154,22 +154,22 @@ export default function QuotationsPage() {
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  <Card className="md:col-span-2 shadow-sm">
  <CardHeader className="border-b bg-muted/10 pb-4">
- <CardTitle className="text-[16px] font-semibold">Order Lines</CardTitle>
+ <CardTitle className="text-[16px] font-semibold">Rincian Barang Penawaran</CardTitle>
  </CardHeader>
  <CardContent className="p-0">
  <div className="overflow-x-auto">
  <table className="min-w-[600px] md:min-w-full w-full text-sm">
  <thead className="bg-muted/30">
  <tr>
- <th className="p-4 text-left font-medium text-muted-foreground">Product</th>
- <th className="p-4 text-center font-medium text-muted-foreground">Qty</th>
- <th className="p-4 text-right font-medium text-muted-foreground">Unit Price</th>
+ <th className="p-4 text-left font-medium text-muted-foreground">Produk / Barang</th>
+ <th className="p-4 text-center font-medium text-muted-foreground">Jumlah</th>
+ <th className="p-4 text-right font-medium text-muted-foreground">Harga Satuan</th>
  <th className="p-4 text-right font-medium text-muted-foreground">Subtotal</th>
  </tr>
  </thead>
  <tbody>
  {((details.items || details.lines || []).length === 0) ? (
- <tr><td colSpan={4} className="text-center p-4 md:p-8 text-muted-foreground">No lines available.</td></tr>
+ <tr><td colSpan={4} className="text-center p-4 md:p-8 text-muted-foreground">Belum ada baris barang penawaran.</td></tr>
  ) : (
  (details.items || details.lines || []).map((line: any, i: number) => {
    const lineQty = Number(line.qty || line.quantity || 1);
@@ -211,24 +211,24 @@ export default function QuotationsPage() {
 
  <Card className="shadow-sm h-fit">
  <CardHeader className="border-b bg-muted/10 pb-4">
- <CardTitle className="text-[16px] font-semibold">Quotation Information</CardTitle>
+ <CardTitle className="text-[16px] font-semibold">Informasi Penawaran</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4 pt-6">
  <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Customer</p>
+ <p className="text-sm font-medium text-muted-foreground mb-1">Pelanggan</p>
  <p className="font-medium">{details.customer?.name || '-'}</p>
  <p className="text-sm text-muted-foreground">{details.customer?.email || ''}</p>
  </div>
  <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Quotation Date</p>
+ <p className="text-sm font-medium text-muted-foreground mb-1">Tanggal Penawaran</p>
  <p className="font-medium">{new Date(details.quotation_date || details.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
  </div>
  <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Expiration Date</p>
+ <p className="text-sm font-medium text-muted-foreground mb-1">Masa Berlaku / Jatuh Tempo</p>
  <p className="font-medium">{details.expiration_date ? new Date(details.expiration_date).toLocaleDateString('id-ID') : '-'}</p>
  </div>
  <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Salesperson</p>
+ <p className="text-sm font-medium text-muted-foreground mb-1">Sales / Penanggung Jawab</p>
  <p className="font-medium text-primary">{details.salesperson?.name || 'Unassigned'}</p>
  </div>
  </CardContent>
@@ -243,22 +243,22 @@ export default function QuotationsPage() {
  <div className="space-y-6">
  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
  <div>
- <h1 className="text-[28px] font-bold tracking-tight text-foreground">Quotations</h1>
- <p className="text-muted-foreground mt-1">Manage sales offers and proposals for your customers.</p>
+ <h1 className="text-[28px] font-bold tracking-tight text-foreground">Penawaran Penjualan (Quotations)</h1>
+ <p className="text-muted-foreground mt-1">Kelola dokumen penawaran harga dan proposal resmi untuk pelanggan Anda.</p>
  </div>
- <Button onClick={() => window.location.href = "/sales/quotations/create"} className="shadow-sm"><Plus className="w-4 h-4 mr-2" /> New Quotation</Button>
+ <Button onClick={() => window.location.href = "/sales/quotations/create"} className="shadow-sm"><Plus className="w-4 h-4 mr-2" /> Buat Penawaran Baru</Button>
  </div>
 
  <Card className="shadow-sm">
  <CardHeader className="pb-4 border-b border-border/40">
  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
- <CardTitle className="text-[16px] font-semibold">Quotation Records</CardTitle>
+ <CardTitle className="text-[16px] font-semibold">Daftar Dokumen Penawaran</CardTitle>
  <div className="flex items-center gap-2">
  <div className="relative w-full sm:w-64">
  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
  <Input 
  type="search" 
- placeholder="Search quotation..." 
+ placeholder="Cari nomor penawaran atau pelanggan..." 
  className="pl-8" 
  value={searchTerm}
  onChange={(e) => setSearchTerm(e.target.value)}
@@ -278,17 +278,17 @@ export default function QuotationsPage() {
  <table className="min-w-[600px] md:min-w-full w-full text-sm">
  <thead className="bg-muted border-y border-border">
  <tr>
- <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Number</th>
- <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Customer</th>
- <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Date</th>
- <th className="p-4 px-6 text-right text-[#526174] font-semibold text-[13px] tracking-wide">Total</th>
+ <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">No. Penawaran</th>
+ <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Pelanggan</th>
+ <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Tanggal</th>
+ <th className="p-4 px-6 text-right text-[#526174] font-semibold text-[13px] tracking-wide">Total Nilai</th>
  <th className="p-4 px-6 text-center text-[#526174] font-semibold text-[13px] tracking-wide">Status</th>
- <th className="p-4 px-6 text-center text-[#526174] font-semibold text-[13px] tracking-wide">Action</th>
+ <th className="p-4 px-6 text-center text-[#526174] font-semibold text-[13px] tracking-wide">Aksi</th>
  </tr>
  </thead>
  <tbody>
  {filtered.length === 0 ? (
- <tr><td colSpan={6} className="text-center p-12 text-muted-foreground">No quotations found.</td></tr>
+ <tr><td colSpan={6} className="text-center p-12 text-muted-foreground">Tidak ada dokumen penawaran ditemukan.</td></tr>
  ) : filtered.map((item) => (
  <tr key={item.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer" onClick={() => viewDetails(item)}>
  <td className="py-3.5 px-6 font-semibold text-primary text-[13px] dark:text-primary">{item.quotation_number}</td>

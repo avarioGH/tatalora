@@ -44,12 +44,11 @@ export default function CreateDeliveryPage() {
       if (whList.length > 0) setSourceWarehouseId(whList[0].id)
 
       // Only show orders that are confirmed or partially delivered (exclude cancelled and fully delivered)
-      const validOrders = (orderRes?.data || []).filter((o: any) => 
-        o.order_number?.startsWith('SO') && 
-        o.status !== 'CANCELLED' &&
-        o.status !== 'COMPLETED' &&
-        o.delivery_status !== 'DELIVERED'
-      )
+      const validOrders = (orderRes?.data || []).filter((o: any) => {
+        const isNotFinished = o.status !== 'CANCELLED' && o.status !== 'COMPLETED' && o.delivery_status !== 'DELIVERED';
+        const isReadyStatus = o.status === 'CONFIRMED' || o.status === 'PROCESSING' || o.status === 'PENDING';
+        return isNotFinished && isReadyStatus;
+      })
       setOrders(validOrders)
       if (initialSoId && validOrders.find((o: any) => o.id === initialSoId)) {
         setTimeout(() => handleSelectSo(initialSoId), 100);
@@ -183,7 +182,9 @@ export default function CreateDeliveryPage() {
               >
                 <option value="">-- Pilih Sales Order --</option>
                 {orders.map(o => (
-                  <option key={o.id} value={o.id}>{o.order_number} - {o.customer?.name} (Tgl: {new Date(o.order_date).toLocaleDateString('id-ID')})</option>
+                  <option key={o.id} value={o.id}>
+                    {o.order_number} - {o.customer?.name || 'Pelanggan'} | Status: {o.status === 'CONFIRMED' ? 'Terkonfirmasi' : o.status === 'PROCESSING' ? 'Diproses' : o.status} (Tgl: {new Date(o.order_date || o.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })})
+                  </option>
                 ))}
               </select>
             </div>

@@ -96,12 +96,12 @@ export default function SalesOrdersPage() {
 
   const getStatusBadge = (status: string, fulfillmentType?: string) => {
     switch (status) {
-      case 'PENDING': return <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300">Pending</Badge>
+      case 'PENDING': return <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-300">Menunggu</Badge>
       case 'CONFIRMED': return <Badge className="bg-blue-600 text-white">Confirmed</Badge>
       case 'DELIVERED': return <Badge className="bg-emerald-600 text-white">Delivered</Badge>
       case 'COMPLETED': return <Badge className="bg-emerald-700 text-white">Selesai {fulfillmentType === 'POS' ? '(POS/Langsung)' : ''}</Badge>
       case 'INVOICED': return <Badge variant="outline" className="border-emerald-500 text-primary">Invoiced</Badge>
-      case 'CANCELLED': return <Badge variant="destructive">Cancelled</Badge>
+      case 'CANCELLED': return <Badge variant="destructive">Dibatalkan</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }
@@ -172,7 +172,7 @@ export default function SalesOrdersPage() {
  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
  <Card className="md:col-span-2 shadow-sm">
  <CardHeader className="border-b bg-muted/10 pb-4">
- <CardTitle className="text-[16px] font-semibold">Order Lines</CardTitle>
+ <CardTitle className="text-[16px] font-semibold">Rincian Barang Pesanan</CardTitle>
  </CardHeader>
  <CardContent className="p-0">
  <div className="overflow-x-auto">
@@ -224,16 +224,16 @@ export default function SalesOrdersPage() {
 
  <Card className="shadow-sm h-fit">
  <CardHeader className="border-b bg-muted/10 pb-4">
- <CardTitle className="text-[16px] font-semibold">Order Information</CardTitle>
+ <CardTitle className="text-[16px] font-semibold">Informasi Pesanan</CardTitle>
  </CardHeader>
  <CardContent className="space-y-4 pt-6">
  <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Customer</p>
+ <p className="text-sm font-medium text-muted-foreground mb-1">Pelanggan</p>
  <p className="font-medium">{details.customer?.name || '-'}</p>
  <p className="text-sm text-muted-foreground">{details.customer?.email || ''}</p>
  </div>
  <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Order Date</p>
+ <p className="text-sm font-medium text-muted-foreground mb-1">Tanggal Pesanan</p>
  <p className="font-medium">{new Date(details.order_date || details.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
  </div>
  {details.quotation_id && (
@@ -281,7 +281,7 @@ export default function SalesOrdersPage() {
  <Card className="shadow-sm">
  <CardHeader className="pb-4 border-b border-border/40">
  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
- <CardTitle className="text-[16px] font-semibold">Sales Orders</CardTitle>
+ <CardTitle className="text-[16px] font-semibold">Daftar Pesanan Penjualan</CardTitle>
  <div className="flex items-center gap-2">
  <div className="relative w-full sm:w-64">
  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -317,7 +317,7 @@ export default function SalesOrdersPage() {
  </thead>
  <tbody>
  {filtered.length === 0 ? (
- <tr><td colSpan={6} className="text-center p-12 text-muted-foreground">No sales orders found.</td></tr>
+ <tr><td colSpan={6} className="text-center p-12 text-muted-foreground">Tidak ada pesanan penjualan ditemukan.</td></tr>
  ) : filtered.map((item) => (
  <tr key={item.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer" onClick={() => viewDetails(item)}>
  <td className="py-3.5 px-6 font-semibold text-primary text-[13px] dark:text-primary">{item.order_number}</td>
