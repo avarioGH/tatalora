@@ -98,7 +98,7 @@ export default function CreateDeliveryPage() {
         let availableStock = 0;
         if (item.product?.warehouse_stocks) {
           const ws = item.product.warehouse_stocks.find((s: any) => !sourceWarehouseId || s.warehouse_id === sourceWarehouseId);
-          availableStock = ws ? ws.current_stock : 0;
+          availableStock = ws ? (ws.current_stock ?? ws.quantity ?? 0) : (item.product?.current_stock ?? item.product?.stock ?? 0);
         }
 
         const unitName = typeof item.product?.unit === 'object' && item.product?.unit !== null 
@@ -275,6 +275,7 @@ export default function CreateDeliveryPage() {
                     <th className="p-3 text-right">Dipesan</th>
                     <th className="p-3 text-right">Sudah Kirim</th>
                     <th className="p-3 text-right">Sisa Belum Kirim</th>
+                    <th className="p-3 text-right">Stok Tersedia (Gudang)</th>
                     <th className="p-3 text-right">Qty Dikirim (Saat Ini)</th>
                   </tr>
                 </thead>
@@ -289,6 +290,11 @@ export default function CreateDeliveryPage() {
                       <td className="p-3 text-right">{item.orderedQty}</td>
                       <td className="p-3 text-right text-muted-foreground">{item.deliveredQty}</td>
                       <td className="p-3 text-right font-semibold text-primary">{item.remainingQty}</td>
+                      <td className="p-3 text-right">
+                        <span className={`font-medium px-2 py-0.5 rounded text-xs ${item.availableStock >= item.remainingQty ? 'bg-emerald-500/10 text-emerald-600' : item.availableStock > 0 ? 'bg-amber-500/10 text-amber-600' : 'bg-rose-500/10 text-rose-600'}`}>
+                          {item.availableStock} {item.unit}
+                        </span>
+                      </td>
                       <td className="p-3 text-right">
                         <Input 
                           type="number" 

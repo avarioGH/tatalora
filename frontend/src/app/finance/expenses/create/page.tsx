@@ -30,6 +30,7 @@ export default function CreateExpensePage() {
   // Master Data
   const [cashAccounts, setCashAccounts] = useState<any[]>([])
   const [expenseAccounts, setExpenseAccounts] = useState<any[]>([])
+  const [liabilityAccounts, setLiabilityAccounts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
 
   // Form State
@@ -54,7 +55,7 @@ export default function CreateExpensePage() {
       setLoading(true)
       try {
         const [accRes, coaRes, catRes] = await Promise.all([
-          api.get("/finance/payments/cash-accounts").catch(() => ({ data: [] })),
+          api.get("/finance/accounts").catch(() => api.get("/finance/payments/cash-accounts")).catch(() => ({ data: [] })),
           api.get("/gl/accounts").catch(() => ({ data: [] })),
           api.get("/finance/categories").catch(() => ({ data: [] }))
         ])
@@ -109,7 +110,8 @@ export default function CreateExpensePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!fromAccountId) return alert("Pilih akun kas/bank pembayar!")
+    if (paymentMode === "NOW" && !fromAccountId) return alert("Pilih akun kas/bank pembayar!")
+    if (paymentMode === "LATER" && !dueDate) return alert("Pilih tanggal jatuh tempo untuk biaya terutang!")
     if (totalAmount <= 0) return alert("Total nominal biaya harus lebih dari 0!")
 
     setSubmitting(true)
@@ -191,23 +193,42 @@ export default function CreateExpensePage() {
                       </Link>
                     )}
                   </div>
-                  {cashAccounts.length === 0 && !loading ? (
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-700 dark:text-amber-300">
-                      Belum ada akun Kas/Bank yang dikonfigurasi. Silakan setup akun kas di <Link href="/finance/cash-reconciliation" className="font-semibold underline">Kas & Bank</Link> terlebih dahulu.
-                    </div>
+                  {paymentMode === "NOW" ? (
+                    cashAccounts.length === 0 && !loading ? (
+                      <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-700 dark:text-amber-300">
+                        Belum ada akun Kas/Bank yang dikonfigurasi. Silakan setup akun kas di <Link href="/finance/cash-reconciliation" className="font-semibold underline">Kas & Bank</Link> terlebih dahulu, atau pilih opsi <b>Biaya Terutang (Bayar Nanti)</b> di atas.
+                      </div>
+                    ) : (
+                      <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val || "")}>
+                        <SelectTrigger className="bg-muted border-border">
+                          <SelectValue placeholder={loading ? "Memuat akun..." : "Pilih Kas/Bank"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cashAccounts.map(acc => (
+                            <SelectItem key={acc.id} value={acc.id}>
+                              {acc.name} ({acc.account_code || "Kas/Bank"})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )
                   ) : (
-                    <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val || "")}>
-                      <SelectTrigger className="bg-muted border-border">
-                        <SelectValue placeholder={loading ? "Memuat akun..." : "Pilih Kas/Bank"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cashAccounts.map(acc => (
-                          <SelectItem key={acc.id} value={acc.id}>
-                            {acc.name} ({acc.account_code || "Kas/Bank"})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-3">
+                      <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val || "")}>
+                        <SelectTrigger className="bg-muted border-border">
+                          <SelectValue placeholder={loading ? "Memuat akun..." : "Pilih Akun Utang (2-xxxxx)"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {liabilityAccounts.length > 0 ? liabilityAccounts.map(acc => (
+                            <SelectItem key={acc.id} value={acc.id}>
+                              {acc.account_code} - {acc.account_name}
+                            </SelectItem>
+                          )) : (
+                            <SelectItem value="default_ap">2-20100 - Hutang Usaha / Biaya Masih Harus Dibayar</SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
                 </div>
 
@@ -233,6 +254,18 @@ export default function CreateExpensePage() {
                     required
                   />
                 </div>
+                {paymentMode === "LATER" && (
+                  <div className="space-y-2">
+                    <Label className="text-foreground font-semibold text-amber-700 dark:text-amber-400">Tgl. Jatuh Tempo <span className="text-rose-500">*</span></Label>
+                    <Input 
+                      type="date"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="bg-muted border-border border-amber-300"
+                      required={paymentMode === "LATER"}
+                    />
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label className="text-foreground font-semibold">Nomor Referensi / Bukti</Label>
@@ -348,14 +381,14 @@ export default function CreateExpensePage() {
               <div className="pt-6">
                 <Button 
                   type="submit" 
-                  disabled={submitting || cashAccounts.length === 0} 
+                  disabled={submitting || (paymentMode === "NOW" && cashAccounts.length === 0)} 
                   className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg transition-all py-6 text-base font-semibold gap-2 disabled:opacity-50"
                 >
                   {submitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...
                     </>
-                  ) : cashAccounts.length === 0 ? (
+                  ) : (paymentMode === "NOW" && cashAccounts.length === 0) ? (
                     "Setup Kas/Bank Dahulu"
                   ) : (
                     <>
@@ -363,9 +396,9 @@ export default function CreateExpensePage() {
                     </>
                   )}
                 </Button>
-                {cashAccounts.length === 0 && (
+                {(paymentMode === "NOW" && cashAccounts.length === 0) && (
                   <p className="text-xs text-center text-muted-foreground mt-2">
-                    Tombol simpan dinonaktifkan karena belum ada rekening Kas/Bank sumber.
+                    Tombol simpan dinonaktifkan karena belum ada rekening Kas/Bank sumber. Silakan pilih opsi 'Biaya Terutang (Bayar Nanti)' atau setup Kas & Bank.
                   </p>
                 )}
               </div>
