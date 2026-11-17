@@ -126,7 +126,7 @@ export default function QuotationsPage() {
  <Button variant="secondary"><Send className="w-4 h-4 mr-2" /> Send by Email</Button>
  <Button onClick={handleReject} variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50"><X className="w-4 h-4 mr-2" /> Tolak Penawaran</Button>
                   <Button onClick={handleConfirm} className="">
- <CheckCircle2 className="w-4 h-4 mr-2" /> Confirm Order
+ <CheckCircle2 className="w-4 h-4 mr-2" /> Buat Jadi Pesanan
  </Button>
  </>
  )}
@@ -319,7 +319,7 @@ export default function QuotationsPage() {
  }}
  className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs h-8"
  >
- Confirm Order
+ Buat Jadi Pesanan
  </Button>
  )}
  </div>

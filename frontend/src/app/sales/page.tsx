@@ -508,7 +508,7 @@ export default function UnifiedSalesPage() {
                       </DropdownMenuItem>
                       {q.status === 'DRAFT' && (
                         <DropdownMenuItem onClick={() => handleConfirmQuotation(q.id, q.quotation_number)} className="cursor-pointer text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50 font-medium">
-                          <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Confirm Order
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Buat Jadi Pesanan
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem onClick={() => handleDeleteQuotation(q.id, q.quotation_number)} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
