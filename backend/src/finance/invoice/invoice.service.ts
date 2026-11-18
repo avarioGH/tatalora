@@ -64,6 +64,17 @@ export class InvoiceService {
     return Math.round(Number(val || 0) * 100) / 100;
   }
 
+  private calculateDiscountedPrice(price: number, discount: any): number {
+    let p = price;
+    if (!discount) return p;
+    const parts = String(discount).split('+');
+    for (const part of parts) {
+      const d = parseFloat(part);
+      if (!isNaN(d)) p = p * (1 - d / 100);
+    }
+    return p;
+  }
+
   /**
    * Recalculates and updates the SalesOrder invoice_status based EXCLUSIVELY on
    * authoritative POSTED billing (POSTED, PARTIALLY PAID, PAID).
@@ -262,16 +273,16 @@ export class InvoiceService {
             req.unitPrice !== undefined
               ? Number(req.unitPrice)
               : Number(soItem.unit_price);
-          const discount = Number(req.discount ?? 0);
-          const lineTax = Number(req.tax ?? 0);
-          const lineSubtotal = this.roundMoney(reqQty * unitPrice - discount);
+          // Apply compound discount logic
+          const discountedPrice = this.calculateDiscountedPrice(unitPrice, req.discount ?? 0);
+          const lineSubtotal = this.roundMoney(reqQty * discountedPrice);
 
           invoiceItemsData.push({
             product_id: req.productId,
             description: req.description || soItem.product_id,
             qty: reqQty,
             unit_price: unitPrice,
-            discount,
+            discount: req.discount ?? 0,
             tax: lineTax,
             subtotal: lineSubtotal,
           });
@@ -515,16 +526,17 @@ export class InvoiceService {
           }
 
           const unitPrice = req.unitPrice !== undefined ? Number(req.unitPrice) : (productPriceMap[prodId] || 0);
-          const discount = Number(req.discount || 0);
+          // Apply compound discount logic
+          const discountedPrice = this.calculateDiscountedPrice(unitPrice, req.discount || 0);
           const tax = Number(req.tax || 0);
-          const lineSubtotal = this.roundMoney(reqQty * unitPrice - discount);
+          const lineSubtotal = this.roundMoney(reqQty * discountedPrice);
 
           invoiceItemsData.push({
             product_id: prodId,
             description: req.description || productDescMap[prodId] || prodId,
             qty: reqQty,
             unit_price: unitPrice,
-            discount,
+            discount: req.discount || 0,
             tax,
             subtotal: lineSubtotal,
           });
@@ -901,7 +913,8 @@ export class InvoiceService {
         const qty = Number(it.qty || it.quantity) || 1;
         const price = Number(it.unit_price || it.unitPrice || it.price) || 0;
         const lineTax = Number(it.tax) || 0;
-        subtotal += qty * price;
+        const discountedPrice = this.calculateDiscountedPrice(price, it.discount);
+        subtotal += qty * discountedPrice;
         tax += lineTax;
       }
 
