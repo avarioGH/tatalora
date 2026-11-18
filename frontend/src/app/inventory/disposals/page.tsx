@@ -118,6 +118,7 @@ export default function DisposalsPage() {
                   <TableRow className="border-border hover:bg-transparent bg-muted/10">
                     <TableHead className="font-semibold text-foreground pl-6">No. / ID Pemusnahan</TableHead>
                     <TableHead className="font-semibold text-foreground">Tanggal</TableHead>
+                    <TableHead className="font-semibold text-foreground">Gudang Sumber</TableHead>
                     <TableHead className="font-semibold text-foreground">Item & Kuantitas</TableHead>
                     <TableHead className="font-semibold text-foreground">Alasan Pemusnahan</TableHead>
                     <TableHead className="font-semibold text-foreground text-center">Status</TableHead>
@@ -127,7 +128,7 @@ export default function DisposalsPage() {
                 <TableBody>
                   {filteredDisposals.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-16 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-16 text-muted-foreground">
                         <FolderOpen className="w-10 h-10 mx-auto text-muted-foreground/40 mb-2" />
                         <p className="text-base font-medium">Belum ada riwayat pemusnahan stok.</p>
                         <p className="text-xs text-muted-foreground mt-1">Data pemusnahan yang dicatat akan tersinkron di sini.</p>
@@ -140,6 +141,11 @@ export default function DisposalsPage() {
                           <span className="bg-muted/80 px-2 py-0.5 rounded font-mono">DSP-{item.id.slice(0, 8).toUpperCase()}</span>
                         </TableCell>
                         <TableCell className="text-muted-foreground text-xs">{item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-'}</TableCell>
+                        <TableCell className="text-foreground font-medium text-xs">
+                          <span className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 px-2 py-0.5 rounded text-[11px] font-medium">
+                            {item.warehouse?.name || item.warehouse_name || 'Gudang Utama'}
+                          </span>
+                        </TableCell>
                         <TableCell className="text-foreground font-medium text-xs">
                           {item.items && item.items.length > 0 ? (
                             <span>{item.items[0]?.product?.name || item.items[0]?.item?.name || 'Produk'} ({item.items[0]?.quantity || 1} pcs){item.items.length > 1 ? ` +${item.items.length - 1} lainnya` : ''}</span>
