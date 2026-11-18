@@ -40,9 +40,20 @@ export default function FixedAssetsPage() {
   const [activeTab, setActiveTab] = useState("Daftar Aset")
 
   // Modal Create Asset
-  const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [form, setForm] = useState({
+  const [selectedAsset, setSelectedAsset] = useState<any>(null)
+  const [assetDetails, setAssetDetails] = useState<any>(null)
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false)
+
+  const openAssetDetails = async (asset: any) => {
+    setSelectedAsset(asset)
+    setDetailsModalOpen(true)
+    try {
+      const data = await AssetAPI.getAssetFinancials(asset.id)
+      setAssetDetails(data)
+    } catch (e) {
+      console.error(e)
+    }
+  }
     asset_code: "",
     asset_name: "",
     category_id: "",
@@ -374,6 +385,7 @@ export default function FixedAssetsPage() {
                   <TableHead className="text-right">Nilai Buku</TableHead>
                   <TableHead>Metode</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -396,7 +408,11 @@ export default function FixedAssetsPage() {
                       <TableCell className="text-right font-bold text-emerald-600">{formatIDR(a.current_value !== undefined ? a.current_value : a.purchase_price)}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{a.depreciation_method || 'Garis Lurus'}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={a.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-muted text-muted-foreground'}>
+                        <Button variant="ghost" size="sm" onClick={() => openAssetDetails(a)}>
+                          <Eye className="w-4 h-4 text-muted-foreground" />
+                        </Button>
+                      </TableCell>
+                      <TableCell><Badge variant="outline" className={a.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-muted text-muted-foreground'}>
                           {a.status === 'ACTIVE' ? 'Aktif' : a.status}
                         </Badge>
                       </TableCell>
@@ -409,6 +425,55 @@ export default function FixedAssetsPage() {
         </div>
 
       </div>
+
+      {/* Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="max-w-4xl bg-card">
+          <DialogHeader>
+            <DialogTitle>Detail Keuangan & Penyusutan: {selectedAsset?.asset_name}</DialogTitle>
+          </DialogHeader>
+          {assetDetails ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div className="p-3 bg-muted rounded-md text-center">
+                  <p className="text-xs text-muted-foreground">Harga Perolehan</p>
+                  <p className="font-bold">{formatIDR(assetDetails.purchase_price)}</p>
+                </div>
+                <div className="p-3 bg-muted rounded-md text-center">
+                  <p className="text-xs text-muted-foreground">Akumulasi Depresiasi</p>
+                  <p className="font-bold text-rose-600">{formatIDR(assetDetails.accumulated_depreciation)}</p>
+                </div>
+                <div className="p-3 bg-emerald-50 rounded-md text-center border border-emerald-100">
+                  <p className="text-xs text-emerald-600">Nilai Buku</p>
+                  <p className="font-bold text-emerald-700">{formatIDR(assetDetails.purchase_price - assetDetails.accumulated_depreciation)}</p>
+                </div>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Periode</TableHead>
+                    <TableHead className="text-right">Beban Depresiasi</TableHead>
+                    <TableHead className="text-right">Akumulasi</TableHead>
+                    <TableHead className="text-right">Nilai Buku Akhir</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {assetDetails.asset_depreciations?.map((d: any) => (
+                    <TableRow key={d.id}>
+                      <TableCell>{d.period}</TableCell>
+                      <TableCell className="text-right">{formatIDR(d.amount)}</TableCell>
+                      <TableCell className="text-right">{formatIDR(d.accumulated_depreciation)}</TableCell>
+                      <TableCell className="text-right">{formatIDR(d.closing_book_value)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8">Memuat data...</div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Create Asset Modal */}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
