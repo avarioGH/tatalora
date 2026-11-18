@@ -32,10 +32,16 @@ export default function PosOrderHistoryPage() {
  }
  }
 
- const filteredOrders = orders.filter(o => 
- o.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
- (o.customer?.name ||"").toLowerCase().includes(searchQuery.toLowerCase())
- )
+ const filteredOrders = orders
+   .filter(o => {
+     if (o.order_number && (o.order_number.includes("${Date.now()}") || o.order_number.includes("undefined"))) return false;
+     if (o.status === "PENDING") return false;
+     return true;
+   })
+   .filter(o =>
+     (o.order_number || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+     (o.customer?.name || "").toLowerCase().includes(searchQuery.toLowerCase())
+   )
 
  return (
  <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto pb-10">

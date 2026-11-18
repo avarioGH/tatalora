@@ -229,28 +229,36 @@ export default function CreateSalesOrderPage() {
     }
   }
 
-  // Calculations
-  const subtotal = items.reduce((acc, it) => {
-    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
-    return acc + Math.max(0, gross - disc)
+  // Calculations (BARU-05: Bruto -> Diskon -> DPP -> PPN -> Total)
+  const grossSubtotal = items.reduce((acc, it) => {
+    return acc + (Number(it.qty) || 0) * (Number(it.price) || 0)
   }, 0)
-  const lineTaxTotal = items.reduce((acc, it) => {
-    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    const disc = (gross * (Number(it.discount_percent) || 0)) / 100
-    const base = Math.max(0, gross - disc)
-    return acc + ((base * (Number(it.tax_percent) || 0)) / 100)
-  }, 0)
+
   const lineDiscountTotal = items.reduce((acc, it) => {
     const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
-    return acc + (gross * (Number(it.discount_percent) || 0) / 100)
+    const discPct = Math.min(100, Math.max(0, Number(it.discount_percent) || 0))
+    return acc + (gross * discPct / 100)
   }, 0)
 
-  const globalDiscount = discountType === "percent"
-    ? (subtotal * Number(globalDiscountVal || 0)) / 100
-    : Number(globalDiscountVal || 0)
+  const netAfterLineDiscount = Math.max(0, grossSubtotal - lineDiscountTotal)
 
-  const total = Math.max(0, subtotal - globalDiscount + lineTaxTotal)
+  const globalDiscount = discountType === "percent"
+    ? (netAfterLineDiscount * Math.min(100, Math.max(0, Number(globalDiscountVal || 0)))) / 100
+    : Math.min(netAfterLineDiscount, Math.max(0, Number(globalDiscountVal || 0)))
+
+  const taxableBaseTotal = Math.max(0, netAfterLineDiscount - globalDiscount)
+  const discountRatio = netAfterLineDiscount > 0 ? (taxableBaseTotal / netAfterLineDiscount) : 1
+
+  const lineTaxTotal = items.reduce((acc, it) => {
+    const gross = (Number(it.qty) || 0) * (Number(it.price) || 0)
+    const discPct = Math.min(100, Math.max(0, Number(it.discount_percent) || 0))
+    const lineNet = (gross - (gross * discPct / 100)) * discountRatio
+    const taxRate = (Number(it.tax_percent) || 0) / 100
+    return acc + (lineNet * taxRate)
+  }, 0)
+
+  const subtotal = grossSubtotal
+  const total = taxableBaseTotal + lineTaxTotal
   const balanceDue = total
 
   // Format Rupiah
@@ -742,29 +750,29 @@ export default function CreateSalesOrderPage() {
               </div>
             </div>
 
-            {/* Kanan: Ringkasan Finansial Sesuai Format Referensi */}
-            <div className="space-y-4 bg-muted/20 p-6 rounded-xl border border-border">
-              <div className="flex justify-between items-center py-1">
-                <span className="text-sm text-muted-foreground font-medium">Subtotal</span>
-                <span className="text-base font-semibold">{formatIDR(subtotal)}</span>
+            {/* Kanan: Ringkasan Finansial Sesuai Format Referensi (BARU-05) */}
+            <div className="space-y-3.5 bg-muted/20 p-6 rounded-xl border border-border">
+              <div className="flex justify-between items-center text-sm py-0.5">
+                <span className="text-muted-foreground font-medium">Subtotal Bruto</span>
+                <span className="font-semibold text-foreground">{formatIDR(grossSubtotal)}</span>
               </div>
 
-              <div className="flex justify-between items-center py-1">
-                <span className="text-sm text-muted-foreground font-medium">Diskon per baris</span>
-                <span className="text-sm text-muted-foreground font-semibold">
-                  {formatIDR(lineDiscountTotal)}
-                </span>
-              </div>
+              {lineDiscountTotal > 0 && (
+                <div className="flex justify-between items-center text-sm text-emerald-600 py-0.5">
+                  <span>Diskon Per Baris</span>
+                  <span className="font-semibold">- {formatIDR(lineDiscountTotal)}</span>
+                </div>
+              )}
 
               {/* Diskon Global */}
-              <div className="flex justify-between items-center gap-4 py-1">
+              <div className="flex justify-between items-center gap-4 text-sm py-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground font-medium">Diskon</span>
+                  <span className="text-muted-foreground font-medium">Diskon Tambahan</span>
                   <Select 
                     value={discountType} 
                     onValueChange={(v: any) => setDiscountType(v)}
                   >
-                    <SelectTrigger className="w-20 h-8 bg-background border-border text-xs">
+                    <SelectTrigger className="w-18 h-8 bg-background border-border text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -780,27 +788,29 @@ export default function CreateSalesOrderPage() {
                     onChange={(e) => setGlobalDiscountVal(Number(e.target.value) || 0)} 
                     className="w-24 h-8 bg-background border-border text-right text-xs"
                   />
-                  <span className="text-sm font-semibold min-w-[100px] text-right">
-                    {formatIDR(globalDiscount)}
-                  </span>
+                  {globalDiscount > 0 && (
+                    <span className="text-xs font-semibold text-emerald-600 min-w-[80px] text-right">
+                      - {formatIDR(globalDiscount)}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <div className="flex justify-between items-center py-1 text-sm text-foreground">
-                <span className="text-sm text-muted-foreground font-medium">PPN</span>
+              {/* Dasar Pengenaan Pajak (DPP) */}
+              <div className="flex justify-between items-center text-xs text-muted-foreground pt-1 border-t border-border/40">
+                <span>Dasar Pengenaan Pajak (DPP)</span>
+                <span className="font-medium text-foreground">{formatIDR(taxableBaseTotal)}</span>
+              </div>
+
+              {/* PPN */}
+              <div className="flex justify-between items-center text-sm text-foreground py-0.5">
+                <span className="text-muted-foreground font-medium">PPN (11%)</span>
                 <span className="text-base font-semibold text-foreground">{formatIDR(lineTaxTotal)}</span>
               </div>
 
               <div className="border-t border-border my-2 pt-3 flex justify-between items-center">
-                <span className="text-base font-bold text-foreground">Total</span>
-                <span className="text-lg font-bold text-indigo-600">{formatIDR(total)}</span>
-              </div>
-
-              <div className="border-t-2 border-indigo-600/30 pt-3 flex justify-between items-center">
-                <span className="text-base font-bold text-foreground">Sisa tagihan</span>
-                <span className="text-2xl font-black text-indigo-600">
-                  {formatIDR(balanceDue)}
-                </span>
+                <span className="text-base font-bold text-foreground">Total Pesanan</span>
+                <span className="text-2xl font-black text-indigo-600">{formatIDR(total)}</span>
               </div>
             </div>
 

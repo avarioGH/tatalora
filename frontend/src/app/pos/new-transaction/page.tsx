@@ -437,17 +437,22 @@ export default function PosNewTransactionPage() {
 
             <TabsContent value="Non Tunai" className="space-y-4">
               <div className="grid grid-cols-2 gap-2">
-                {["Transfer", "EDC", "QRIS", "Payment Gateway", "Deposit"].map(method => (
+                {[
+                  { id: "QRIS", name: "QRIS (1-1001)", desc: "Kasir / Statis" },
+                  { id: "EDC", name: "EDC (1-1002)", desc: "Mesin EDC BCA" },
+                  { id: "Transfer", name: "Transfer Bank (1-1003)", desc: "Bank Mandiri" }
+                ].map(method => (
                   <Button 
-                    key={method} 
-                    variant={paymentMethod === method ? "default" : "outline"} 
-                    className={`h-10 text-xs font-medium ${paymentMethod === method ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : ''}`}
+                    key={method.id} 
+                    variant={paymentMethod === method.id ? "default" : "outline"} 
+                    className={`h-11 flex flex-col items-center justify-center text-xs font-medium ${paymentMethod === method.id ? 'bg-indigo-50 text-indigo-700 border-indigo-600 dark:bg-indigo-950/40' : ''}`}
                     onClick={() => {
-                      setPaymentMethod(method)
+                      setPaymentMethod(method.id)
                       setPaidAmount(total) // Auto fill exact amount for non-cash
                     }}
                   >
-                    {method}
+                    <span className="font-semibold">{method.name}</span>
+                    <span className="text-[10px] text-muted-foreground">{method.desc}</span>
                   </Button>
                 ))}
               </div>

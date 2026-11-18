@@ -262,7 +262,7 @@ export default function PosShiftPage() {
          <Label className="font-semibold text-foreground">Lokasi Toko / Gudang <span className="text-rose-500">*</span></Label>
          <Select value={openFormData.warehouseId} onValueChange={(val) => setOpenFormData({...openFormData, warehouseId: val as string})}>
            <SelectTrigger className="bg-card border-border h-12">
-             <SelectValue placeholder="Pilih Lokasi" />
+             <SelectValue placeholder="Pilih Lokasi">{warehouses.find(w => w.id === openFormData.warehouseId)?.name}</SelectValue>
            </SelectTrigger>
            <SelectContent>
              {warehouses.map(wh => (

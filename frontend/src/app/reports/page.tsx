@@ -92,9 +92,9 @@ export default function ReportsHubPage() {
         },
         {
           id: "pesanan-penjualan",
-          title: "Pesanan Penjualan (Sales Order)",
-          description: "Status realisasi pesanan penjualan pelanggan dari quotation hingga pengiriman surat jalan.",
-          href: "/sales/orders",
+          title: "Laporan Realisasi Pesanan Penjualan",
+          description: "Analisis status pemenuhan dan realisasi pesanan pelanggan dari penawaran hingga pengiriman fisik.",
+          href: "/reports/sales?view=orders",
         },
       ]
     },
@@ -116,9 +116,9 @@ export default function ReportsHubPage() {
         },
         {
           id: "pesanan-pembelian",
-          title: "Pesanan Pembelian (Purchase Order)",
-          description: "Lacak status penerimaan barang fisik terhadap purchase order (PO) yang telah diterbitkan.",
-          href: "/purchasing/orders",
+          title: "Laporan Pemenuhan Pesanan Pembelian",
+          description: "Analisis status pemenuhan dan penerimaan barang fisik terhadap purchase order (PO) pemasok.",
+          href: "/reports/purchasing?view=orders",
         },
       ]
     },
@@ -160,7 +160,7 @@ export default function ReportsHubPage() {
           id: "penyusutan-aset",
           title: "Laporan Penyusutan Aset",
           description: "Jadwal dan akumulasi penyusutan aset tetap per bulan dan per tahun anggaran.",
-          href: "/assets",
+          href: "/finance/assets?tab=Penyusutan",
         },
       ]
     },
