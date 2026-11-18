@@ -55,7 +55,8 @@ export default function StockAvailablePage() {
     const unitName = typeof p.unit === 'object' && p.unit !== null ? (p.unit.name || 'Pcs') : (typeof p.unit === 'string' ? p.unit : 'Pcs')
     
     let defaultStatus = "Tersedia"
-    if (totalQty === 0) defaultStatus = "Habis"
+    if (totalQty < 0) defaultStatus = "Minus (Negatif)"
+    else if (totalQty === 0) defaultStatus = "Habis"
     else if (totalQty <= minQty) defaultStatus = "Hampir Habis"
 
     if (p.warehouse_stocks && p.warehouse_stocks.length > 0) {
@@ -63,7 +64,8 @@ export default function StockAvailablePage() {
         const whName = ws.warehouse?.name || 'Gudang'
         const q = Number(ws.current_stock ?? ws.quantity) || 0
         let st = "Tersedia"
-        if (q === 0) st = "Habis"
+        if (q < 0) st = "Minus (Negatif)"
+        else if (q === 0) st = "Habis"
         else if (q <= minQty) st = "Hampir Habis"
 
         stockRows.push({
@@ -95,7 +97,8 @@ export default function StockAvailablePage() {
 
   // Metrics
   const totalSKUs = products.length
-  const lowStockCount = stockRows.filter(r => r.status === 'Hampir Habis' || r.status === 'Habis').length
+  const negativeStockCount = stockRows.filter(r => r.status === 'Minus (Negatif)').length
+  const lowStockCount = stockRows.filter(r => r.status === 'Hampir Habis' || r.status === 'Habis' || r.status === 'Minus (Negatif)').length
   const totalStockQty = stockRows.reduce((sum, r) => sum + r.qty, 0)
 
   // Filter
@@ -114,7 +117,8 @@ export default function StockAvailablePage() {
     switch(status) {
       case "Tersedia": return <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10 border-0 font-medium px-2.5 py-0.5">Tersedia</Badge>
       case "Hampir Habis": return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/10 border-0 font-medium px-2.5 py-0.5">Hampir Habis</Badge>
-      case "Habis": return <Badge className="bg-rose-500/10 text-rose-600 hover:bg-rose-500/10 border-0 font-medium px-2.5 py-0.5">Habis</Badge>
+      case "Habis": return <Badge className="bg-slate-500/10 text-slate-600 hover:bg-slate-500/10 border-0 font-medium px-2.5 py-0.5">Habis</Badge>
+      case "Minus (Negatif)": return <Badge className="bg-rose-500/15 text-rose-600 hover:bg-rose-500/15 border border-rose-200 font-semibold px-2.5 py-0.5 animate-pulse">Minus (Negatif)</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }
@@ -140,7 +144,7 @@ export default function StockAvailablePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-card border-border shadow-sm border-0 ring-1 ring-border">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="p-3 bg-indigo-500/10 rounded-xl">
@@ -160,6 +164,17 @@ export default function StockAvailablePage() {
             <div>
               <p className="text-sm font-medium text-muted-foreground">Stok Menipis / Habis</p>
               <h3 className="text-2xl font-bold text-foreground">{lowStockCount}</h3>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className={`bg-card border-border shadow-sm border-0 ring-1 ring-border ${negativeStockCount > 0 ? 'border-l-4 border-l-rose-500 ring-rose-200' : ''}`}>
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className={`p-3 rounded-xl ${negativeStockCount > 0 ? 'bg-rose-500/15 text-rose-600' : 'bg-muted text-muted-foreground'}`}>
+              <AlertCircle className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Stok Negatif (Pengecualian)</p>
+              <h3 className={`text-2xl font-bold ${negativeStockCount > 0 ? 'text-rose-600' : 'text-foreground'}`}>{negativeStockCount} SKU</h3>
             </div>
           </CardContent>
         </Card>
