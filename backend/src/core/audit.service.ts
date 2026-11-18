@@ -17,7 +17,6 @@ export class AuditService {
   constructor(private prisma: PrismaService) {}
 
   async log(data: AuditLogDto) {
-    // Append-only. No delete or update methods exist in this service.
     return this.prisma.auditLog.create({
       data: {
         company_id: data.company_id,
@@ -26,8 +25,8 @@ export class AuditService {
         action: data.action,
         entity: data.entity,
         entity_id: data.entity_id,
-        before_data: (data.before_data as any) ?? undefined,
-        after_data: (data.after_data as any) ?? undefined,
+        before_data: (data.before_data as any) ?? null,
+        after_data: (data.after_data as any) ?? null,
       },
     });
   }

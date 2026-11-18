@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentService } from '../../finance/payment/payment.service';
-import { SequenceService } from '../../reports/sequence.service';
+import { AuditService } from '../../core/audit.service';
 
 @Injectable()
 export class SalesOrderService {
@@ -13,6 +13,7 @@ export class SalesOrderService {
     private readonly prisma: PrismaService,
     private readonly paymentService: PaymentService,
     private readonly sequenceService: SequenceService,
+    private readonly auditService: AuditService,
   ) {}
 
   async findAll(companyId: string, query?: any) {
@@ -347,7 +348,7 @@ export class SalesOrderService {
         data.total_amount = subtotal;
       }
 
-      return tx.salesOrder.update({
+      const updated = await tx.salesOrder.update({
         where: { id },
         data: {
           customer_id: data.customer_id || data.customerId || existing.customer_id,
@@ -364,6 +365,17 @@ export class SalesOrderService {
           customer: true,
         },
       });
+
+      await this.auditService.log({
+        company_id: companyId,
+        entity: 'SalesOrder',
+        entity_id: id,
+        action: 'UPDATE',
+        before_data: existing,
+        after_data: updated,
+      });
+
+      return updated;
     });
   }
 

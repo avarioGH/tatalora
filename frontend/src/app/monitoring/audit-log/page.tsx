@@ -14,6 +14,7 @@ export default function AuditLogPage() {
  const [loading, setLoading] = useState(true)
  const [logs, setLogs] = useState<any[]>([])
  const [search, setSearch] = useState("")
+ const [expandedId, setExpandedId] = useState<string | null>(null)
 
  useEffect(() => {
  fetchLogs()
