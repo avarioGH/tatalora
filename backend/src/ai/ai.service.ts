@@ -357,12 +357,12 @@ HANYA jawab sesuai dengan pertanyaan yang diajukan. Jangan menawarkan hal lain. 
       },
     });
 
-    const items = apInvoices.map((inv) => ({
+    const items = apInvoices.map((inv: any) => ({
       invoiceNumber: inv.invoice_number,
       vendor: inv.customer?.name || 'Vendor',
       dueDate: inv.due_date,
-      totalAmount: Number(inv.total_amount),
-      remainingAmount: Number(inv.remaining_amount !== undefined && inv.remaining_amount !== null ? inv.remaining_amount : inv.total_amount),
+      totalAmount: Number(inv.total !== undefined ? inv.total : (inv.total_amount || 0)),
+      remainingAmount: Number(inv.remaining_amount !== undefined && inv.remaining_amount !== null ? inv.remaining_amount : (inv.total || inv.total_amount || 0)),
       status: inv.status,
     }));
 

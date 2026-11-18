@@ -432,7 +432,7 @@ export class AuthService {
       include: { company: true, role: true },
     }).catch(() => []) || [];
 
-    const list = [];
+    const list: Array<{ id: string; name: string; logo: string | null; is_active: boolean }> = [];
     if (user.company) {
       list.push({
         id: user.company.id,

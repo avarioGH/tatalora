@@ -17,6 +17,7 @@ import { PermissionsGuard } from '../auth/permissions.guard';
 import { Permissions } from '../auth/permissions.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { DeliveryService } from '../crm/delivery/delivery.service';
+import { SequenceService } from '../reports/sequence.service';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('sales')
@@ -24,6 +25,7 @@ export class SalesController {
   constructor(
     private readonly prisma: PrismaService,
     private readonly deliveryService: DeliveryService,
+    private readonly sequenceService: SequenceService,
   ) {}
 
   // ----------------------------------------------------
@@ -96,7 +98,7 @@ export class SalesController {
       data: {
         company_id: companyId,
         customer_id: data.customer_id,
-        quotation_number: data.quotation_number || `SQ-${Date.now()}`,
+        quotation_number: data.quotation_number || await this.sequenceService.generateNumber(this.prisma, companyId, 'QUOTATION', 'SQ', 4),
         quotation_date: data.quotation_date ? new Date(data.quotation_date) : new Date(),
         expiration_date: data.expiration_date ? new Date(data.expiration_date) : null,
         status: data.status || 'DRAFT',
@@ -183,6 +185,74 @@ export class SalesController {
     return this.prisma.quotation.deleteMany({ where: { id, company_id: companyId } });
   }
 
+  @Permissions('sales.quotation.edit')
+  @Post('quotations/:id/confirm')
+  async confirmQuotation(@Request() req: any, @Param('id') id: string) {
+    const companyId = req.user.company_id || req.user.companyId;
+    const quotation = await this.prisma.quotation.findFirst({
+      where: { id, company_id: companyId },
+      include: { items: true },
+    });
+    if (!quotation) {
+      throw new Error('Penawaran tidak ditemukan');
+    }
+
+    const soNo = await this.sequenceService.generateNumber(this.prisma, companyId, 'SALES_ORDER', 'SO', 4);
+
+    // Create Sales Order directly from quotation
+    const salesOrder = await this.prisma.salesOrder.create({
+      data: {
+        company_id: companyId,
+        customer_id: quotation.customer_id,
+        order_number: soNo,
+        order_date: new Date(),
+        status: 'CONFIRMED',
+        total_amount: quotation.total_amount,
+        notes: quotation.notes,
+        quotation_id: quotation.id,
+        billing_address: quotation.billing_address,
+        payment_method: 'Transfer',
+        payment_status: 'UNPAID',
+        items: {
+          create: (quotation.items || []).map((it: any) => ({
+            product_id: it.product_id,
+            qty: Number(it.qty || 1),
+            unit_price: Number(it.unit_price || 0),
+            subtotal: Number(it.subtotal || Number(it.qty || 1) * Number(it.unit_price || 0)),
+          })),
+        },
+      },
+    });
+
+    // Update quotation status
+    await this.prisma.quotation.update({
+      where: { id },
+      data: { status: 'CONFIRMED' },
+    });
+
+    return { success: true, quotationId: id, salesOrder };
+  }
+
+  @Permissions('sales.quotation.edit')
+  @Post('quotations/:id/cancel')
+  async cancelQuotation(@Request() req: any, @Param('id') id: string) {
+    const companyId = req.user.company_id || req.user.companyId;
+    return this.prisma.quotation.updateMany({
+      where: { id, company_id: companyId },
+      data: { status: 'CANCELLED' },
+    });
+  }
+
+  @Permissions('sales.quotation.edit')
+  @Post('quotations/:id/send')
+  async sendQuotation(@Request() req: any, @Param('id') id: string) {
+    const companyId = req.user.company_id || req.user.companyId;
+    return this.prisma.quotation.updateMany({
+      where: { id, company_id: companyId },
+      data: { status: 'SENT' },
+    });
+  }
+
   // ----------------------------------------------------
   // 2. SALES ORDERS (Pesanan Penjualan)
   // ----------------------------------------------------
@@ -251,7 +321,7 @@ export class SalesController {
       data: {
         company_id: companyId,
         customer_id: data.customer_id,
-        order_number: data.order_number || `SO-${Date.now()}`,
+        order_number: data.order_number || await this.sequenceService.generateNumber(this.prisma, companyId, 'SALES_ORDER', 'SO', 4),
         order_date: data.order_date ? new Date(data.order_date) : new Date(),
         status: data.status || 'CONFIRMED',
         total_amount: totalAmount,
