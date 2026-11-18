@@ -39,7 +39,7 @@ export default function FinanceCashOut() {
         const [catData, accData, contactRes] = await Promise.all([
           FinanceAPI.getCategories().catch(() => []),
           FinanceAPI.getCashAccounts().catch(() => []),
-          api.get('/contacts').catch(() => ({ data: [] }))
+          api.get('/customers?limit=100').catch(() => api.get('/contacts')).catch(() => ({ data: [] }))
         ])
 
         const filteredCats = (Array.isArray(catData) ? catData : []).filter((c: any) => c.type === "EXPENSE")
@@ -48,7 +48,7 @@ export default function FinanceCashOut() {
         const accounts = Array.isArray(accData?.data) ? accData.data : (Array.isArray(accData) ? accData : [])
         setCashAccounts(accounts)
 
-        const contactList = Array.isArray(contactRes?.data) ? contactRes.data : []
+        const contactList = Array.isArray(contactRes?.data) ? contactRes.data : (contactRes?.data?.data || [])
         setContacts(contactList)
         
         if (accounts.length > 0) {
