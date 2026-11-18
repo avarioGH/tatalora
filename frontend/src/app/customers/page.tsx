@@ -17,6 +17,11 @@ export default function CustomersPage() {
 
  useEffect(() => {
  fetchCustomers()
+   if (typeof window !== 'undefined') {
+     const params = new URLSearchParams(window.location.search)
+     const q = params.get('q') || params.get('search') || params.get('name')
+     if (q) setSearchQuery(q)
+   }
  }, [])
 
  const fetchCustomers = async () => {

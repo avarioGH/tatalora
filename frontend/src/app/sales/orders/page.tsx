@@ -249,10 +249,12 @@ export default function SalesOrdersPage() {
    className="w-full" 
    variant="outline" 
    onClick={() => {
-     if (details.customer_id) {
-       router.push(`/crm/partners/${details.customer_id}`)
+     if (details.customer?.name) {
+       router.push(`/customers?q=${encodeURIComponent(details.customer.name)}`)
+     } else if (details.customer_id) {
+       router.push(`/customers?q=${encodeURIComponent(details.customer_id)}`)
      } else {
-       router.push("/crm/partners")
+       router.push("/customers")
      }
    }}
  >

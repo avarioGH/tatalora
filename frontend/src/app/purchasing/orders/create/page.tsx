@@ -258,7 +258,9 @@ export default function CreateOrderPage() {
               </div>
               <Select value={form.partnerId} onValueChange={(v) => setForm({ ...form, partnerId: v || '' })}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="-- Pilih Supplier --" />
+                  <SelectValue placeholder="-- Pilih Supplier --">
+                    {suppliers.find(s => s.id === form.partnerId)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
                   {suppliers.map(s => (
@@ -281,7 +283,9 @@ export default function CreateOrderPage() {
               <Label className="text-xs font-semibold">Gudang Tujuan Penerimaan</Label>
               <Select value={form.warehouseId} onValueChange={(v) => setForm({ ...form, warehouseId: v || '' })}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih Gudang" />
+                  <SelectValue placeholder="Pilih Gudang">
+                    {warehouses.find(w => w.id === form.warehouseId)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {warehouses.map(w => (
@@ -411,7 +415,9 @@ export default function CreateOrderPage() {
                               onValueChange={(val) => handleItemChange(index, "productId", val)}
                             >
                               <SelectTrigger className="h-9 text-xs">
-                                <SelectValue placeholder="-- Pilih Produk --" />
+                                <SelectValue placeholder="-- Pilih Produk --">
+                                  {products.find(p => p.id === item.productId)?.name}
+                                </SelectValue>
                               </SelectTrigger>
                               <SelectContent className="max-h-72">
                                 {products.map(p => (

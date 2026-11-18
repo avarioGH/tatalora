@@ -226,7 +226,9 @@ export default function CreateRFQPage() {
                   <Label className="text-foreground">Supplier / Vendor <span className="text-rose-500">*</span></Label>
                   <Select value={form.supplierId} onValueChange={(val) => setForm({...form, supplierId: val || ""})}>
                     <SelectTrigger className="bg-background border-border font-medium">
-                      <SelectValue placeholder="Pilih supplier..." />
+                      <SelectValue placeholder="Pilih supplier...">
+                      {suppliers.find(s => s.id === form.supplierId)?.name}
+                    </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {suppliers.map(s => (
@@ -336,7 +338,9 @@ export default function CreateRFQPage() {
                             onValueChange={(val) => handleItemChange(index, "productId", val || "")}
                           >
                             <SelectTrigger className="bg-background border-border">
-                              <SelectValue placeholder="Pilih Produk" />
+                              <SelectValue placeholder="Pilih Produk">
+                              {products.find(p => p.id === item.productId)?.name}
+                            </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {products.map(p => (
