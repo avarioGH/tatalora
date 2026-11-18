@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { 
-  Building2, Plus, Download, Layers, AlertCircle, Info, Sparkles, CheckCircle2
+  Building2, Plus, Download, Layers, AlertCircle, Info, Sparkles, CheckCircle2, FileText
 } from "lucide-react"
 
 export default function ConsolidationPage() {
@@ -205,6 +205,87 @@ export default function ConsolidationPage() {
                   <TableCell className="text-right font-semibold text-emerald-600">{formatIDR(c.net_profit)}</TableCell>
                 </TableRow>
               ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Jurnal Eliminasi Transaksi Antar-Entitas (Intercompany Eliminations) */}
+      <Card>
+        <CardHeader className="border-b bg-muted/20">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-4 w-4 text-indigo-600" />
+                Jurnal Eliminasi Transaksi Antar-Perusahaan (Intercompany Eliminations)
+              </CardTitle>
+              <CardDescription>
+                Pencatatan penyesuaian resiprokal (penjualan/pembelian & piutang/utang internal) sesuai PSAK 65 untuk mengeliminasi pencatatan ganda.
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
+              Status: Seimbang (Rp0 Selisih)
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/10">
+                <TableHead>Kode Akun & Deskripsi Eliminasi</TableHead>
+                <TableHead>Entitas Terkait</TableHead>
+                <TableHead className="text-right">Debit</TableHead>
+                <TableHead className="text-right">Kredit</TableHead>
+                <TableHead className="text-center">Kategori</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow className="hover:bg-muted/20">
+                <TableCell>
+                  <div className="font-medium">4-40100 Pendapatan Penjualan Intercompany</div>
+                  <div className="text-xs text-muted-foreground">Eliminasi suplai bahan baku/es internal holding</div>
+                </TableCell>
+                <TableCell className="text-xs">PT Bahari Ikan ↔ Pabrik Es Cabang</TableCell>
+                <TableCell className="text-right font-medium">{formatIDR(0)}</TableCell>
+                <TableCell className="text-right font-medium text-muted-foreground">-</TableCell>
+                <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">Laba Rugi</Badge></TableCell>
+              </TableRow>
+              <TableRow className="hover:bg-muted/20">
+                <TableCell>
+                  <div className="font-medium">5-50100 Beban Pokok Pembelian Intercompany</div>
+                  <div className="text-xs text-muted-foreground">Penyeimbang eliminasi harga pokok penjualan resiprokal</div>
+                </TableCell>
+                <TableCell className="text-xs">Pabrik Es Cabang ↔ PT Bahari Ikan</TableCell>
+                <TableCell className="text-right font-medium text-muted-foreground">-</TableCell>
+                <TableCell className="text-right font-medium">{formatIDR(0)}</TableCell>
+                <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">Laba Rugi</Badge></TableCell>
+              </TableRow>
+              <TableRow className="hover:bg-muted/20">
+                <TableCell>
+                  <div className="font-medium">2-20100 Hutang Usaha Antar-Entitas</div>
+                  <div className="text-xs text-muted-foreground">Eliminasi saldo utang-piutang resiprokal per periode buku</div>
+                </TableCell>
+                <TableCell className="text-xs">Seluruh Entitas Afiliasi</TableCell>
+                <TableCell className="text-right font-medium">{formatIDR(0)}</TableCell>
+                <TableCell className="text-right font-medium text-muted-foreground">-</TableCell>
+                <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">Neraca</Badge></TableCell>
+              </TableRow>
+              <TableRow className="hover:bg-muted/20">
+                <TableCell>
+                  <div className="font-medium">1-10100 Piutang Usaha Antar-Entitas</div>
+                  <div className="text-xs text-muted-foreground">Eliminasi saldo piutang resiprokal per periode buku</div>
+                </TableCell>
+                <TableCell className="text-xs">Seluruh Entitas Afiliasi</TableCell>
+                <TableCell className="text-right font-medium text-muted-foreground">-</TableCell>
+                <TableCell className="text-right font-medium">{formatIDR(0)}</TableCell>
+                <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">Neraca</Badge></TableCell>
+              </TableRow>
+              <TableRow className="bg-muted/30 font-bold border-t">
+                <TableCell colSpan={2}>Total Eliminasi Periode Berjalan</TableCell>
+                <TableCell className="text-right text-indigo-600">{formatIDR(0)}</TableCell>
+                <TableCell className="text-right text-indigo-600">{formatIDR(0)}</TableCell>
+                <TableCell className="text-center"><Badge className="bg-emerald-600 text-white text-[10px]">MATCHED</Badge></TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </CardContent>
