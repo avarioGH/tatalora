@@ -586,25 +586,29 @@ export default function ProductInventory() {
               </div>
             </CardContent>
           </Card>
-          <Card className="w-[220px] shadow-sm border-l-4 border-l-blue-500">
+          <Card className="w-[230px] shadow-sm border-l-4 border-l-blue-500">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground font-medium mb-2" title="Estimasi nilai pasar (Qty × Harga Jual)">
-                Total Nilai Produk (Jual)
-              </p>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-semibold text-foreground">Total Nilai Pasar (Jual)</span>
+                <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5 rounded font-mono">Σ Qty × Jual</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-2 leading-tight">Estimasi potensi bruto jika seluruh stok terjual.</p>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><CreditCard className="w-4 h-4" /></div>
-                <span className="text-xl font-bold">{formatIDR(totalNilai)}</span>
+                <span className="text-lg font-bold text-foreground">{formatIDR(totalNilai)}</span>
               </div>
             </CardContent>
           </Card>
-          <Card className="w-[220px] shadow-sm border-l-4 border-l-pink-500">
+          <Card className="w-[230px] shadow-sm border-l-4 border-l-pink-500">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground font-medium mb-2" title="Valuasi persediaan berbasis biaya perolehan (Qty × Harga Beli)">
-                Total HPP (Nilai Pokok)
-              </p>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-semibold text-foreground">Valuasi Persediaan (HPP)</span>
+                <span className="text-[10px] bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300 px-1.5 py-0.5 rounded font-mono">Σ Qty × Beli</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mb-2 leading-tight">Biaya modal fisik stok untuk neraca & akuntansi.</p>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600"><FileText className="w-4 h-4" /></div>
-                <span className="text-xl font-bold">{formatIDR(totalHPP)}</span>
+                <span className="text-lg font-bold text-foreground">{formatIDR(totalHPP)}</span>
               </div>
             </CardContent>
           </Card>
@@ -869,13 +873,30 @@ export default function ProductInventory() {
                     <TableRow key={p.id} className="border-border/60 hover:bg-muted/20 transition-colors group">
                       <TableCell className="text-center"><input type="checkbox" className="rounded" /></TableCell>
                       <TableCell className="font-medium text-foreground">
-                        <Link 
-                          href={`/inventory/movements?product_id=${p.id}`} 
-                          className="hover:text-primary hover:underline font-semibold flex items-center gap-1.5"
-                          title="Klik untuk melihat riwayat mutasi / kartu stok produk ini"
-                        >
-                          {p.name}
-                        </Link>
+                        <div className="flex flex-col gap-0.5">
+                          <Link 
+                            href={`/inventory/movements?product_id=${p.id}`} 
+                            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold hover:underline flex items-center gap-1.5"
+                            title="Klik untuk membuka Kartu Stok & Riwayat Mutasi produk ini"
+                          >
+                            <span>{p.name}</span>
+                          </Link>
+                          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                            <span 
+                              onClick={() => handleEdit(p)} 
+                              className="text-xs text-muted-foreground hover:text-indigo-600 cursor-pointer hover:underline"
+                            >
+                              Ubah Data
+                            </span>
+                            <span>•</span>
+                            <Link 
+                              href={`/inventory/movements?product_id=${p.id}`} 
+                              className="text-xs text-muted-foreground hover:text-emerald-600 cursor-pointer hover:underline"
+                            >
+                              Kartu Stok
+                            </Link>
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground flex items-center gap-2"><LayoutGrid className="w-3 h-3"/> {p.sku}</TableCell>
                       <TableCell>{p.category}</TableCell>
