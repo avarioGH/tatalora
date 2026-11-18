@@ -23,8 +23,14 @@ export default function AuditLogsPage() {
   const fetchLogs = async () => {
     setLoading(true)
     try {
-      const res = await api.get('/admin/audit-logs').catch(() => ({ data: [] }))
-      setLogs(Array.isArray(res.data) ? res.data : [])
+      // First try /platform/audit-logs which is available in running backend
+      const res = await api.get('/platform/audit-logs').catch(() => null)
+      if (res && res.data) {
+        setLogs(Array.isArray(res.data) ? res.data : (res.data.data || []))
+      } else {
+        const adminRes = await api.get('/admin/audit-logs').catch(() => ({ data: [] }))
+        setLogs(Array.isArray(adminRes.data) ? adminRes.data : [])
+      }
     } catch (e) {
       console.error(e)
     } finally {
