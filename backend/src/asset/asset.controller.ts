@@ -68,6 +68,9 @@ export class AssetController {
     const purchasePrice = Number(data.purchase_price || data.purchasePrice || 0);
     const purchaseDate = data.purchase_date || data.purchaseDate ? new Date(data.purchase_date || data.purchaseDate) : new Date();
 
+    const residualValue = Number(data.residual_value !== undefined ? data.residual_value : (data.salvage_value || 0));
+    const depStartDate = data.depreciation_start_date ? new Date(data.depreciation_start_date) : purchaseDate;
+
     return this.prisma.assetMaster.create({
       data: {
         company_id: companyId,
@@ -79,6 +82,11 @@ export class AssetController {
         purchase_date: purchaseDate,
         depreciation_method: data.depreciation_method || 'Garis Lurus',
         useful_life: Number(data.useful_life || 48), // in months (e.g. 4 years)
+        residual_value: residualValue,
+        capitalization_date: depStartDate,
+        asset_account_id: data.asset_account_id || null,
+        accumulated_depreciation_account_id: data.accum_deprec_account_id || data.accumulated_depreciation_account_id || null,
+        depreciation_expense_account_id: data.deprec_expense_account_id || data.depreciation_expense_account_id || null,
         condition: data.condition || 'GOOD',
         status: data.status || 'ACTIVE',
         notes: data.notes || null,
