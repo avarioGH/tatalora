@@ -22,6 +22,20 @@ export default function SettingsNumbering() {
     rfqDigits: "4",
   })
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("tatalora_numbering_formats")
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored)
+          setFormats(prev => ({ ...prev, ...parsed }))
+        } catch (e) {
+          console.error(e)
+        }
+      }
+    }
+  }, [])
+
   const year = new Date().getFullYear()
 
   const generatePreview = (prefix: string, digits: string) => {
@@ -32,6 +46,9 @@ export default function SettingsNumbering() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tatalora_numbering_formats", JSON.stringify(formats))
+    }
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
   }
