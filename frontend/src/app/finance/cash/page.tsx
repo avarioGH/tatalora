@@ -391,10 +391,10 @@ export default function MutasiKasPage() {
 
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={fetchData} className="gap-1.5 h-9 text-xs">
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Segarkan
               </Button>
               <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-1.5 h-9 text-xs">
-                <Download className="w-3.5 h-3.5" /> Export CSV
+                <Download className="w-3.5 h-3.5" /> Ekspor CSV
               </Button>
             </div>
           </div>
