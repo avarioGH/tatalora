@@ -38,6 +38,8 @@ export default function FixedAssetsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState("Daftar Aset")
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   // Modal Create Asset
   const [selectedAsset, setSelectedAsset] = useState<any>(null)
