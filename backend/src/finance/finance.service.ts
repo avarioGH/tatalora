@@ -579,7 +579,7 @@ export class FinanceService {
         where: {
           company_id: companyId,
           cash_account_id: ca.id,
-          status: { in: ['COMPLETED', 'Approved', 'Reversed'] },
+          status: { in: ['COMPLETED', 'Approved'] },
         },
       });
 

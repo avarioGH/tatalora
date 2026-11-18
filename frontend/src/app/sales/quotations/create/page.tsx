@@ -130,8 +130,8 @@ function QuotationForm() {
                 qty: Number(it.qty) || 1,
                 unit: it.unit || it.product?.unit?.name || it.product?.unit || "Pcs",
                 price: Number(it.unit_price) || 0,
-                discount_percent: it.discount ? Math.round((Number(it.discount) / ((Number(it.qty) || 1) * (Number(it.unit_price) || 1))) * 100) : 0,
-                tax_percent: it.tax ? 11 : 0,
+                discount_percent: it.discount_percent ?? (it.discount && Number(it.qty) > 0 && Number(it.unit_price) > 0 ? Math.round((Number(it.discount) / (Number(it.qty) * Number(it.unit_price))) * 100) : 0),
+                tax_percent: it.tax_percent ?? (it.taxRate !== undefined ? Number(it.taxRate) * 100 : 0),
                 total: Number(it.subtotal) || 0
               })))
             }

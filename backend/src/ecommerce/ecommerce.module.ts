@@ -7,9 +7,10 @@ import { TripayService } from '../integrations/providers/payment/tripay/tripay.s
 import { PrismaModule } from '../prisma/prisma.module';
 import { PaymentModule } from '../finance/payment/payment.module';
 import { InventoryModule } from '../inventory/inventory.module';
+import { ReportsModule } from '../reports/reports.module';
 
 @Module({
-  imports: [PrismaModule, IntegrationsModule, PaymentModule, InventoryModule],
+  imports: [PrismaModule, IntegrationsModule, PaymentModule, InventoryModule, ReportsModule],
   providers: [
     EcommerceCatalogService,
     EcommerceCartService,

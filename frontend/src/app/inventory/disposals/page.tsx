@@ -143,7 +143,7 @@ export default function DisposalsPage() {
                         <TableCell className="text-muted-foreground text-xs">{item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-'}</TableCell>
                         <TableCell className="text-foreground font-medium text-xs">
                           <span className="bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 px-2 py-0.5 rounded text-[11px] font-medium">
-                            {item.warehouse?.name || item.warehouse_name || 'Gudang Utama'}
+                            {item.warehouse?.name || item.warehouse_name || 'Gudang Umum'}
                           </span>
                         </TableCell>
                         <TableCell className="text-foreground font-medium text-xs">

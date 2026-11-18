@@ -86,7 +86,7 @@ export default function StockAvailablePage() {
         productId: p.id,
         product: p.name,
         sku: p.code || p.sku || '-',
-        warehouse: 'Gudang Utama',
+        warehouse: 'Gudang Umum',
         warehouseId: 'default',
         qty: totalQty,
         unit: unitName,

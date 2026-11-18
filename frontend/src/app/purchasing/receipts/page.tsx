@@ -167,7 +167,7 @@ export default function PurchaseReceiptsPage() {
                         {item.receipt_date || item.created_at ? new Date(item.receipt_date || item.created_at).toLocaleDateString('id-ID') : '-'}
                       </TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
-                      <TableCell className="text-foreground">{item.warehouse?.name || 'Gudang Utama'}</TableCell>
+                      <TableCell className="text-foreground">{item.warehouse?.name || 'Gudang Umum'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

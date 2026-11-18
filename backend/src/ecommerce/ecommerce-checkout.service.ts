@@ -5,6 +5,7 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EcommerceCartService } from './ecommerce-cart.service';
 import { TripayService } from '../integrations/providers/payment/tripay/tripay.service';
+import { SequenceService } from '../reports/sequence.service';
 
 @Injectable()
 export class EcommerceCheckoutService {
@@ -16,6 +17,7 @@ export class EcommerceCheckoutService {
     private tripayService: TripayService,
     private inventoryService: InventoryService,
     private eventEmitter: EventEmitter2,
+    private sequenceService: SequenceService,
   ) {}
 
   async checkout(companyId: string, sessionId: string, payload: any) {
@@ -61,7 +63,12 @@ export class EcommerceCheckoutService {
 
         if (fail_at === 'CUSTOMER') throw new Error('Test Failure: CUSTOMER');
 
-        const orderNumber = 'SO-EC-' + Date.now();
+        const orderNumber = await this.sequenceService.generateNumber(
+          tx,
+          companyId,
+          'SALES_ORDER',
+          'SO-EC',
+        );
         const salesOrder = await tx.salesOrder.create({
           data: {
             company_id: companyId,
