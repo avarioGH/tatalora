@@ -266,7 +266,7 @@ export default function PosShiftPage() {
            </SelectTrigger>
            <SelectContent>
              {warehouses.map(wh => (
-               <SelectItem key={wh.id} value={wh.id}>{wh.name}</SelectItem>
+               <SelectItem key={wh.id} value={wh.id}>{wh.name || wh.code || 'Gudang'}</SelectItem>
              ))}
            </SelectContent>
          </Select>

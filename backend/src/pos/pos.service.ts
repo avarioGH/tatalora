@@ -258,7 +258,7 @@ export class PosService {
       where: { 
         company_id: companyId, 
         ...(warehouseId ? { warehouse_id: warehouseId } : {}),
-        status: { in: ['COMPLETED', 'DELIVERED', 'PAID'] },
+        status: 'COMPLETED',
         // POS orders start with POS or are completed cash desk transactions
         order_number: { startsWith: 'POS' },
       },
