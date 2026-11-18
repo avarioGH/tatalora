@@ -3,13 +3,15 @@
 import { useState, useEffect } from"react"
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card"
 import { FinanceAPI } from"@/lib/api"
-import { ArrowLeft, Loader2, Download, Scale } from"lucide-react"
+import { ArrowLeft, Loader2, Download, Scale, Calendar, Filter } from"lucide-react"
+import { Input } from "@/components/ui/input"
 import Link from"next/link"
 import { Button } from"@/components/ui/button"
 
 export default function BalanceSheetPage() {
  const [data, setData] = useState<any>(null)
  const [loading, setLoading] = useState(true)
+  const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split('T')[0])
 
  useEffect(() => {
  fetchData()
@@ -57,7 +59,28 @@ export default function BalanceSheetPage() {
  </div>
  </div>
 
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+       {/* As-of Date Control */}
+      <Card className="border shadow-xs bg-card">
+        <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-semibold text-foreground">Posisi Keuangan Per Tanggal (As of):</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Input 
+              type="date" 
+              value={asOfDate} 
+              onChange={e => setAsOfDate(e.target.value)} 
+              className="w-40 h-9 text-xs" 
+            />
+            <Button size="sm" onClick={fetchData} className="h-9 px-3 text-xs bg-primary text-primary-foreground">
+              <Filter className="w-3.5 h-3.5 mr-1" /> Terapkan
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  {/* ASSETS */}
  <Card className="border-t-4 border-t-blue-500 shadow-md">
  <CardHeader className="bg-muted/30/50 pb-4">
