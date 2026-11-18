@@ -11,6 +11,7 @@ import { ArrowLeft, Save, Truck, Info, Calendar, MapPin, Warehouse } from 'lucid
 export default function CreateDeliveryPage() {
   const router = useRouter()
   const [orders, setOrders] = useState<any[]>([])
+  const [showAllOrders, setShowAllOrders] = useState(false)
   const [warehouses, setWarehouses] = useState<any[]>([])
   const [selectedSoId, setSelectedSoId] = useState('')
   const [soDetails, setSoDetails] = useState<any>(null)
@@ -43,14 +44,8 @@ export default function CreateDeliveryPage() {
       setWarehouses(whList)
       if (whList.length > 0) setSourceWarehouseId(whList[0].id)
 
-      // Only show orders that are confirmed or partially delivered (exclude cancelled and fully delivered)
-      const validOrders = (orderRes?.data || []).filter((o: any) => {
-        const isNotFinished = o.status !== 'CANCELLED' && o.status !== 'COMPLETED' && o.delivery_status !== 'DELIVERED';
-        const isReadyStatus = o.status === 'CONFIRMED' || o.status === 'PROCESSING' || o.status === 'PENDING';
-        return isNotFinished && isReadyStatus;
-      })
-      setOrders(validOrders)
-      if (initialSoId && validOrders.find((o: any) => o.id === initialSoId)) {
+      setOrders(orderRes?.data || [])
+      if (initialSoId && (orderRes?.data || []).find((o: any) => o.id === initialSoId)) {
         setTimeout(() => handleSelectSo(initialSoId), 100);
       }
     } catch (e) {
@@ -174,16 +169,27 @@ export default function CreateDeliveryPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Pilih Sales Order (SO) <span className="text-rose-500">*</span></label>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-foreground">Pilih Sales Order (SO) <span className="text-rose-500">*</span></label>
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={showAllOrders} 
+                    onChange={e => setShowAllOrders(e.target.checked)}
+                    className="h-3 w-3"
+                  />
+                  Tampilkan Semua SO
+                </label>
+              </div>
               <select 
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
                 value={selectedSoId} 
                 onChange={e => handleSelectSo(e.target.value)}
               >
                 <option value="">-- Pilih Sales Order --</option>
-                {orders.map(o => (
+                {orders.filter(o => showAllOrders ? true : (o.status !== 'CANCELLED' && o.status !== 'COMPLETED' && o.delivery_status !== 'DELIVERED')).map(o => (
                   <option key={o.id} value={o.id}>
-                    {o.order_number} - {o.customer?.name || 'Pelanggan'} | Status: {o.status === 'CONFIRMED' ? 'Terkonfirmasi' : o.status === 'PROCESSING' ? 'Diproses' : o.status} (Tgl: {new Date(o.order_date || o.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })})
+                    {o.order_number} - {o.customer?.name || 'Pelanggan'} | {o.status} | {new Date(o.order_date || o.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </option>
                 ))}
               </select>
