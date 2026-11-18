@@ -54,6 +54,8 @@ export default function FixedAssetsPage() {
       console.error(e)
     }
   }
+
+  const [form, setForm] = useState({
     asset_code: "",
     asset_name: "",
     category_id: "",
