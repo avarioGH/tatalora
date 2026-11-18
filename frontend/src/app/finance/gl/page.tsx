@@ -144,7 +144,7 @@ export default function GeneralLedgerPage() {
   {item.account?.account_code ? (
     <div className="flex items-center gap-2">
       <span className="font-semibold text-slate-900 dark:text-slate-100">{item.account.account_code}</span>
-      <span className="text-muted-foreground">- {item.account.account_name}</span>
+      <span className="text-muted-foreground">{item.account.account_name}</span>
     </div>
   ) : (
     <span className="font-mono text-xs text-muted-foreground">{item.account_id}</span>
