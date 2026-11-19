@@ -18,6 +18,7 @@ export default function HomeLauncher() {
     overduePurchases: 0,
     negativeStock: 0,
     pendingDeliveries: 0,
+    pendingApprovals: 0,
     loading: true
   })
 
@@ -35,17 +36,19 @@ export default function HomeLauncher() {
     // Fetch operational priorities
     const fetchPriorities = async () => {
       try {
-        const [salesRes, purRes, prodRes, delRes] = await Promise.allSettled([
+        const [salesRes, purRes, prodRes, delRes, appRes] = await Promise.allSettled([
           api.get('/sales/invoices?status=UNPAID'),
           api.get('/purchasing/invoices?status=UNPAID'),
           api.get('/inventory/products'),
-          api.get('/sales/deliveries?status=PENDING')
+          api.get('/sales/deliveries?status=PENDING'),
+          api.get('/approval/count')
         ])
 
         let overdueS = 0
         let overdueP = 0
         let negStock = 0
         let pendDel = 0
+        let pendApp = 0
 
         const today = new Date()
 
@@ -71,11 +74,16 @@ export default function HomeLauncher() {
           pendDel = delRes.value.data.length
         }
 
+        if (appRes.status === 'fulfilled' && typeof appRes.value?.data === 'number') {
+          pendApp = appRes.value.data
+        }
+
         setUrgentStats({
           overdueSales: overdueS,
           overduePurchases: overdueP,
           negativeStock: negStock,
           pendingDeliveries: pendDel,
+          pendingApprovals: pendApp,
           loading: false
         })
       } catch (_e) {
@@ -206,7 +214,7 @@ export default function HomeLauncher() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Piutang Jatuh Tempo */}
           <Link href="/finance/reports/ar-aging">
             <Card className="hover:border-rose-400 transition-all cursor-pointer border shadow-xs bg-card hover:shadow-sm">
@@ -236,6 +244,23 @@ export default function HomeLauncher() {
                 </div>
                 <div className={`p-2.5 rounded-xl ${urgentStats.overduePurchases > 0 ? 'bg-amber-100 text-amber-600' : 'bg-muted text-muted-foreground'}`}>
                   <Clock className="w-5 h-5" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          {/* Menunggu Persetujuan */}
+          <Link href="/approval">
+            <Card className="hover:border-indigo-400 transition-all cursor-pointer border shadow-xs bg-card hover:shadow-sm">
+              <CardContent className="p-3.5 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Menunggu Persetujuan</p>
+                  <p className={`text-xl font-bold mt-0.5 ${urgentStats.pendingApprovals > 0 ? 'text-indigo-600' : 'text-foreground'}`}>
+                    {urgentStats.loading ? '...' : urgentStats.pendingApprovals} <span className="text-xs font-normal text-muted-foreground">tugas</span>
+                  </p>
+                </div>
+                <div className={`p-2.5 rounded-xl ${urgentStats.pendingApprovals > 0 ? 'bg-indigo-100 text-indigo-600' : 'bg-muted text-muted-foreground'}`}>
+                  <UserCheck className="w-5 h-5" />
                 </div>
               </CardContent>
             </Card>

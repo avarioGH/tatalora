@@ -21,6 +21,11 @@ export class ApprovalController {
     return this.approvalService.getPendingApprovals(req.user.company_id);
   }
 
+  @Get('count')
+  getPendingApprovalCount(@Request() req: any) {
+    return this.approvalService.getPendingApprovalCount(req.user.company_id);
+  }
+
   @Post('request')
   requestApproval(@Request() req: any, @Body() data: any) {
     return this.approvalService.requestApproval(

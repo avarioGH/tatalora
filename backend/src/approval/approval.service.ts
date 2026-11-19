@@ -326,8 +326,13 @@ export class ApprovalService {
   async getPendingApprovals(companyId: string) {
     return this.prisma.approvalRequest.findMany({
       where: { company_id: companyId, status: 'PENDING' },
-
       orderBy: { created_at: 'asc' },
+    });
+  }
+
+  async getPendingApprovalCount(companyId: string) {
+    return this.prisma.approvalRequest.count({
+      where: { company_id: companyId, status: 'PENDING' },
     });
   }
 }
