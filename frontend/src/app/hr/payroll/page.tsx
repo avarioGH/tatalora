@@ -14,11 +14,11 @@ export default function HrPayroll() {
   const [employees, setEmployees] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
-  const fetchData = async () => {
+  const fetchData = async (selectedPeriod = period) => {
     try {
       setLoading(true)
       const [payRes, empRes] = await Promise.all([
-        api.get('/hr/payroll').catch(() => ({ data: [] })),
+        api.get(`/hr/payroll?period=${selectedPeriod}`).catch(() => ({ data: [] })),
         api.get('/hr/employees').catch(() => ({ data: [] }))
       ])
       setPayrolls(payRes.data || [])
@@ -31,8 +31,25 @@ export default function HrPayroll() {
   }
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData(period)
+  }, [period])
+
+  const [prerequisites, setPrerequisites] = useState({
+    employeesMet: false,
+    attendanceMet: false,
+    componentsMet: false
+  })
+
+  useEffect(() => {
+    // Basic logic for checklist status
+    setPrerequisites({
+      employeesMet: employees.length > 0,
+      attendanceMet: true, // Mocked for now
+      componentsMet: true  // Mocked for now
+    })
+  }, [employees])
+
+  const canGenerate = prerequisites.employeesMet && prerequisites.attendanceMet && prerequisites.componentsMet && !loading;
 
   const handleGenerate = async () => {
     if (!period) return alert("Pilih periode!")
@@ -65,8 +82,8 @@ export default function HrPayroll() {
         </div>
         <div className="flex items-center gap-3">
           <Input type="month" value={period} onChange={e => setPeriod(e.target.value)} className="w-40" />
-          <Button onClick={handleGenerate} disabled={loading || employees.length === 0} className="bg-primary text-primary-foreground">
-            <Banknote className="w-4 h-4 mr-2" /> Generate Payroll
+          <Button onClick={handleGenerate} disabled={!canGenerate} className="bg-primary text-primary-foreground">
+            <Banknote className="w-4 h-4 mr-2" /> {canGenerate ? "Generate Payroll" : "Lengkapi Prasyarat"}
           </Button>
         </div>
       </div>
@@ -80,8 +97,8 @@ export default function HrPayroll() {
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div className="p-3 rounded-lg border bg-background flex items-start gap-2.5">
-            <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${employees.length > 0 ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+          <div className={`p-3 rounded-lg border bg-background flex items-start gap-2.5 ${prerequisites.employeesMet ? 'border-emerald-200' : 'border-rose-200'}`}>
+            <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${prerequisites.employeesMet ? 'text-emerald-500' : 'text-muted-foreground'}`} />
             <div>
               <p className="font-semibold text-foreground">1. Master Data Karyawan</p>
               <p className="text-muted-foreground mt-0.5">
@@ -93,8 +110,8 @@ export default function HrPayroll() {
             </div>
           </div>
 
-          <div className="p-3 rounded-lg border bg-background flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+          <div className={`p-3 rounded-lg border bg-background flex items-start gap-2.5 ${prerequisites.attendanceMet ? 'border-emerald-200' : 'border-rose-200'}`}>
+            <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${prerequisites.attendanceMet ? 'text-emerald-500' : 'text-muted-foreground'}`} />
             <div>
               <p className="font-semibold text-foreground">2. Rekap Absensi & Lembur</p>
               <p className="text-muted-foreground mt-0.5">
@@ -106,8 +123,8 @@ export default function HrPayroll() {
             </div>
           </div>
 
-          <div className="p-3 rounded-lg border bg-background flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+          <div className={`p-3 rounded-lg border bg-background flex items-start gap-2.5 ${prerequisites.componentsMet ? 'border-emerald-200' : 'border-rose-200'}`}>
+            <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${prerequisites.componentsMet ? 'text-emerald-500' : 'text-muted-foreground'}`} />
             <div>
               <p className="font-semibold text-foreground">3. Komponen Potongan & Pajak</p>
               <p className="text-muted-foreground mt-0.5">

@@ -660,6 +660,19 @@ export default function FixedAssetsPage() {
               />
             </div>
 
+            {/* Depreciation Preview */}
+            <div className="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100 space-y-2">
+              <Label className="text-xs font-semibold text-indigo-700">Simulasi Penyusutan (Tahun Pertama)</Label>
+              <div className="grid grid-cols-2 gap-4 text-xs text-indigo-900">
+                <div>
+                  <p>Beban per Bulan: <span className="font-bold">{formatIDR(Math.max(0, (Number(form.purchase_price) - Number(form.salvage_value)) / Number(form.useful_life)))}</span></p>
+                </div>
+                <div>
+                  <p>Estimasi Nilai Buku Akhir: <span className="font-bold">{formatIDR(Number(form.salvage_value))}</span></p>
+                </div>
+              </div>
+            </div>
+
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)}>
                 Batal
@@ -742,6 +755,19 @@ export default function FixedAssetsPage() {
                 </div>
               </div>
             )}
+
+            {/* Depreciation Preview */}
+            <div className="bg-indigo-50/50 p-4 rounded-lg border border-indigo-100 space-y-2">
+              <Label className="text-xs font-semibold text-indigo-700">Simulasi Penyusutan (Tahun Pertama)</Label>
+              <div className="grid grid-cols-2 gap-4 text-xs text-indigo-900">
+                <div>
+                  <p>Beban per Bulan: <span className="font-bold">{formatIDR(Math.max(0, (Number(form.purchase_price) - Number(form.salvage_value)) / Number(form.useful_life)))}</span></p>
+                </div>
+                <div>
+                  <p>Estimasi Nilai Buku Akhir: <span className="font-bold">{formatIDR(Number(form.salvage_value))}</span></p>
+                </div>
+              </div>
+            </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={() => setImportModalOpen(false)}>
