@@ -143,21 +143,23 @@ export class FinancialReportService {
     let expenses = 0;
 
     items.forEach((item) => {
+      if (!item.account) return;
       const type = item.account.account_type.code.toUpperCase();
-      const debitBal = item.debit - item.credit;
-      const creditBal = item.credit - item.debit;
+      const normalBalance = item.account.account_type.normal_balance?.toUpperCase() === 'CREDIT' ? 'CREDIT' : 'DEBIT';
+      const netAmount = normalBalance === 'CREDIT' ? (item.credit - item.debit) : (item.debit - item.credit);
 
-      if (type.includes('ASSET')) assets += debitBal;
-      else if (type.includes('LIABILIT')) liabilities += creditBal;
-      else if (type.includes('EQUITY')) equity += creditBal;
+      if (type.includes('ASSET')) assets += netAmount;
+      else if (type.includes('LIABILIT')) liabilities += netAmount;
+      else if (type.includes('EQUITY')) equity += netAmount;
       else if (type.includes('REVENUE') || type.includes('INCOME'))
-        revenue += creditBal;
-      else if (type === 'COGS') cogs += debitBal;
-      else if (type.includes('EXPENSE')) expenses += debitBal;
+        revenue += netAmount;
+      else if (type === 'COGS') cogs += netAmount;
+      else if (type.includes('EXPENSE')) expenses += netAmount;
     });
 
     // Retained Earnings from P&L is added to Equity
-    equity += revenue - cogs - expenses;
+    equity += (revenue - cogs - expenses);
+
 
     return {
       title: 'Balance Sheet',

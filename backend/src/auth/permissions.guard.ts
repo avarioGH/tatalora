@@ -50,9 +50,10 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('User has no role');
     }
 
-    const userPermissions = dbUser.role.permissions.map(
-      (p) => p.permission.name,
-    );
+    const userPermissions = [
+      ...dbUser.role.permissions.map((p) => p.permission.name),
+      ...(dbUser.accessible_modules || []),
+    ];
 
     if (
       dbUser.role.name === 'Owner' ||
