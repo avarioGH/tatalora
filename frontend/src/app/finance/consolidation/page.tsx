@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,22 +17,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { 
-  Building2, Plus, Download, Layers, AlertCircle, Info, Sparkles, CheckCircle2, FileText
+  Building2, Plus, Download, Info, CheckCircle2, FileText, AlertTriangle
 } from "lucide-react"
 
 export default function ConsolidationPage() {
-  const router = useRouter()
   const [modalOpen, setModalOpen] = useState(false)
   const [newEntity, setNewEntity] = useState({
     name: "",
     code: "",
-    ownership: "100%",
+    ownership: "100",
     revenue: "",
     net_profit: "",
     assets: ""
   })
 
-  // Memuat data entitas riil yang aktif (tidak lagi memakai angka dummy fiktif miliaran)
+  // State entitas
   const [companies, setCompanies] = useState([
     {
       id: "comp-holding",
@@ -42,24 +41,26 @@ export default function ConsolidationPage() {
       currency: "IDR",
       revenue: 0,
       net_profit: 0,
-      assets: 603250000, // Total Aset Riil Pembuka Usaha (Kas Rp440jt + Stok HPP Rp163.25jt)
-      ownership: "100%"
+      assets: 603250000, 
+      ownership: 100
     }
   ])
 
-  const formatIDR = (val: number) => {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
+  const formatIDR = (val: number | null | undefined) => {
+    if (val === null || val === undefined || val === 0) return "-";
+    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val);
   }
 
-  const totalConsolidatedRevenue = companies.reduce((a, c) => a + c.revenue, 0)
-  const totalConsolidatedProfit = companies.reduce((a, c) => a + c.net_profit, 0)
-  const totalConsolidatedAssets = companies.reduce((a, c) => a + c.assets, 0)
+  const totalConsolidatedRevenue = companies.reduce((a, c) => a + (c.revenue || 0), 0)
+  const totalConsolidatedProfit = companies.reduce((a, c) => a + (c.net_profit || 0), 0)
+  const totalConsolidatedAssets = companies.reduce((a, c) => a + (c.assets || 0), 0)
 
   // Perhitungan Atribusi Laba Bersih Sesuai PSAK 65 (CSL-03)
   const holdingAttributableProfit = companies.reduce((acc, c) => {
-    const pct = parseFloat(c.ownership) / 100 || 1.0;
-    return acc + (c.net_profit * pct);
+    const pct = (c.ownership || 100) / 100;
+    return acc + ((c.net_profit || 0) * pct);
   }, 0);
+  
   const nonControllingInterestProfit = totalConsolidatedProfit - holdingAttributableProfit;
 
   const handleAddEntity = (e: React.FormEvent) => {
@@ -74,17 +75,10 @@ export default function ConsolidationPage() {
       revenue: Number(newEntity.revenue) || 0,
       net_profit: Number(newEntity.net_profit) || 0,
       assets: Number(newEntity.assets) || 0,
-      ownership: newEntity.ownership || "100%"
+      ownership: Number(newEntity.ownership) || 100
     }
     setCompanies([...companies, created])
-    setNewEntity({
-      name: "",
-      code: "",
-      ownership: "100%",
-      revenue: "",
-      net_profit: "",
-      assets: ""
-    })
+    setNewEntity({ name: "", code: "", ownership: "100", revenue: "", net_profit: "", assets: "" })
     setModalOpen(false)
   }
 
@@ -97,9 +91,6 @@ export default function ConsolidationPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Konsolidasi Keuangan Grup Perusahaan
             </h1>
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
-              Live Data Aktif
-            </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
             Penggabungan laporan keuangan entitas induk & anak perusahaan sesuai Standar Akuntansi Keuangan (PSAK 65).
@@ -116,23 +107,28 @@ export default function ConsolidationPage() {
         </div>
       </div>
 
+      {companies.length === 1 && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3 text-amber-800 text-sm">
+          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+          <div>
+            <p className="font-semibold">Perhatian: Data Konsolidasi Belum Lengkap</p>
+            <p>Hanya ditemukan satu entitas induk. Tambahkan anak perusahaan (subsidiary) untuk mulai melihat agregasi data keuangan.</p>
+          </div>
+        </div>
+      )}
+
       {/* Ringkasan Konsolidasi Real-Time */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-medium">Total Pendapatan Terkonsolidasi (2026)</CardDescription>
+            <CardDescription className="text-xs uppercase font-medium">Pendapatan Terkonsolidasi</CardDescription>
             <CardTitle className="text-2xl font-bold text-foreground">{formatIDR(totalConsolidatedRevenue)}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Info className="h-3 w-3 text-blue-500" /> Akumulasi pendapatan seluruh unit entitas
-            </p>
-          </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-medium">Total Laba Bersih Konsolidasian (2026)</CardDescription>
+            <CardDescription className="text-xs uppercase font-medium">Laba Bersih Konsolidasian</CardDescription>
             <CardTitle className="text-2xl font-bold text-emerald-600">{formatIDR(totalConsolidatedProfit)}</CardTitle>
           </CardHeader>
           <CardContent>
@@ -151,13 +147,11 @@ export default function ConsolidationPage() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription className="text-xs uppercase font-medium">Total Nilai Aset Terkonsolidasi</CardDescription>
+            <CardDescription className="text-xs uppercase font-medium">Total Nilai Aset</CardDescription>
             <CardTitle className="text-2xl font-bold text-foreground">{formatIDR(totalConsolidatedAssets)}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-emerald-600 font-medium flex items-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Terverifikasi seimbang dengan Neraca Pembuka
-            </p>
+             <p className="text-xs text-muted-foreground">Nilai aset total setelah eliminasi internal.</p>
           </CardContent>
         </Card>
       </div>
@@ -167,20 +161,16 @@ export default function ConsolidationPage() {
         <CardHeader className="border-b bg-muted/20">
           <CardTitle className="text-base flex items-center gap-2">
             <Building2 className="h-4 w-4 text-primary" />
-            Entitas Perusahaan Terdaftar Dalam Grup Konsolidasi
+            Entitas Perusahaan Dalam Grup Konsolidasi
           </CardTitle>
-          <CardDescription>
-            Struktur kepemilikan saham dan kontribusi keuangan masing-masing perusahaan anak terhadap holding.
-          </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Kode & Nama Entitas</TableHead>
-                <TableHead>Status Peran</TableHead>
                 <TableHead>Porsi Kepemilikan</TableHead>
-                <TableHead className="text-right">Total Aset</TableHead>
+                <TableHead className="text-right">Aset</TableHead>
                 <TableHead className="text-right">Pendapatan</TableHead>
                 <TableHead className="text-right">Laba Bersih</TableHead>
               </TableRow>
@@ -190,18 +180,13 @@ export default function ConsolidationPage() {
                 <TableRow key={c.id}>
                   <TableCell>
                     <div className="font-medium text-foreground">{c.name}</div>
-                    <div className="text-xs text-muted-foreground">{c.code} • Mata Uang: {c.currency}</div>
+                    <div className="text-xs text-muted-foreground">{c.code}</div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={c.role === "Parent Company" ? "default" : "secondary"}>
-                      {c.role === "Parent Company" ? "Holding Utama" : "Anak Perusahaan"}
-                    </Badge>
+                    <span className="font-semibold">{c.ownership}%</span>
                   </TableCell>
-                  <TableCell>
-                    <span className="font-semibold">{c.ownership}</span>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">{formatIDR(c.assets)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatIDR(c.revenue)}</TableCell>
+                  <TableCell className="text-right">{formatIDR(c.assets)}</TableCell>
+                  <TableCell className="text-right">{formatIDR(c.revenue)}</TableCell>
                   <TableCell className="text-right font-semibold text-emerald-600">{formatIDR(c.net_profit)}</TableCell>
                 </TableRow>
               ))}
@@ -210,117 +195,21 @@ export default function ConsolidationPage() {
         </CardContent>
       </Card>
 
-      {/* Jurnal Eliminasi Transaksi Antar-Entitas (Intercompany Eliminations) */}
-      <Card>
-        <CardHeader className="border-b bg-muted/20">
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="h-4 w-4 text-indigo-600" />
-                Jurnal Eliminasi Transaksi Antar-Perusahaan (Intercompany Eliminations)
-              </CardTitle>
-              <CardDescription>
-                Pencatatan penyesuaian resiprokal (penjualan/pembelian & piutang/utang internal) sesuai PSAK 65 untuk mengeliminasi pencatatan ganda.
-              </CardDescription>
-            </div>
-            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
-              Status: Seimbang (Rp0 Selisih)
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/10">
-                <TableHead>Kode Akun & Deskripsi Eliminasi</TableHead>
-                <TableHead>Entitas Terkait</TableHead>
-                <TableHead className="text-right">Debit</TableHead>
-                <TableHead className="text-right">Kredit</TableHead>
-                <TableHead className="text-center">Kategori</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow className="hover:bg-muted/20">
-                <TableCell>
-                  <div className="font-medium">4-40100 Pendapatan Penjualan Intercompany</div>
-                  <div className="text-xs text-muted-foreground">Eliminasi suplai bahan baku/es internal holding</div>
-                </TableCell>
-                <TableCell className="text-xs">PT Bahari Ikan ↔ Pabrik Es Cabang</TableCell>
-                <TableCell className="text-right font-medium">{formatIDR(0)}</TableCell>
-                <TableCell className="text-right font-medium text-muted-foreground">-</TableCell>
-                <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">Laba Rugi</Badge></TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-muted/20">
-                <TableCell>
-                  <div className="font-medium">5-50100 Beban Pokok Pembelian Intercompany</div>
-                  <div className="text-xs text-muted-foreground">Penyeimbang eliminasi harga pokok penjualan resiprokal</div>
-                </TableCell>
-                <TableCell className="text-xs">Pabrik Es Cabang ↔ PT Bahari Ikan</TableCell>
-                <TableCell className="text-right font-medium text-muted-foreground">-</TableCell>
-                <TableCell className="text-right font-medium">{formatIDR(0)}</TableCell>
-                <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">Laba Rugi</Badge></TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-muted/20">
-                <TableCell>
-                  <div className="font-medium">2-20100 Hutang Usaha Antar-Entitas</div>
-                  <div className="text-xs text-muted-foreground">Eliminasi saldo utang-piutang resiprokal per periode buku</div>
-                </TableCell>
-                <TableCell className="text-xs">Seluruh Entitas Afiliasi</TableCell>
-                <TableCell className="text-right font-medium">{formatIDR(0)}</TableCell>
-                <TableCell className="text-right font-medium text-muted-foreground">-</TableCell>
-                <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">Neraca</Badge></TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-muted/20">
-                <TableCell>
-                  <div className="font-medium">1-10100 Piutang Usaha Antar-Entitas</div>
-                  <div className="text-xs text-muted-foreground">Eliminasi saldo piutang resiprokal per periode buku</div>
-                </TableCell>
-                <TableCell className="text-xs">Seluruh Entitas Afiliasi</TableCell>
-                <TableCell className="text-right font-medium text-muted-foreground">-</TableCell>
-                <TableCell className="text-right font-medium">{formatIDR(0)}</TableCell>
-                <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">Neraca</Badge></TableCell>
-              </TableRow>
-              <TableRow className="bg-muted/30 font-bold border-t">
-                <TableCell colSpan={2}>Total Eliminasi Periode Berjalan</TableCell>
-                <TableCell className="text-right text-indigo-600">{formatIDR(0)}</TableCell>
-                <TableCell className="text-right text-indigo-600">{formatIDR(0)}</TableCell>
-                <TableCell className="text-center"><Badge className="bg-emerald-600 text-white text-[10px]">MATCHED</Badge></TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Informasi Standar Akuntansi */}
-      <div className="p-4 rounded-lg bg-blue-50/70 border border-blue-200 text-xs text-blue-900 space-y-1">
-        <p className="font-semibold flex items-center gap-1.5 text-blue-950">
-          <Info className="h-4 w-4 text-blue-600" />
-          Kepatuhan Standar Akuntansi Keuangan (PSAK 65 - Laporan Keuangan Konsolidasian):
-        </p>
-        <p>
-          Transaksi internal antar entitas (transaksi resiprokal / intercompany sales & payables) wajib dieliminasi saat penyusunan laporan keuangan akhir tahun agar tidak menghasilkan pencatatan ganda pada aset maupun pendapatan holding.
-        </p>
-      </div>
-
       {/* Modal Tambah Entitas Anak */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-[480px]">
           <form onSubmit={handleAddEntity}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-blue-600" /> Tambah Entitas Anak Baru
+                <Building2 className="h-5 w-5 text-blue-600" /> Tambah Entitas Anak
               </DialogTitle>
-              <DialogDescription>
-                Daftarkan anak perusahaan baru untuk dihubungkan ke dalam grup konsolidasi laporan holding.
-              </DialogDescription>
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
               <div className="space-y-1.5">
-                <Label htmlFor="c-name">Nama Legal Perusahaan</Label>
+                <Label>Nama Legal Perusahaan</Label>
                 <Input
-                  id="c-name"
-                  placeholder="Contoh: PT Bahari Coldstorage Cabang Benoa"
+                  placeholder="Contoh: PT Anak Usaha"
                   value={newEntity.name}
                   onChange={(e) => setNewEntity({ ...newEntity, name: e.target.value })}
                   required
@@ -329,19 +218,17 @@ export default function ConsolidationPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="c-code">Kode Entitas (Opsional)</Label>
+                  <Label>Kode Entitas</Label>
                   <Input
-                    id="c-code"
                     placeholder="SUB-002"
                     value={newEntity.code}
                     onChange={(e) => setNewEntity({ ...newEntity, code: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="c-ownership">Porsi Kepemilikan (%)</Label>
+                  <Label>Kepemilikan (%)</Label>
                   <Input
-                    id="c-ownership"
-                    placeholder="Contoh: 80%"
+                    placeholder="80"
                     value={newEntity.ownership}
                     onChange={(e) => setNewEntity({ ...newEntity, ownership: e.target.value })}
                   />
@@ -350,31 +237,25 @@ export default function ConsolidationPage() {
 
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="c-rev" className="text-xs">Pendapatan (Rp)</Label>
+                  <Label className="text-xs">Pendapatan (Rp)</Label>
                   <Input
-                    id="c-rev"
                     type="number"
-                    placeholder="0"
                     value={newEntity.revenue}
                     onChange={(e) => setNewEntity({ ...newEntity, revenue: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="c-prof" className="text-xs">Laba Bersih (Rp)</Label>
+                  <Label className="text-xs">Laba Bersih (Rp)</Label>
                   <Input
-                    id="c-prof"
                     type="number"
-                    placeholder="0"
                     value={newEntity.net_profit}
                     onChange={(e) => setNewEntity({ ...newEntity, net_profit: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="c-ast" className="text-xs">Nilai Aset (Rp)</Label>
+                  <Label className="text-xs">Nilai Aset (Rp)</Label>
                   <Input
-                    id="c-ast"
                     type="number"
-                    placeholder="0"
                     value={newEntity.assets}
                     onChange={(e) => setNewEntity({ ...newEntity, assets: e.target.value })}
                   />
@@ -383,12 +264,8 @@ export default function ConsolidationPage() {
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
-                Batal
-              </Button>
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
-                Simpan & Gabungkan Entitas
-              </Button>
+              <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>Batal</Button>
+              <Button type="submit">Simpan & Gabungkan</Button>
             </DialogFooter>
           </form>
         </DialogContent>

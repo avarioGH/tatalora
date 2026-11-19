@@ -275,6 +275,7 @@ export class InvoiceService {
               : Number(soItem.unit_price);
           // Apply compound discount logic
           const discountedPrice = this.calculateDiscountedPrice(unitPrice, req.discount ?? 0);
+          const lineTax = Number(req.tax ?? 0);
           const lineSubtotal = this.roundMoney(reqQty * discountedPrice);
 
           invoiceItemsData.push({

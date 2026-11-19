@@ -100,7 +100,7 @@ export default function CashReconciliationPage() {
                     const operational = Number(row.operational_balance ?? row.operationalBalance ?? 0);
                     const gl = row.gl_balance !== null && row.gl_balance !== undefined ? Number(row.gl_balance) : null;
                     const diff = gl !== null ? Math.abs(operational - gl) : null;
-                    const isReconciled = diff !== null && diff <= 100;
+                    const isReconciled = diff !== null && diff <= 0.01;
                     const isUnmapped = !row.mapped_coa && !row.mappedAccount;
 
                     return (

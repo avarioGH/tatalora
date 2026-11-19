@@ -176,7 +176,7 @@ export default function QuotationDetailPage() {
                   <DropdownMenuItem className="py-2 cursor-pointer" onClick={() => alert('Lihat Audit UI')}>
                     <Search className="w-4 h-4 mr-2 text-muted-foreground" /> Lihat Audit
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="py-2 cursor-pointer" onClick={() => alert('Ubah UI')}>
+                  <DropdownMenuItem className="py-2 cursor-pointer" onClick={() => router.push('/sales/quotations/create?edit_id=' + data.id)}>
                     <Edit2 className="w-4 h-4 mr-2 text-muted-foreground" /> Ubah
                   </DropdownMenuItem>
                   <DropdownMenuItem className="py-2 cursor-pointer" onClick={() => alert('Duplikat UI')}>
@@ -290,7 +290,7 @@ export default function QuotationDetailPage() {
               {data.sales_orders.map((so: any) => (
                 <div key={so.id} className="border border-border rounded-md p-4 space-y-2">
                   <div className="flex justify-between items-center">
-                    <div className="font-medium text-indigo-600 cursor-pointer hover:underline" onClick={() => router.push('/sales/orders?id=' + so.id)}>
+                    <div className="font-medium text-indigo-600 cursor-pointer hover:underline" onClick={() => router.push('/sales/orders/' + so.id)}>
                       Pemesanan: {so.order_number}
                     </div>
                     <span className="text-sm bg-muted px-2 py-1 rounded-md">{so.status}</span>
@@ -304,7 +304,7 @@ export default function QuotationDetailPage() {
                   {so.deliveries && so.deliveries.length > 0 && so.deliveries.map((del: any) => (
                     <div key={del.id} className="ml-4 pl-4 border-l-2 border-indigo-200 mt-2">
                       <div className="flex justify-between items-center">
-                        <div className="text-sm font-medium text-indigo-500 cursor-pointer hover:underline" onClick={() => router.push('/sales/deliveries?id=' + del.id)}>
+                        <div className="text-sm font-medium text-indigo-500 cursor-pointer hover:underline" onClick={() => router.push('/sales/deliveries/' + del.id)}>
                           Pengiriman: {del.delivery_number}
                         </div>
                         <span className="text-xs bg-muted px-2 py-1 rounded-md">{del.status}</span>
@@ -316,7 +316,7 @@ export default function QuotationDetailPage() {
                   {so.invoices && so.invoices.length > 0 && so.invoices.map((inv: any) => (
                     <div key={inv.id} className="ml-4 pl-4 border-l-2 border-emerald-200 mt-2">
                       <div className="flex justify-between items-center">
-                        <div className="text-sm font-medium text-emerald-600 cursor-pointer hover:underline" onClick={() => router.push('/sales/invoices?id=' + inv.id)}>
+                        <div className="text-sm font-medium text-emerald-600 cursor-pointer hover:underline" onClick={() => router.push('/sales/invoices/' + inv.id)}>
                           Tagihan: {inv.invoice_number}
                         </div>
                         <span className="text-xs bg-muted px-2 py-1 rounded-md">{inv.status}</span>

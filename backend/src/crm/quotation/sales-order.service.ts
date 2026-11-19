@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { PaymentService } from '../../finance/payment/payment.service';
 import { AuditService } from '../../core/audit.service';
+import { SequenceService } from '../../reports/sequence.service';
 
 @Injectable()
 export class SalesOrderService {

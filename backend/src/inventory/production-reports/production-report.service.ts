@@ -399,7 +399,7 @@ export class ProductionReportService {
       getDayObj(l.date).inputLogM3 += l.totalVolume;
     });
 
-    const runWhere = this.parseDateRange(query.startDate, query.endDate);
+    const runWhere = this.parseDateRange(query);
     runWhere.status = 'POSTED';
     const runs = await this.prisma.sawmillProductionRun.findMany({
       where: runWhere,
@@ -452,7 +452,7 @@ export class ProductionReportService {
   }
 
   async getReconciliation(query: { startDate?: string; endDate?: string }) {
-    const runWhere = this.parseDateRange(query.startDate, query.endDate);
+    const runWhere = this.parseDateRange(query);
     runWhere.status = 'POSTED';
     const runs = await this.prisma.sawmillProductionRun.findMany({
       where: runWhere,
@@ -538,7 +538,7 @@ export class ProductionReportService {
   }
 
   async getDataQuality(query: { startDate?: string; endDate?: string }) {
-    const runWhere = this.parseDateRange(query.startDate, query.endDate);
+    const runWhere = this.parseDateRange(query);
     const runs = await this.prisma.sawmillProductionRun.findMany({
       where: runWhere,
       include: {
