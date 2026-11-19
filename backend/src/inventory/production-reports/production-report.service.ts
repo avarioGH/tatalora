@@ -5,18 +5,26 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class ProductionReportService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private parseDateRange(startDate?: string, endDate?: string) {
+  private parseDateRange(query: { startDate?: string; endDate?: string; locationId?: string }) {
     const where: any = {};
-    if (startDate || endDate) {
+    if (query.startDate || query.endDate) {
       where.productionDate = {};
-      if (startDate) where.productionDate.gte = new Date(startDate);
-      if (endDate) {
-        const e = new Date(endDate);
+      if (query.startDate) where.productionDate.gte = new Date(query.startDate);
+      if (query.endDate) {
+        const e = new Date(query.endDate);
         e.setHours(23, 59, 59, 999);
         where.productionDate.lte = e;
       }
     }
+    if (query.locationId) {
+      where.workCenter = { locationId: query.locationId };
+    }
     return where;
+  }
+
+  private formatRendement(val: number | null): string {
+    if (val === null) return "Tidak dapat dihitung";
+    return `${val.toFixed(2)}%`;
   }
 
   async getSummary(query: {
@@ -26,10 +34,11 @@ export class ProductionReportService {
     workCenterId?: string;
     locationId?: string;
   }) {
-    const where = this.parseDateRange(query.startDate, query.endDate);
+    const where = this.parseDateRange(query);
     if (query.shift) where.shift = query.shift;
     if (query.workCenterId) where.workCenterId = query.workCenterId;
     where.status = 'POSTED';
+
 
     const runs = await this.prisma.sawmillProductionRun.findMany({
       where,
@@ -83,9 +92,10 @@ export class ProductionReportService {
     };
   }
 
-  async getRendement(query: { startDate?: string; endDate?: string }) {
-    const where = this.parseDateRange(query.startDate, query.endDate);
+  async getRendement(query: { startDate?: string; endDate?: string; locationId?: string }) {
+    const where = this.parseDateRange(query);
     where.status = 'POSTED';
+
 
     const runs = await this.prisma.sawmillProductionRun.findMany({
       where,
@@ -126,7 +136,8 @@ export class ProductionReportService {
         machineName: run.workCenter?.name,
         inputM3: consumedM3,
         outputM3: outputM3,
-        rendement,
+        rendement: rendement,
+        rendementFormatted: this.formatRendement(rendement),
       };
     });
 
@@ -138,14 +149,17 @@ export class ProductionReportService {
       totals: {
         inputM3: totalConsumedM3,
         outputM3: totalOutputM3,
-        overallRendement,
+        overallRendement: overallRendement,
+        overallRendementFormatted: this.formatRendement(overallRendement),
       },
     };
+
   }
 
-  async getProducts(query: { startDate?: string; endDate?: string }) {
-    const where = this.parseDateRange(query.startDate, query.endDate);
+  async getProducts(query: { startDate?: string; endDate?: string; locationId?: string }) {
+    const where = this.parseDateRange(query);
     where.status = 'POSTED';
+
 
     const runs = await this.prisma.sawmillProductionRun.findMany({
       where,
@@ -197,9 +211,10 @@ export class ProductionReportService {
     return { data, totalOutputM3 };
   }
 
-  async getShifts(query: { startDate?: string; endDate?: string }) {
-    const where = this.parseDateRange(query.startDate, query.endDate);
+  async getShifts(query: { startDate?: string; endDate?: string; locationId?: string }) {
+    const where = this.parseDateRange(query);
     where.status = 'POSTED';
+
 
     const runs = await this.prisma.sawmillProductionRun.findMany({
       where,

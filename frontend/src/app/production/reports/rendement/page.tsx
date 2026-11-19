@@ -2,63 +2,80 @@
 import React, { useState, useEffect } from "react";
 import { ProductionReportAPI } from "@/lib/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function RendementPage() {
   const [data, setData] = useState<any[]>([]);
+  const [totals, setTotals] = useState<any>({ inputM3: 0, outputM3: 0, overallRendementFormatted: "0%" });
   const [loading, setLoading] = useState(true);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-  useEffect(() => {
-    ProductionReportAPI.getRendement().then((res: any) => {
-      setData(res.data || res || []);
+  const fetchData = () => {
+    setLoading(true);
+    ProductionReportAPI.getRendement({ startDate, endDate }).then((res: any) => {
+      setData(res.data || []);
+      setTotals(res.totals || { inputM3: 0, outputM3: 0, overallRendementFormatted: "0%" });
       setLoading(false);
     }).catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  const totals = data.reduce((acc, row) => ({
-    inputM3: acc.inputM3 + (Number(row.inputM3) || 0),
-    outputM3: acc.outputM3 + (Number(row.outputM3) || 0)
-  }), { inputM3: 0, outputM3: 0 });
-  const overallRendement = totals.inputM3 > 0 ? ((totals.outputM3 / totals.inputM3) * 100).toFixed(2) : 0;
-
-  if (loading) return <div className="p-4 md:p-8">Loading...</div>;
+  if (loading) return <div className="p-4 md:p-8">Memuat...</div>;
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Rendement Report</h1>
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Shift</TableHead>
-              <TableHead>Machine</TableHead>
-              <TableHead>Operator</TableHead>
-              <TableHead className="text-right">Input M³</TableHead>
-              <TableHead className="text-right">Output M³</TableHead>
-              <TableHead className="text-right">Rendement %</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((row, i) => (
-              <TableRow key={i}>
-                <TableCell>{row.date}</TableCell>
-                <TableCell>{row.shift}</TableCell>
-                <TableCell>{row.machine}</TableCell>
-                <TableCell>{row.operator}</TableCell>
-                <TableCell className="text-right">{row.inputM3}</TableCell>
-                <TableCell className="text-right">{row.outputM3}</TableCell>
-                <TableCell className="text-right">{row.rendement}</TableCell>
-              </TableRow>
-            ))}
-            <TableRow className="font-bold">
-              <TableCell colSpan={4}>Totals</TableCell>
-              <TableCell className="text-right">{totals.inputM3.toFixed(4)}</TableCell>
-              <TableCell className="text-right">{totals.outputM3.toFixed(4)}</TableCell>
-              <TableCell className="text-right">{overallRendement}%</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+      <h1 className="text-2xl font-bold mb-6">Laporan Rendement</h1>
+      
+      <div className="flex gap-4 mb-6">
+        <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        <Button onClick={fetchData}>Cari</Button>
       </div>
+
+      {data.length === 0 ? (
+        <div className="text-center py-10 border rounded">Data tidak tersedia untuk periode ini</div>
+      ) : (
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tanggal</TableHead>
+                <TableHead>Shift</TableHead>
+                <TableHead>Mesin</TableHead>
+                <TableHead>Operator</TableHead>
+                <TableHead className="text-right">Input M³</TableHead>
+                <TableHead className="text-right">Output M³</TableHead>
+                <TableHead className="text-right">Rendement %</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((row, i) => (
+                <TableRow key={i}>
+                  <TableCell>{new Date(row.date).toLocaleDateString('id-ID')}</TableCell>
+                  <TableCell>{row.shift}</TableCell>
+                  <TableCell>{row.machineName}</TableCell>
+                  <TableCell>{row.operatorName}</TableCell>
+                  <TableCell className="text-right">{row.inputM3.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{row.outputM3.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{row.rendementFormatted}</TableCell>
+                </TableRow>
+              ))}
+              <TableRow className="font-bold bg-gray-50">
+                <TableCell colSpan={4}>Total</TableCell>
+                <TableCell className="text-right">{totals.inputM3.toFixed(4)}</TableCell>
+                <TableCell className="text-right">{totals.outputM3.toFixed(4)}</TableCell>
+                <TableCell className="text-right">{totals.overallRendementFormatted}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
+
