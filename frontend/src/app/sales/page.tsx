@@ -12,7 +12,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { 
-  Search, ChevronDown, Download, CheckCircle2, X, Eye, Edit, Trash2, MoreHorizontal, Upload, FileSpreadsheet, Loader2
+  Search, ChevronDown, Download, CheckCircle2, X, Eye, Edit, Trash2, MoreHorizontal, Upload, FileSpreadsheet, Loader2, Truck
 } from "lucide-react"
 import {
   DropdownMenu,
