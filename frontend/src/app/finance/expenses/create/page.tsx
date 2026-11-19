@@ -67,13 +67,18 @@ export default function CreateExpensePage() {
         setCashAccounts(accList)
         if (accList.length > 0) setFromAccountId(accList[0].id)
 
-        // Filter Expense accounts (type Expense or code starting with 5 or 6)
+        // Filter Expense accounts (type Expense or code starting with 5, 6, 8, 9)
         const expList = coaList.filter((a: any) => 
           a.account_type?.category === 'Expense' || 
           a.account_type?.name?.toLowerCase().includes('expense') ||
           a.account_type?.name?.toLowerCase().includes('beban') ||
+          a.account_type?.name?.toLowerCase().includes('biaya') ||
+          a.account_name?.toLowerCase().includes('beban') ||
+          a.account_name?.toLowerCase().includes('biaya') ||
           a.account_code?.startsWith('5') ||
-          a.account_code?.startsWith('6')
+          a.account_code?.startsWith('6') ||
+          a.account_code?.startsWith('8') ||
+          a.account_code?.startsWith('9')
         )
         setExpenseAccounts(expList.length > 0 ? expList : coaList)
         setCategories(catList)

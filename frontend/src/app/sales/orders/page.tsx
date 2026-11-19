@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Loader2, Plus, Search, Filter, Trash2 } from 'lucide-react'
+import { Loader2, Plus, Search, Filter, Trash2, Truck } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -121,6 +121,11 @@ export default function SalesOrdersPage() {
                       <td className="py-3.5 px-6 text-center text-[13px]">{getStatusBadge(item.status)}</td>
                       <td className="py-3.5 px-6 text-center text-[13px]">
                         <div className="flex items-center justify-center gap-2">
+                          <Link href={`/sales/deliveries/create?so_id=${item.id}`}>
+                            <Button variant="outline" size="sm" className="h-8 text-xs text-indigo-600 border-indigo-200 hover:bg-indigo-50 gap-1">
+                              <Truck className="w-3.5 h-3.5" /> Surat Jalan
+                            </Button>
+                          </Link>
                           <Link href={`/sales/orders/${item.id}`}>
                             <Button variant="outline" size="sm" className="h-8 text-xs">Detail</Button>
                           </Link>

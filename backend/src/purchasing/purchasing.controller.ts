@@ -63,13 +63,25 @@ export class PurchasingController {
   @Permissions('purchasing.create')
   @Post('rfq')
   createRFQ(@Request() req: any, @Body() data: any) {
-    return this.service.createRFQ(req.user.companyId, data);
+    return this.service.createRFQ(req.user.company_id || req.user.companyId, data);
+  }
+
+  @Permissions('purchasing.create')
+  @Post('rfqs')
+  createRFQs(@Request() req: any, @Body() data: any) {
+    return this.service.createRFQ(req.user.company_id || req.user.companyId, data);
   }
 
   @Permissions('purchasing.create')
   @Post('rfq/:id/confirm')
   confirmPO(@Request() req: any, @Param('id') id: string) {
-    return this.service.confirmPO(req.user.companyId, id);
+    return this.service.confirmPO(req.user.company_id || req.user.companyId, id);
+  }
+
+  @Permissions('purchasing.create')
+  @Post('rfqs/:id/confirm')
+  confirmRFQs(@Request() req: any, @Param('id') id: string) {
+    return this.service.confirmPO(req.user.company_id || req.user.companyId, id);
   }
 
   @Permissions('purchasing.order.create')

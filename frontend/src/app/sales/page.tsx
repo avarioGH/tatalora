@@ -445,9 +445,12 @@ export default function UnifiedSalesPage() {
                         Tindakan <ChevronDown className="w-3 h-3" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40 bg-card">
+                    <DropdownMenuContent align="end" className="w-48 bg-card">
                       <DropdownMenuItem onClick={() => router.push(`/sales/orders`)} className="cursor-pointer">
                         <Eye className="w-3.5 h-3.5 mr-2" /> Detail
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => router.push(`/sales/deliveries/create?so_id=${o.id}`)} className="cursor-pointer text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50 font-medium">
+                        <Truck className="w-3.5 h-3.5 mr-2" /> Buat Surat Jalan
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDeleteOrder(o.id, o.order_number)} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50">
                         <Trash2 className="w-3.5 h-3.5 mr-2" /> Hapus
@@ -506,7 +509,7 @@ export default function UnifiedSalesPage() {
                       <DropdownMenuItem onClick={() => router.push(`/sales/quotations?id=${q.id}`)} className="cursor-pointer">
                         <Eye className="w-3.5 h-3.5 mr-2" /> Detail Penawaran
                       </DropdownMenuItem>
-                      {q.status === 'DRAFT' && (
+                      {(q.status === 'DRAFT' || q.status === 'SENT' || q.status === 'ACCEPTED') && (
                         <DropdownMenuItem onClick={() => handleConfirmQuotation(q.id, q.quotation_number)} className="cursor-pointer text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50 font-medium">
                           <CheckCircle2 className="w-3.5 h-3.5 mr-2" /> Buat Jadi Pesanan
                         </DropdownMenuItem>

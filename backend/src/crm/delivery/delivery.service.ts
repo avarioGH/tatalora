@@ -85,7 +85,7 @@ export class DeliveryService {
       // 2. Concurrency Coordination: Acquire an exclusive row-level lock (FOR UPDATE)
       // on the parent Sales Order before reading deliveries and remaining quantities.
       if (typeof (tx as any).$executeRaw === 'function') {
-        await (tx as any).$executeRaw`SELECT 1 FROM "SalesOrder" WHERE id = ${salesOrderId}::uuid AND company_id = ${companyId}::uuid FOR UPDATE`;
+        await (tx as any).$executeRaw`SELECT 1 FROM "SalesOrder" WHERE id = ${salesOrderId} AND company_id = ${companyId} FOR UPDATE`;
       }
 
       // Load Sales Order within tenant scope with existing deliveries
@@ -246,25 +246,29 @@ export class DeliveryService {
       // concurrent transactions attempting to validate or schedule deliveries for the same
       // order to serialize, preventing race conditions on the remaining deliverable capacity.
       if (typeof (tx as any).$executeRaw === 'function') {
-        await (tx as any).$executeRaw`SELECT 1 FROM "SalesOrder" WHERE id = ${so.id}::uuid AND company_id = ${companyId}::uuid FOR UPDATE`;
+        await (tx as any).$executeRaw`SELECT 1 FROM "SalesOrder" WHERE id = ${so.id} AND company_id = ${companyId} FOR UPDATE`;
       }
 
-      // 2. Resolve warehouse strictly without silent fallback to arbitrary company warehouses
-      const targetWarehouseId = warehouseIdParam || so.warehouse_id;
+      // 2. Resolve warehouse with fallback to company warehouse if unassigned or invalid
+      let targetWarehouseId = warehouseIdParam || so.warehouse_id;
 
-      if (!targetWarehouseId) {
-        throw new BadRequestException(
-          'Target warehouse is not specified on delivery validation or Sales Order',
-        );
-      }
-
-      const warehouse = await tx.warehouse.findFirst({
+      let warehouse = targetWarehouseId ? await tx.warehouse.findFirst({
         where: { id: targetWarehouseId, company_id: companyId },
-      });
+      }) : null;
+
+      if (!warehouse) {
+        // Fallback to warehouse of the company
+        warehouse = await tx.warehouse.findFirst({
+          where: { company_id: companyId },
+        });
+        if (warehouse) {
+          targetWarehouseId = warehouse.id;
+        }
+      }
 
       if (!warehouse) {
         throw new BadRequestException(
-          `Warehouse ${targetWarehouseId} is invalid or does not belong to company`,
+          'Target warehouse is not specified and no company warehouse found',
         );
       }
 

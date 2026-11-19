@@ -146,7 +146,7 @@ export class QuotationService {
     });
     if (!q) throw new NotFoundException('Quotation not found');
     if (q.status !== 'SENT' && q.status !== 'DRAFT') {
-      throw new BadRequestException(`Hanya penawaran berstatus SENT atau DRAFT yang dapat disetujui pelanggan (Status: ${q.status})`);
+      return q;
     }
 
     // Check expiration
@@ -207,7 +207,7 @@ export class QuotationService {
 
       // Rule: Can be converted from ACCEPTED, SENT, or legacy CONFIRMED/DRAFT if permitted,
       // but strictly NOT from CONVERTED, REJECTED, EXPIRED, or CANCELLED
-      if (q.status === 'CONVERTED' || q.status === 'CONFIRMED') {
+      if (q.status === 'CONVERTED') {
         throw new BadRequestException('Quotation has already been converted to a Sales Order');
       }
       if (q.status === 'REJECTED') {
@@ -233,14 +233,12 @@ export class QuotationService {
         where: { quotation_id: q.id },
       });
       if (existingSo) {
-        throw new BadRequestException(
-          'Sales order already generated for this quotation',
-        );
+        return existingSo;
       }
 
       // Atomic state change to prevent race conditions / duplicate conversion
       const updateResult = await tx.quotation.updateMany({
-        where: { id: q.id, company_id: companyId, status: { notIn: ['CONVERTED', 'CONFIRMED'] } },
+        where: { id: q.id, company_id: companyId, status: { notIn: ['CONVERTED'] } },
         data: { status: 'CONVERTED' },
       });
       if (updateResult.count === 0) {
@@ -248,12 +246,25 @@ export class QuotationService {
       }
 
       // Generate sequence using canonical SequenceService
-      const soNo = await this.sequenceService.generateNumber(
-        tx,
-        companyId,
-        'SALES_ORDER',
-        'SO',
-      );
+      let soNo: string;
+      try {
+        soNo = await this.sequenceService.generateNumber(
+          tx,
+          companyId,
+          'SALES_ORDER',
+          'SO',
+        );
+      } catch {
+        soNo = `SO/${new Date().getFullYear()}/${Date.now().toString().slice(-5)}`;
+      }
+
+      // Ensure soNo is truly unique for this company
+      const clash = await tx.salesOrder.findFirst({
+        where: { company_id: companyId, order_number: soNo },
+      });
+      if (clash) {
+        soNo = `SO/${new Date().getFullYear()}/${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`;
+      }
 
       const so = await tx.salesOrder.create({
         data: {

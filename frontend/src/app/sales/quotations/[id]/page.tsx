@@ -131,39 +131,37 @@ export default function QuotationDetailPage() {
               <Button variant="outline" className="bg-background gap-2"><Share2 className="w-4 h-4" /> Bagikan</Button>
               <Button variant="outline" className="bg-background gap-2"><Printer className="w-4 h-4" /> Print</Button>
               
+              {(data.status === 'DRAFT' || data.status === 'SENT' || data.status === 'ACCEPTED') && (
+                <Button onClick={handleConfirm} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
+                  <CheckCircle2 className="w-4 h-4" /> Buat Jadi Pesanan (SO)
+                </Button>
+              )}
+
               {data.status === 'DRAFT' && (
-                <Button onClick={handleSend} className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
+                <Button onClick={handleSend} variant="outline" className="bg-background gap-2">
                   <Share2 className="w-4 h-4" /> Kirim ke Pelanggan
                 </Button>
               )}
 
               {data.status === 'SENT' && (
-                <>
-                  <Button onClick={handleAccept} className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
-                    <CheckCircle2 className="w-4 h-4" /> Pelanggan Menyetujui
-                  </Button>
-                  <Button onClick={handleReject} className="bg-rose-500 hover:bg-rose-600 text-white gap-2">
-                    <XCircle className="w-4 h-4" /> Pelanggan Menolak
-                  </Button>
-                </>
+                <Button onClick={handleAccept} className="bg-emerald-500 hover:bg-emerald-600 text-white gap-2">
+                  <CheckCircle2 className="w-4 h-4" /> Pelanggan Menyetujui
+                </Button>
               )}
 
-              {data.status === 'ACCEPTED' && (
-                <Button onClick={handleConfirm} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
-                  <CheckCircle2 className="w-4 h-4" /> Konversi ke Sales Order (SO)
+              {(data.status === 'DRAFT' || data.status === 'SENT') && (
+                <Button onClick={handleReject} variant="outline" className="text-rose-600 border-rose-300 hover:bg-rose-50 gap-2">
+                  <XCircle className="w-4 h-4" /> Tolak Penawaran
                 </Button>
               )}
               
-                            {data.status === 'CONFIRMED' && (
+              {(data.status === 'CONFIRMED' || data.status === 'CONVERTED') && (
                 <>
-                  <Button variant="outline" className="text-emerald-600 border-emerald-600 hover:bg-emerald-50 gap-2">
-                    <CheckCircle2 className="w-4 h-4" /> Tandai sbg terkirim
-                  </Button>
                   <Button onClick={() => router.push('/sales/invoices/create?quotation_id=' + data.id)} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
                     <Plus className="w-4 h-4" /> Buat Tagihan
                   </Button>
-                  <Button onClick={() => router.push('/sales/orders/create?quotation_id=' + data.id)} className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
-                    <Plus className="w-4 h-4" /> Buat Pemesanan
+                  <Button onClick={() => router.push('/sales/deliveries/create')} className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
+                    <Plus className="w-4 h-4" /> Buat Surat Jalan
                   </Button>
                 </>
               )}

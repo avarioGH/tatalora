@@ -178,7 +178,11 @@ export default function ChartOfAccountsPage() {
     }
     setSubmitting(true)
     try {
-      await api.post('/gl/accounts', form)
+      const payload = {
+        ...form,
+        parent_id: (form.parent_id && form.parent_id !== 'none') ? form.parent_id : null
+      }
+      await api.post('/gl/accounts', payload)
       alert("Akun baru berhasil didaftarkan ke Bagan Akun!")
       setCreateModalOpen(false)
       setForm({

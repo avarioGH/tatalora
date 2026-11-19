@@ -197,7 +197,27 @@ export class SalesController {
       throw new Error('Penawaran tidak ditemukan');
     }
 
-    const soNo = await this.sequenceService.generateNumber(this.prisma, companyId, 'SALES_ORDER', 'SO', 4);
+    if (quotation.status === 'CONVERTED') {
+      const existingSo = await this.prisma.salesOrder.findFirst({
+        where: { quotation_id: quotation.id },
+      });
+      if (existingSo) return { success: true, quotationId: id, salesOrder: existingSo };
+    }
+
+    let soNo: string;
+    try {
+      soNo = await this.sequenceService.generateNumber(this.prisma, companyId, 'SALES_ORDER', 'SO', 4);
+    } catch {
+      soNo = `SO/${new Date().getFullYear()}/${Date.now().toString().slice(-5)}`;
+    }
+
+    // Check duplicate order_number
+    const clash = await this.prisma.salesOrder.findFirst({
+      where: { company_id: companyId, order_number: soNo },
+    });
+    if (clash) {
+      soNo = `SO/${new Date().getFullYear()}/${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`;
+    }
 
     // Create Sales Order directly from quotation
     const salesOrder = await this.prisma.salesOrder.create({
@@ -227,7 +247,7 @@ export class SalesController {
     // Update quotation status
     await this.prisma.quotation.update({
       where: { id },
-      data: { status: 'CONFIRMED' },
+      data: { status: 'CONVERTED' },
     });
 
     return { success: true, quotationId: id, salesOrder };

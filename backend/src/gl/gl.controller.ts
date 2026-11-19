@@ -144,13 +144,15 @@ export class GlController {
       accountTypeId = at.id;
     }
 
+    const parentId = (body.parent_id && body.parent_id !== 'none' && body.parent_id !== '') ? body.parent_id : null;
+
     return this.prisma.chartOfAccount.create({
       data: {
         company_id: companyId,
         account_code: body.account_code,
         account_name: body.account_name,
         account_type_id: accountTypeId,
-        parent_id: body.parent_id || null,
+        parent_id: parentId,
         currency: body.currency || 'IDR',
         allow_manual_entry: body.allow_manual_entry !== false,
         is_header: Boolean(body.is_header),

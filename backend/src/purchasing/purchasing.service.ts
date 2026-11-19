@@ -208,15 +208,13 @@ export class PurchasingService {
   }
 
   async createRFQ(companyId: string, data: any) {
-    const {
-      supplierId,
-      orderDate,
-      expectedReceipt,
-      notes,
-      paymentTerms,
-      items,
-      warehouseId,
-    } = data;
+    const supplierId = data.supplierId || data.partner_id || data.supplier_id;
+    const orderDate = data.orderDate || data.date || data.transactionDate || new Date();
+    const expectedReceipt = data.expectedReceipt || data.due_date || data.expirationDate || null;
+    const notes = data.notes;
+    const paymentTerms = data.paymentTerms || data.payment_terms;
+    const warehouseId = data.warehouseId || data.warehouse_id || null;
+    const items = data.items || [];
 
     const supplier = await this.prisma.customer.findUnique({
       where: { id: supplierId },
@@ -224,19 +222,21 @@ export class PurchasingService {
     if (!supplier || supplier.company_id !== companyId)
       throw new BadRequestException('Invalid supplier');
 
-    const orderNumber = `RFQ-${Date.now()}`;
+    const orderNumber = data.rfqNumber || data.rfq_number || data.order_number || `RFQ-${Date.now()}`;
 
     let total = 0;
     const itemData = items.map((item: any) => {
-      const subtotal = item.qty * item.price;
-      const tax = subtotal * (item.taxRate || 0);
-      const discount = item.discount || 0;
-      const finalSub = subtotal + tax - discount;
+      const qty = Number(item.qty ?? item.quantity ?? 1);
+      const price = Number(item.price ?? item.unit_price ?? item.unitPrice ?? 0);
+      const subtotal = item.subtotal !== undefined ? Number(item.subtotal) : (qty * price);
+      const tax = Number(item.tax || (item.taxRate ? subtotal * Number(item.taxRate) : 0));
+      const discount = Number(item.discount || 0);
+      const finalSub = item.total !== undefined ? Number(item.total) : (subtotal + tax - discount);
       total += finalSub;
       return {
-        product_id: item.productId,
-        qty: item.qty,
-        unit_price: item.price,
+        product_id: item.productId || item.product_id,
+        qty: qty,
+        unit_price: price,
         tax,
         discount,
         subtotal: finalSub,
@@ -255,9 +255,9 @@ export class PurchasingService {
         receipt_status: 'PENDING',
         bill_status: 'PENDING',
         payment_status: 'UNPAID',
-        notes,
-        payment_terms: paymentTerms,
-        total_amount: total,
+        notes: notes || null,
+        payment_terms: paymentTerms || null,
+        total_amount: data.total_amount ? Number(data.total_amount) : total,
         items: {
           create: itemData,
         },
