@@ -346,67 +346,41 @@ export class FinanceService {
     let totalOtherExpenses = 0;
 
     items.forEach((item) => {
-      const typeCode = (item.account?.account_type?.code || '').toUpperCase();
-      const typeName = (item.account?.account_type?.name || '').toUpperCase();
-      const accountName = item.account?.account_name || '';
-      const accountCode = item.account?.account_code || '';
-      const creditBal = item.credit - item.debit;
-      const debitBal = item.debit - item.credit;
+      if (!item.account) return;
 
-      const isRevenue =
-        typeCode.includes('REVENUE') ||
-        typeCode.includes('INCOME') ||
-        typeName.includes('PENDAPATAN') ||
-        accountName.toUpperCase().includes('PENDAPATAN') ||
-        accountName.toUpperCase().includes('PENJUALAN') ||
-        accountCode.startsWith('4-');
+      const typeCode = (item.account.account_type?.code || '').toUpperCase();
+      const typeName = (item.account.account_type?.name || '').toUpperCase();
+      const accountName = item.account.account_name || '';
+      const accountCode = item.account.account_code || '';
+      
+      const normalBalance = item.account.account_type?.normal_balance?.toUpperCase() === 'CREDIT' ? 'CREDIT' : 'DEBIT';
+      const netAmount = normalBalance === 'CREDIT' ? (item.credit - item.debit) : (item.debit - item.credit);
 
-      const isCogs =
-        typeCode === 'COGS' ||
-        typeCode.includes('COGS') ||
-        typeName.includes('BEBAN POKOK') ||
-        typeName.includes('HPP') ||
-        accountName.toUpperCase().includes('BEBAN POKOK') ||
-        accountName.toUpperCase().includes('HPP') ||
-        accountCode.startsWith('5-');
-
-      const isExpense =
-        typeCode.includes('EXPENSE') ||
-        typeName.includes('BEBAN') ||
-        typeName.includes('BIAYA') ||
-        accountName.toUpperCase().includes('BEBAN') ||
-        accountName.toUpperCase().includes('BIAYA') ||
-        accountCode.startsWith('6-') ||
-        accountCode.startsWith('7-') ||
-        accountCode.startsWith('9-');
+      const isRevenue = typeCode.startsWith('4') || typeName.includes('PENDAPATAN') || accountCode.startsWith('4');
+      const isCogs = typeCode.startsWith('5') || typeName.includes('HPP') || accountCode.startsWith('5');
+      const isExpense = typeCode.startsWith('6') || typeCode.startsWith('7') || typeCode.startsWith('9') || typeName.includes('BEBAN') || accountCode.startsWith('6') || accountCode.startsWith('7') || accountCode.startsWith('9');
 
       if (isRevenue) {
-        if (
-          typeCode.includes('CONTRA') ||
-          accountName.toUpperCase().includes('RETURN') ||
-          accountName.toUpperCase().includes('RETUR') ||
-          accountName.toUpperCase().includes('DISCOUNT') ||
-          accountName.toUpperCase().includes('DISKON')
-        ) {
-          categories.contraRevenue.set(accountName, (categories.contraRevenue.get(accountName) || 0) + debitBal);
-          totalContraRevenue += debitBal;
-        } else if (typeCode.includes('OTHER') || accountCode.startsWith('8-')) {
-          categories.otherIncome.set(accountName, (categories.otherIncome.get(accountName) || 0) + creditBal);
-          totalOtherIncome += creditBal;
+        if (typeName.includes('CONTRA') || accountName.toUpperCase().includes('RETUR') || accountName.toUpperCase().includes('DISKON')) {
+          categories.contraRevenue.set(accountName, (categories.contraRevenue.get(accountName) || 0) + netAmount);
+          totalContraRevenue += netAmount;
+        } else if (typeCode.includes('OTHER') || accountCode.startsWith('8')) {
+          categories.otherIncome.set(accountName, (categories.otherIncome.get(accountName) || 0) + netAmount);
+          totalOtherIncome += netAmount;
         } else {
-          categories.revenue.set(accountName, (categories.revenue.get(accountName) || 0) + creditBal);
-          totalRevenue += creditBal;
+          categories.revenue.set(accountName, (categories.revenue.get(accountName) || 0) + netAmount);
+          totalRevenue += netAmount;
         }
       } else if (isCogs) {
-        categories.cogs.set(accountName, (categories.cogs.get(accountName) || 0) + debitBal);
-        totalCogs += debitBal;
+        categories.cogs.set(accountName, (categories.cogs.get(accountName) || 0) + netAmount);
+        totalCogs += netAmount;
       } else if (isExpense) {
-        if (typeCode.includes('OTHER') || accountCode.startsWith('9-')) {
-          categories.otherExpenses.set(accountName, (categories.otherExpenses.get(accountName) || 0) + debitBal);
-          totalOtherExpenses += debitBal;
+        if (typeCode.includes('OTHER') || accountCode.startsWith('9')) {
+          categories.otherExpenses.set(accountName, (categories.otherExpenses.get(accountName) || 0) + netAmount);
+          totalOtherExpenses += netAmount;
         } else {
-          categories.operatingExpenses.set(accountName, (categories.operatingExpenses.get(accountName) || 0) + debitBal);
-          totalOperatingExpenses += debitBal;
+          categories.operatingExpenses.set(accountName, (categories.operatingExpenses.get(accountName) || 0) + netAmount);
+          totalOperatingExpenses += netAmount;
         }
       }
     });
@@ -421,23 +395,21 @@ export class FinanceService {
       revenue: mapToArray(categories.revenue),
       contraRevenue: mapToArray(categories.contraRevenue),
       cogs: mapToArray(categories.cogs),
-      expenses: mapToArray(categories.operatingExpenses), // for backward compatibility
       operatingExpenses: mapToArray(categories.operatingExpenses),
       otherIncome: mapToArray(categories.otherIncome),
       otherExpenses: mapToArray(categories.otherExpenses),
-
       totalRevenue,
       totalContraRevenue,
       netRevenue,
       totalCogs,
       grossProfit,
-      totalExpenses: totalOperatingExpenses + totalOtherExpenses, // backward compatibility
       totalOperatingExpenses,
       totalOtherIncome,
       totalOtherExpenses,
       netProfit,
     };
   }
+
 
   async getCashFlowReport(companyId: string) {
     const transactions = await this.prisma.financeTransaction.findMany({
@@ -488,79 +460,51 @@ export class FinanceService {
   }
 
   async getBalanceSheetReport(companyId: string) {
-    // 1. Calculate Cash Balance
-    const cashAccounts = await this.prisma.cashAccount.findMany({
-      where: { company_id: companyId },
+    const items = await this.prisma.journalEntryItem.findMany({
+      where: { journal_entry: { company_id: companyId, status: { in: ['Posted', 'Reversed'] } } },
+      include: { account: { include: { account_type: true } } },
     });
-    const totalCash = cashAccounts.reduce(
-      (sum, acc) => sum + Number(acc.current_balance),
-      0,
-    );
 
-    // 2. Calculate Inventory Value
-    const stocks = await this.prisma.warehouseStock.findMany({
-      where: { company_id: companyId },
-      include: { product: true },
+    const accountsMap = new Map<string, { name: string, balance: number, type: string }>();
+
+    items.forEach((item) => {
+      if (!item.account) return;
+      
+      const key = item.account.id;
+      if (!accountsMap.has(key)) {
+        accountsMap.set(key, { 
+          name: item.account.account_name, 
+          balance: 0, 
+          type: item.account.account_type?.name || 'Other' 
+        });
+      }
+      
+      const acc = accountsMap.get(key)!;
+      const normalBalance = item.account.account_type?.normal_balance?.toUpperCase() === 'CREDIT' ? 'CREDIT' : 'DEBIT';
+      const netAmount = normalBalance === 'CREDIT' ? (item.credit - item.debit) : (item.debit - item.credit);
+      
+      acc.balance += netAmount;
     });
-    const inventoryValue = stocks.reduce(
-      (sum, stock) =>
-        sum + stock.current_stock * Number(stock.product.purchase_price),
-      0,
-    );
 
-    // 3. Asset Master Value (If Asset module is active)
-    const fixedAssets = await this.prisma.assetMaster.findMany({
-      where: { company_id: companyId },
+    const report = { assets: [] as any[], liabilities: [] as any[], equity: [] as any[], totalAssets: 0, totalLiabilities: 0, totalEquity: 0 };
+
+    accountsMap.forEach((acc) => {
+      const type = acc.type.toUpperCase();
+      if (type.includes('ASSET')) {
+        report.assets.push(acc);
+        report.totalAssets += acc.balance;
+      } else if (type.includes('LIABILITY') || type.includes('HUTANG')) {
+        report.liabilities.push(acc);
+        report.totalLiabilities += acc.balance;
+      } else if (type.includes('EQUITY') || type.includes('MODAL')) {
+        report.equity.push(acc);
+        report.totalEquity += acc.balance;
+      }
     });
-    const fixedAssetValue = fixedAssets.reduce(
-      (sum, asset) => sum + Number(asset.purchase_price),
-      0,
-    );
 
-    // 4. Accounts Receivable (AR) from active sales invoices
-    const arInvoices = await this.prisma.invoice.findMany({
-      where: {
-        company_id: companyId,
-        type: 'AR',
-        status: { in: ['POSTED', 'PARTIALLY PAID'] },
-      },
-    });
-    const totalAR = arInvoices.reduce(
-      (sum, inv) => sum + (Number(inv.remaining_amount) || 0),
-      0,
-    );
-
-    // 5. Accounts Payable (AP) from active purchase invoices / vendor bills
-    const apInvoices = await this.prisma.invoice.findMany({
-      where: {
-        company_id: companyId,
-        type: 'AP',
-        status: { in: ['POSTED', 'PARTIALLY PAID'] },
-      },
-    });
-    const totalAP = apInvoices.reduce(
-      (sum, inv) => sum + (Number(inv.remaining_amount) || 0),
-      0,
-    );
-
-    const totalAssets = totalCash + inventoryValue + fixedAssetValue + totalAR;
-    const totalLiabilities = totalAP;
-    const totalEquity = totalAssets - totalLiabilities;
-
-    return {
-      assets: [
-        { name: 'Kas & Bank', amount: totalCash },
-        { name: 'Piutang Usaha', amount: totalAR },
-        { name: 'Persediaan Barang', amount: inventoryValue },
-        { name: 'Aset Tetap', amount: fixedAssetValue },
-      ],
-      liabilities: [{ name: 'Hutang Dagang (AP)', amount: totalAP }],
-      equity: [{ name: 'Modal Pemilik', amount: totalEquity }],
-      totalAssets,
-      totalLiabilities,
-      totalEquity,
-    };
+    return report;
   }
+
 
   async getCashReconciliation(companyId: string) {
     const cashAccounts = await this.prisma.cashAccount.findMany({
