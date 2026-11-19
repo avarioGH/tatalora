@@ -625,7 +625,7 @@ function QuotationForm() {
                         <SelectContent>
                           {products.map((p: any) => (
                             <SelectItem key={p.id} value={p.id} className="text-xs">
-                              {p.name}
+                              {p.name} ({p.code})
                             </SelectItem>
                           ))}
                         </SelectContent>

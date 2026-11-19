@@ -1,338 +1,124 @@
 ﻿"use client"
 import { useEffect, useState } from 'react'
 import { B2BApi } from '@/lib/api'
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Loader2, Plus, Eye, Edit3, Search, Filter, ChevronLeft, Send, CheckCircle2, FileText, Download, X } from 'lucide-react'
+import { Loader2, Plus, Search, Filter, FileText } from 'lucide-react'
+import Link from 'next/link'
 
 export default function QuotationsPage() {
- const [data, setData] = useState<any[]>([])
- const [loading, setLoading] = useState(true)
- const [searchTerm, setSearchTerm] = useState("")
- const [selectedDoc, setSelectedDoc] = useState<any | null>(null)
- 
- // detail state
- const [docLoading, setDocLoading] = useState(false)
- const [docDetails, setDocDetails] = useState<any | null>(null)
+  const [data, setData] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
 
- useEffect(() => {
-   fetchQuotations()
-   if (typeof window !== 'undefined') {
-     const params = new URLSearchParams(window.location.search)
-     const qid = params.get('id') || params.get('qtn_id')
-     if (qid) {
-       viewDetails({ id: qid })
-     }
-   }
- }, [])
+  useEffect(() => {
+    fetchQuotations()
+  }, [])
 
- const fetchQuotations = async () => {
- try {
- const res = await B2BApi.getQuotations({ page: 1, limit: 100 })
- setData(res?.data || [])
- } catch (error) {
- console.error(error)
- } finally {
- setLoading(false)
- }
- }
-
- const viewDetails = async (doc: any) => {
- setSelectedDoc(doc)
- setDocLoading(true)
- try {
- const res = await B2BApi.getQuotation(doc.id)
- setDocDetails(res)
- } catch(e) {
- console.error(e)
- setDocDetails(doc) // fallback
- } finally {
- setDocLoading(false)
- }
- }
-
-   const handleReject = async () => {
-    if (!selectedDoc) return
+  const fetchQuotations = async () => {
     try {
-      setDocLoading(true)
-      await B2BApi.cancelQuotation(selectedDoc.id)
-      await fetchQuotations()
-      await viewDetails(selectedDoc)
-    } catch (e) {
-      console.error(e)
+      const res = await B2BApi.getQuotations({ page: 1, limit: 100 })
+      setData(res?.data || [])
+    } catch (error) {
+      console.error(error)
     } finally {
-      setDocLoading(false)
+      setLoading(false)
     }
   }
 
-  const handleConfirm = async () => {
- if (!selectedDoc) return
- try {
- setDocLoading(true)
- await B2BApi.confirmQuotation(selectedDoc.id)
- await fetchQuotations()
- await viewDetails(selectedDoc)
- } catch (e) {
- console.error(e)
- } finally {
- setDocLoading(false)
- }
- }
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'DRAFT': return <Badge variant="secondary" className="bg-muted/50 text-foreground">Draf</Badge>
+      case 'SENT': return <Badge variant="outline" className="text-primary border-indigo-200 bg-indigo-50 dark:border-indigo-900 dark:bg-indigo-900/30 dark:text-primary">Terkirim</Badge>
+      case 'CONFIRMED': return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">Dikonfirmasi (SO)</Badge>
+      case 'CANCELLED': return <Badge variant="destructive">Dibatalkan</Badge>
+      default: return <Badge variant="outline">{status}</Badge>
+    }
+  }
 
- const getStatusBadge = (status: string) => {
- switch (status) {
- case 'DRAFT': return <Badge variant="secondary" className="bg-muted/50 text-foreground">Draf</Badge>
- case 'SENT': return <Badge variant="outline" className="text-primary border-indigo-200 bg-indigo-50 dark:border-indigo-900 dark:bg-indigo-900/30 dark:text-primary">Terkirim</Badge>
- case 'CONFIRMED': return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">Dikonfirmasi (SO)</Badge>
- case 'CANCELLED': return <Badge variant="destructive">Dibatalkan</Badge>
- default: return <Badge variant="outline">{status}</Badge>
- }
- }
+  const filtered = (Array.isArray(data) ? data : []).filter(item => 
+    item.quotation_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
- const filtered = (Array.isArray(data) ? data : []).filter(item => 
- item.quotation_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
- item.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase())
- )
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div>
+          <h1 className="text-[28px] font-bold tracking-tight text-foreground">Penawaran Penjualan</h1>
+          <p className="text-muted-foreground mt-1">Kelola dokumen penawaran harga dan proposal resmi untuk pelanggan Anda.</p>
+        </div>
+        <Link href="/sales/quotations/create">
+            <Button className="shadow-sm"><Plus className="w-4 h-4 mr-2" /> Buat Penawaran Baru</Button>
+        </Link>
+      </div>
 
- if (selectedDoc) {
- const details = docDetails || selectedDoc
- return (
- <div className="space-y-6 animate-in fade-in duration-300 pb-10">
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
- <div className="flex items-center gap-4">
- <Button variant="outline" size="icon" onClick={() => setSelectedDoc(null)}>
- <ChevronLeft className="h-4 w-4" />
- </Button>
- <div>
- <div className="flex items-center gap-3">
- <h1 className="text-[28px] font-bold tracking-tight text-foreground">{details.quotation_number}</h1>
- {getStatusBadge(details.status)}
- </div>
- <p className="text-muted-foreground flex items-center gap-2 mt-1 text-sm">
- <FileText className="h-4 w-4" /> Dokumen Penawaran Penjualan
- </p>
- </div>
- </div>
- 
- <div className="flex items-center gap-2">
- <Button variant="outline"><Download className="w-4 h-4 mr-2" /> PDF</Button>
- {details.status === 'DRAFT' && (
- <>
- <Button onClick={() => window.location.href = `/sales/quotations/create?edit_id=${details.id}`} variant="outline" className="border-indigo-200 text-indigo-600 hover:bg-indigo-50">
-   <Edit3 className="w-4 h-4 mr-2" /> Ubah Draf
- </Button>
- <Button variant="secondary"><Send className="w-4 h-4 mr-2" /> Kirim Email</Button>
- <Button onClick={handleReject} variant="outline" className="border-rose-200 text-rose-600 hover:bg-rose-50"><X className="w-4 h-4 mr-2" /> Tolak Penawaran</Button>
-                  <Button onClick={handleConfirm} className="">
- <CheckCircle2 className="w-4 h-4 mr-2" /> Buat Jadi Pesanan
- </Button>
- </>
- )}
- {details.status === 'CONFIRMED' && (
- <Button 
-   onClick={() => {
-     const linkedSo = details.sales_orders?.[0];
-     if (linkedSo?.id) {
-       window.location.href = `/sales/orders?so_id=${linkedSo.id}`;
-     } else {
-       window.location.href = "/sales/orders";
-     }
-   }} 
-   className=""
- >
-   Lihat Pesanan Penjualan (SO) {details.sales_orders?.[0]?.order_number ? `(${details.sales_orders[0].order_number})` : ''}
- </Button>
- )}
- </div>
- </div>
-
- {docLoading && !docDetails ? (
- <div className="h-64 flex items-center justify-center"><Loader2 className="animate-spin w-8 h-8 text-muted-foreground" /></div>
- ) : (
- <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
- <Card className="md:col-span-2 shadow-sm">
- <CardHeader className="border-b bg-muted/10 pb-4">
- <CardTitle className="text-[16px] font-semibold">Rincian Barang Penawaran</CardTitle>
- </CardHeader>
- <CardContent className="p-0">
- <div className="overflow-x-auto">
- <table className="min-w-[600px] md:min-w-full w-full text-sm">
- <thead className="bg-muted/30">
- <tr>
- <th className="p-4 text-left font-medium text-muted-foreground">Produk / Barang</th>
- <th className="p-4 text-center font-medium text-muted-foreground">Jumlah</th>
- <th className="p-4 text-right font-medium text-muted-foreground">Harga Satuan</th>
- <th className="p-4 text-right font-medium text-muted-foreground">Subtotal</th>
- </tr>
- </thead>
- <tbody>
- {((details.items || details.lines || []).length === 0) ? (
- <tr><td colSpan={4} className="text-center p-4 md:p-8 text-muted-foreground">Belum ada baris barang penawaran.</td></tr>
- ) : (
- (details.items || details.lines || []).map((line: any, i: number) => {
-   const lineQty = Number(line.qty || line.quantity || 1);
-   const linePrice = Number(line.price || line.unit_price || 0);
-   const lineSubtotal = Number(line.subtotal || (lineQty * linePrice) || 0);
-   return (
-     <tr key={i} className="border-b last:border-0 hover:bg-muted/60 transition-colors">
-     <td className="p-4">
-     <p className="font-medium">{line.product?.name || line.product_name || line.product_id}</p>
-     {line.description && <p className="text-xs text-muted-foreground mt-0.5">{line.description}</p>}
-     </td>
-     <td className="p-4 text-center">{lineQty} {line.unit || 'Pcs'}</td>
-     <td className="p-4 text-right">Rp {linePrice.toLocaleString('id-ID')}</td>
-     <td className="p-4 text-right font-medium">Rp {lineSubtotal.toLocaleString('id-ID')}</td>
-     </tr>
-   );
- })
- )}
- </tbody>
- </table>
- </div>
- 
- <div className="border-t bg-muted/10 p-6 flex flex-col items-end space-y-2">
- <div className="flex justify-between w-full sm:w-64 text-sm">
- <span className="text-muted-foreground">Subtotal</span>
- <span>Rp {Number(details.total_amount || 0).toLocaleString('id-ID')}</span>
- </div>
- <div className="flex justify-between w-full sm:w-64 text-sm">
- <span className="text-muted-foreground">Tax (11%)</span>
- <span>Rp 0</span>
- </div>
- <div className="flex justify-between w-full sm:w-64 text-base font-bold pt-2 border-t mt-2">
- <span>Grand Total</span>
- <span>Rp {Number(details.total_amount || 0).toLocaleString('id-ID')}</span>
- </div>
- </div>
- </CardContent>
- </Card>
-
- <Card className="shadow-sm h-fit">
- <CardHeader className="border-b bg-muted/10 pb-4">
- <CardTitle className="text-[16px] font-semibold">Informasi Penawaran</CardTitle>
- </CardHeader>
- <CardContent className="space-y-4 pt-6">
- <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Pelanggan</p>
- <p className="font-medium">{details.customer?.name || '-'}</p>
- <p className="text-sm text-muted-foreground">{details.customer?.email || ''}</p>
- </div>
- <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Tanggal Penawaran</p>
- <p className="font-medium">{new Date(details.quotation_date || details.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
- </div>
- <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Masa Berlaku / Jatuh Tempo</p>
- <p className="font-medium">{details.expiration_date ? new Date(details.expiration_date).toLocaleDateString('id-ID') : '-'}</p>
- </div>
- <div>
- <p className="text-sm font-medium text-muted-foreground mb-1">Sales / Penanggung Jawab</p>
- <p className="font-medium text-primary">{details.salesperson?.name || 'Unassigned'}</p>
- </div>
- </CardContent>
- </Card>
- </div>
- )}
- </div>
- )
- }
-
- return (
- <div className="space-y-6">
- <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
- <div>
- <h1 className="text-[28px] font-bold tracking-tight text-foreground">Penawaran Penjualan (Quotations)</h1>
- <p className="text-muted-foreground mt-1">Kelola dokumen penawaran harga dan proposal resmi untuk pelanggan Anda.</p>
- </div>
- <Button onClick={() => window.location.href = "/sales/quotations/create"} className="shadow-sm"><Plus className="w-4 h-4 mr-2" /> Buat Penawaran Baru</Button>
- </div>
-
- <Card className="shadow-sm">
- <CardHeader className="pb-4 border-b border-border/40">
- <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
- <CardTitle className="text-[16px] font-semibold">Daftar Dokumen Penawaran</CardTitle>
- <div className="flex items-center gap-2">
- <div className="relative w-full sm:w-64">
- <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
- <Input 
- type="search" 
- placeholder="Cari nomor penawaran atau pelanggan..." 
- className="pl-8" 
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- />
- </div>
- <Button variant="outline" size="icon">
- <Filter className="h-4 w-4" />
- </Button>
- </div>
- </div>
- </CardHeader>
- <CardContent className="p-0">
- {loading ? (
- <div className="flex p-12 justify-center"><Loader2 className="animate-spin w-8 h-8 text-muted-foreground" /></div>
- ) : (
- <div className="overflow-x-auto">
- <table className="min-w-[600px] md:min-w-full w-full text-sm">
- <thead className="bg-muted border-y border-border">
- <tr>
- <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">No. Penawaran</th>
- <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Pelanggan</th>
- <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Tanggal</th>
- <th className="p-4 px-6 text-right text-[#526174] font-semibold text-[13px] tracking-wide">Total Nilai</th>
- <th className="p-4 px-6 text-center text-[#526174] font-semibold text-[13px] tracking-wide">Status</th>
- <th className="p-4 px-6 text-center text-[#526174] font-semibold text-[13px] tracking-wide">Aksi</th>
- </tr>
- </thead>
- <tbody>
- {filtered.length === 0 ? (
- <tr><td colSpan={6} className="text-center p-12 text-muted-foreground">Tidak ada dokumen penawaran ditemukan.</td></tr>
- ) : filtered.map((item) => (
- <tr key={item.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors group cursor-pointer" onClick={() => viewDetails(item)}>
- <td className="py-3.5 px-6 font-semibold text-primary text-[13px] dark:text-primary">{item.quotation_number}</td>
- <td className="p-4 px-6 font-medium">{item.customer?.name || '-'}</td>
- <td className="p-4 px-6 text-muted-foreground">{new Date(item.quotation_date || item.createdAt).toLocaleDateString('id-ID')}</td>
- <td className="p-4 px-6 text-right font-medium">Rp {Number(item.total_amount || 0).toLocaleString('id-ID')}</td>
- <td className="py-3.5 px-6 text-center text-[13px]">{getStatusBadge(item.status)}</td>
- <td className="py-3.5 px-6 text-center text-[13px]">
- <div className="flex items-center justify-center gap-2">
- <Button variant="outline" size="sm" onClick={() => viewDetails(item)} className="h-8 text-xs">
- Detail
- </Button>
- {item.status === 'DRAFT' && (
- <Button 
- size="sm" 
- onClick={async (e) => {
- e.stopPropagation();
- if (!confirm(`Konfirmasi penawaran ${item.quotation_number} menjadi Pesanan Penjualan?`)) return;
- try {
- setLoading(true);
- await B2BApi.confirmQuotation(item.id);
- await fetchQuotations();
- } catch (err: any) {
- alert('Gagal konfirmasi: ' + (err.message || err));
- } finally {
- setLoading(false);
- }
- }}
- className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-xs h-8"
- >
- Buat Jadi Pesanan
- </Button>
- )}
- </div>
- </td>
- </tr>
- ))}
- </tbody>
- </table>
- </div>
- )}
- </CardContent>
- </Card>
- </div>
- )
+      <Card className="shadow-sm">
+        <CardHeader className="pb-4 border-b border-border/40">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <CardTitle className="text-[16px] font-semibold">Daftar Dokumen Penawaran</CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="Cari nomor penawaran atau pelanggan..." 
+                  className="pl-8" 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex p-12 justify-center"><Loader2 className="animate-spin w-8 h-8 text-muted-foreground" /></div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-[600px] md:min-w-full w-full text-sm">
+                <thead className="bg-muted border-y border-border">
+                  <tr>
+                    <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">No. Penawaran</th>
+                    <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Pelanggan</th>
+                    <th className="p-4 px-6 text-left text-[#526174] font-semibold text-[13px] tracking-wide">Tanggal</th>
+                    <th className="p-4 px-6 text-right text-[#526174] font-semibold text-[13px] tracking-wide">Total Nilai</th>
+                    <th className="p-4 px-6 text-center text-[#526174] font-semibold text-[13px] tracking-wide">Status</th>
+                    <th className="p-4 px-6 text-center text-[#526174] font-semibold text-[13px] tracking-wide">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center p-12 text-muted-foreground">Tidak ada dokumen penawaran ditemukan.</td></tr>
+                  ) : filtered.map((item) => (
+                    <tr key={item.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors group">
+                      <td className="py-3.5 px-6 font-semibold text-primary text-[13px] dark:text-primary">
+                        <Link href={`/sales/quotations/${item.id}`} className="hover:underline">{item.quotation_number}</Link>
+                      </td>
+                      <td className="p-4 px-6 font-medium">{item.customer?.name || '-'}</td>
+                      <td className="p-4 px-6 text-muted-foreground">{new Date(item.quotation_date || item.createdAt).toLocaleDateString('id-ID')}</td>
+                      <td className="p-4 px-6 text-right font-medium">Rp {Number(item.total_amount || 0).toLocaleString('id-ID')}</td>
+                      <td className="py-3.5 px-6 text-center text-[13px]">{getStatusBadge(item.status)}</td>
+                      <td className="py-3.5 px-6 text-center text-[13px]">
+                        <div className="flex items-center justify-center gap-2">
+                          <Link href={`/sales/quotations/${item.id}`}>
+                            <Button variant="outline" size="sm" className="h-8 text-xs">Detail</Button>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
-
