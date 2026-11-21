@@ -328,6 +328,123 @@ export class DeliveryService {
       // 5. Issue stock via authoritative InventoryService
       let totalDeliveryCogs = 0;
 
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. Fetch Delivery and parent Sales Order
+      const delivery = await tx.deliveryOrder.findFirst({
+        where: { id: deliveryId, company_id: companyId },
+        include: {
+          items: true,
+          sales_order: {
+            include: { items: true },
+          },
+        },
+      });
+
+      if (!delivery || !delivery.sales_order) {
+        throw new NotFoundException('Delivery not found');
+      }
+
+      if (delivery.status === 'DONE' || delivery.status === 'DELIVERED') {
+        throw new BadRequestException('Delivery already validated/posted');
+      }
+      if (delivery.status === 'CANCELLED') {
+        throw new BadRequestException('Cannot validate a cancelled delivery');
+      }
+      if (delivery.status !== 'WAITING' && delivery.status !== 'READY' && delivery.status !== 'DRAFT') {
+        throw new BadRequestException(
+          `Delivery cannot be validated in status ${delivery.status}`,
+        );
+      }
+
+      const so = delivery.sales_order;
+
+      // 1a. Enforce Sales Order status: Only CONFIRMED orders can be delivered
+      if (so.status !== 'CONFIRMED') {
+        throw new BadRequestException(
+          `Cannot validate delivery: parent Sales Order ${so.order_number} is not CONFIRMED (current: ${so.status})`,
+        );
+      }
+
+      // 1b. Concurrency Coordination: Acquire an exclusive row-level lock (FOR UPDATE)
+      // on the parent Sales Order. In PostgreSQL Read-Committed transactions, this forces
+      // concurrent transactions attempting to validate or schedule deliveries for the same
+      // order to serialize, preventing race conditions on the remaining deliverable capacity.
+      if (typeof (tx as any).$executeRaw === 'function') {
+        await (tx as any).$executeRaw`SELECT 1 FROM "SalesOrder" WHERE id = ${so.id} AND company_id = ${companyId} FOR UPDATE`;
+      }
+
+      // 2. Resolve warehouse with fallback to company warehouse if unassigned or invalid
+      let targetWarehouseId = warehouseIdParam || so.warehouse_id;
+
+      let warehouse = targetWarehouseId ? await tx.warehouse.findFirst({
+        where: { id: targetWarehouseId, company_id: companyId },
+      }) : null;
+
+      if (!warehouse) {
+        // Fallback to warehouse of the company
+        warehouse = await tx.warehouse.findFirst({
+          where: { company_id: companyId },
+        });
+        if (warehouse) {
+          targetWarehouseId = warehouse.id;
+        }
+      }
+
+      if (!warehouse) {
+        throw new BadRequestException(
+          'Target warehouse is not specified and no company warehouse found',
+        );
+      }
+
+      // 3. Recalculate authoritative remaining quantities for the parent Sales Order
+      // inside the transaction to prevent concurrent deliveries from exceeding the order.
+      const existingDoneDeliveries = await tx.deliveryOrder.findMany({
+        where: {
+          sales_order_id: so.id,
+          id: { not: delivery.id },
+          status: { in: ['READY', 'DONE'] },
+        },
+        include: { items: true },
+      });
+
+      const deliveredByProduct = new Map<string, number>();
+      for (const d of existingDoneDeliveries) {
+        for (const item of d.items) {
+          const current = deliveredByProduct.get(item.product_id) || 0;
+          deliveredByProduct.set(item.product_id, current + item.delivered_qty);
+        }
+      }
+
+      // 4. Validate each line item in this delivery does not exceed ordered qty
+      for (const item of delivery.items) {
+        const soItem = so.items.find((si) => si.product_id === item.product_id);
+        if (!soItem) {
+          throw new BadRequestException(
+            `Product ${item.product_id} is not part of Sales Order ${so.order_number}`,
+          );
+        }
+
+        const previouslyDelivered = deliveredByProduct.get(item.product_id) || 0;
+        const remainingDeliverable = Math.max(0, soItem.qty - previouslyDelivered);
+
+        if (item.delivered_qty > remainingDeliverable) {
+          throw new BadRequestException(
+            `Delivery quantity for product ${item.product_id} (${item.delivered_qty}) exceeds remaining deliverable quantity (${remainingDeliverable})`,
+          );
+        }
+
+        // Update remaining_qty on the line item
+        await tx.deliveryOrderItem.update({
+          where: { id: item.id },
+          data: {
+            remaining_qty: remainingDeliverable - item.delivered_qty,
+          },
+        });
+      }
+
+      // 5. Issue stock via authoritative InventoryService
+      let totalDeliveryCogs = 0;
+
       for (const item of delivery.items) {
         if (item.delivered_qty > 0) {
           const issueRes = await this.inventoryService.issueStock(tx as any, {
@@ -347,10 +464,30 @@ export class DeliveryService {
       // 6. Recalculate Sales Order delivery status
       await this.recalculateSoDeliveryStatus(tx, so.id);
 
-      // 7. Emit domain events for downstream integrations
+      // 7. Update status of the Delivery Order to DONE
+      const updatedDelivery = await tx.deliveryOrder.update({
+        where: { id: deliveryId },
+        data: {
+          status: 'DONE',
+          warehouse_id: warehouse.id,
+        },
+        include: { items: true },
+      });
+
+      return {
+        delivery: updatedDelivery,
+        totalDeliveryCogs,
+        deliveryNumber: delivery.delivery_number,
+      };
+    }, { timeout: 30000 });
+
+    // 8. Emit domain events OUTSIDE of the core transaction
+    // This decouples event listener queries (like GL ledger posting) from the main delivery commit,
+    // avoiding transaction timeout or transaction concurrency issues with PgBouncer!
+    try {
       await this.eventEmitter.emitAsync('delivery.validated', { deliveryId });
 
-      if (totalDeliveryCogs > 0) {
+      if (result.totalDeliveryCogs > 0) {
         await this.eventEmitter.emitAsync(
           'inventory.valuation',
           new InventoryValuationEvent(
@@ -360,16 +497,19 @@ export class DeliveryService {
             new Date(),
             {
               type: 'COGS',
-              totalValue: totalDeliveryCogs,
-              description: `COGS for Delivery ${delivery.delivery_number}`,
+              totalValue: result.totalDeliveryCogs,
+              description: `COGS for Delivery ${result.deliveryNumber}`,
             },
-            tx,
           ),
         );
       }
+    } catch (eventErr: any) {
+      this.logger.warn(
+        `Non-blocking event dispatch error for delivery ${deliveryId}: ${eventErr?.message || eventErr}`,
+      );
+    }
 
-      return delivery;
-    });
+    return result.delivery;
   }
 
   /**
