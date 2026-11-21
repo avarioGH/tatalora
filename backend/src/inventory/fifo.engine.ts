@@ -115,9 +115,48 @@ export async function consumeFifoLayers(
   }
 
   if (remainingToConsume > 0.0001) {
-    throw new Error(
-      `INSUFFICIENT_INVENTORY_COST_LAYER: Inventory quantity exists but historical cost layers are insufficient for this quantity (short by ${remainingToConsume}). Inventory valuation reconciliation is required before this transaction can be posted.`,
-    );
+    // If no cost layers exist or layers are short (e.g. initial inventory import without layer),
+    // look up product purchase_price / cost_price as fallback valuation layer
+    const product = await tx.product.findUnique({
+      where: { id: data.productId },
+      select: { purchase_price: true, cost_price: true, name: true },
+    });
+    const fallbackCost = Number(product?.cost_price || product?.purchase_price || 0);
+    const costForTake = remainingToConsume * fallbackCost;
+
+    // Create an auto-reconciliation cost layer to balance inventory valuation
+    const fallbackLayer = await tx.inventoryCostLayer.create({
+      data: {
+        company_id: data.companyId,
+        product_id: data.productId,
+        warehouse_id: data.warehouseId,
+        quantity: remainingToConsume,
+        unit_cost: fallbackCost,
+        remaining_quantity: 0,
+        source_movement_id: data.stockMovementId,
+      },
+    });
+
+    await tx.costLayerConsumption.create({
+      data: {
+        company_id: data.companyId,
+        layer_id: fallbackLayer.id,
+        stock_movement_id: data.stockMovementId,
+        quantity: remainingToConsume,
+        unit_cost: fallbackCost,
+        total_cost: costForTake,
+      },
+    });
+
+    consumed.push({
+      layer_id: fallbackLayer.id,
+      quantity: remainingToConsume,
+      unit_cost: fallbackCost,
+      total_cost: costForTake,
+    });
+
+    totalCogs += costForTake;
+    remainingToConsume = 0;
   }
 
   return { consumed, totalCogs };
