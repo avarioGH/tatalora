@@ -116,12 +116,12 @@ export async function consumeFifoLayers(
 
   if (remainingToConsume > 0.0001) {
     // If no cost layers exist or layers are short (e.g. initial inventory import without layer),
-    // look up product purchase_price / cost_price as fallback valuation layer
+    // look up product purchase_price as fallback valuation layer
     const product = await tx.product.findUnique({
       where: { id: data.productId },
-      select: { purchase_price: true, cost_price: true, name: true },
+      select: { purchase_price: true, name: true },
     });
-    const fallbackCost = Number(product?.cost_price || product?.purchase_price || 0);
+    const fallbackCost = Number(product?.purchase_price || 0);
     const costForTake = remainingToConsume * fallbackCost;
 
     // Create an auto-reconciliation cost layer to balance inventory valuation
