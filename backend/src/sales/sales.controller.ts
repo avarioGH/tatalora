@@ -87,40 +87,46 @@ export class SalesController {
   @Post('quotations')
   async createQuotation(@Request() req: any, @Body() data: any) {
     const companyId = req.user.company_id || req.user.companyId;
+    const customerId = data.customer_id || data.customerId;
     const items = data.items || [];
     const subtotal = items.reduce(
-      (sum: number, it: any) => sum + (Number(it.subtotal) || Number(it.qty) * Number(it.unit_price) || 0),
+      (sum: number, it: any) => sum + (Number(it.subtotal) || Number(it.qty) * Number(it.unit_price || it.price) || 0),
       0,
     );
-    const totalAmount = Number(data.total_amount) || subtotal;
+    const totalAmount = Number(data.total_amount ?? data.total) || subtotal;
 
     return this.prisma.quotation.create({
       data: {
         company_id: companyId,
-        customer_id: data.customer_id,
-        quotation_number: data.quotation_number || await this.sequenceService.generateNumber(this.prisma, companyId, 'QUOTATION', 'SQ', 4),
-        quotation_date: data.quotation_date ? new Date(data.quotation_date) : new Date(),
-        expiration_date: data.expiration_date ? new Date(data.expiration_date) : null,
+        customer_id: customerId,
+        quotation_number: data.quotation_number || data.quotationNumber || await this.sequenceService.generateNumber(this.prisma, companyId, 'QUOTATION', 'SQ', 4),
+        quotation_date: (data.quotation_date || data.quotationDate) ? new Date(data.quotation_date || data.quotationDate) : new Date(),
+        expiration_date: (data.expiration_date || data.expirationDate) ? new Date(data.expiration_date || data.expirationDate) : null,
         status: data.status || 'DRAFT',
         total_amount: totalAmount,
         notes: data.notes || null,
-        billing_address: data.billing_address || null,
-        delivery_address: data.delivery_address || null,
-        payment_terms: data.payment_terms || 'net30',
+        billing_address: data.billing_address || data.billingAddress || null,
+        delivery_address: data.delivery_address || data.deliveryAddress || null,
+        payment_terms: data.payment_terms || data.paymentTerms || 'net30',
         email: data.email || null,
+        tag: data.tag || null,
+        client_ref: data.client_ref || data.clientRef || null,
+        currency: data.currency || 'IDR',
+        message: data.message || null,
+        memo: data.memo || null,
         subtotal: subtotal,
-        discount_percent: Number(data.discount_percent || 0),
-        discount_amount: Number(data.discount_amount || 0),
+        discount_percent: Number(data.discount_percent || data.discountPercent || 0),
+        discount_amount: Number(data.discount_amount || data.discountAmount || 0),
         tax: Number(data.tax || 0),
         items: {
           create: items.map((it: any) => ({
-            product_id: it.product_id,
+            product_id: it.product_id || it.productId,
             qty: Number(it.qty || 1),
             unit: it.unit || 'Pcs',
-            unit_price: Number(it.unit_price || 0),
+            unit_price: Number(it.unit_price || it.price || 0),
             discount: Number(it.discount || 0),
             tax: Number(it.tax || 0),
-            subtotal: Number(it.subtotal || Number(it.qty || 1) * Number(it.unit_price || 0)),
+            subtotal: Number(it.subtotal || Number(it.qty || 1) * Number(it.unit_price || it.price || 0)),
             description: it.description || null,
           })),
         },
@@ -136,6 +142,7 @@ export class SalesController {
   @Put('quotations/:id')
   async updateQuotation(@Request() req: any, @Param('id') id: string, @Body() data: any) {
     const companyId = req.user.company_id || req.user.companyId;
+    const customerId = data.customer_id || data.customerId;
 
     if (data.items) {
       await this.prisma.quotationItem.deleteMany({ where: { quotation_id: id } });
@@ -143,29 +150,39 @@ export class SalesController {
 
     const items = data.items || [];
     const subtotal = items.reduce(
-      (sum: number, it: any) => sum + (Number(it.subtotal) || Number(it.qty) * Number(it.unit_price) || 0),
+      (sum: number, it: any) => sum + (Number(it.subtotal) || Number(it.qty) * Number(it.unit_price || it.price) || 0),
       0,
     );
-    const totalAmount = data.total_amount !== undefined ? Number(data.total_amount) : (items.length > 0 ? subtotal : undefined);
+    const totalAmount = data.total_amount !== undefined ? Number(data.total_amount) : (data.total !== undefined ? Number(data.total) : (items.length > 0 ? subtotal : undefined));
 
     return this.prisma.quotation.update({
       where: { id },
       data: {
-        customer_id: data.customer_id || undefined,
+        customer_id: customerId || undefined,
         status: data.status || undefined,
         notes: data.notes !== undefined ? data.notes : undefined,
-        quotation_date: data.quotation_date ? new Date(data.quotation_date) : undefined,
-        expiration_date: data.expiration_date ? new Date(data.expiration_date) : undefined,
+        billing_address: (data.billing_address || data.billingAddress) !== undefined ? (data.billing_address || data.billingAddress) : undefined,
+        delivery_address: (data.delivery_address || data.deliveryAddress) !== undefined ? (data.delivery_address || data.deliveryAddress) : undefined,
+        payment_terms: (data.payment_terms || data.paymentTerms) !== undefined ? (data.payment_terms || data.paymentTerms) : undefined,
+        email: data.email !== undefined ? data.email : undefined,
+        tag: data.tag !== undefined ? data.tag : undefined,
+        client_ref: (data.client_ref || data.clientRef) !== undefined ? (data.client_ref || data.clientRef) : undefined,
+        quotation_date: (data.quotation_date || data.quotationDate) ? new Date(data.quotation_date || data.quotationDate) : undefined,
+        expiration_date: (data.expiration_date || data.expirationDate) ? new Date(data.expiration_date || data.expirationDate) : undefined,
         total_amount: totalAmount,
+        subtotal: subtotal || undefined,
+        discount_percent: data.discount_percent !== undefined ? Number(data.discount_percent) : (data.discountPercent !== undefined ? Number(data.discountPercent) : undefined),
+        discount_amount: data.discount_amount !== undefined ? Number(data.discount_amount) : (data.discountAmount !== undefined ? Number(data.discountAmount) : undefined),
+        tax: data.tax !== undefined ? Number(data.tax) : undefined,
         items: items.length > 0 ? {
           create: items.map((it: any) => ({
-            product_id: it.product_id,
+            product_id: it.product_id || it.productId,
             qty: Number(it.qty || 1),
             unit: it.unit || 'Pcs',
-            unit_price: Number(it.unit_price || 0),
+            unit_price: Number(it.unit_price || it.price || 0),
             discount: Number(it.discount || 0),
             tax: Number(it.tax || 0),
-            subtotal: Number(it.subtotal || Number(it.qty || 1) * Number(it.unit_price || 0)),
+            subtotal: Number(it.subtotal || Number(it.qty || 1) * Number(it.unit_price || it.price || 0)),
             description: it.description || null,
           })),
         } : undefined,
