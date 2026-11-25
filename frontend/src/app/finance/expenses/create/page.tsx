@@ -385,15 +385,12 @@ export default function CreateExpensePage() {
 
               <div className="pt-6 space-y-3">
                 {paymentMode === "NOW" && cashAccounts.length === 0 ? (
-                  <Button 
-                    type="button" 
-                    asChild
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white shadow-md hover:shadow-lg transition-all py-6 text-base font-semibold gap-2"
+                  <Link 
+                    href="/finance/cash"
+                    className="w-full inline-flex items-center justify-center rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-md hover:shadow-lg transition-all py-3.5 px-4 text-base font-semibold gap-2"
                   >
-                    <Link href="/finance/cash">
-                      <Wallet className="w-4 h-4" /> Setup Kas & Bank Dahulu
-                    </Link>
-                  </Button>
+                    <Wallet className="w-4 h-4" /> Setup Kas & Bank Dahulu
+                  </Link>
                 ) : (
                   <Button 
                     type="submit" 
