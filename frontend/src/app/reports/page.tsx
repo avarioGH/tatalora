@@ -189,8 +189,8 @@ export default function ReportsHubPage() {
         {
           id: "perintah-kerja",
           title: "Laporan Perintah Kerja (Work Order)",
-          description: "Proses produksi bertahap, alokasi bahan baku (BOM), dan penghitungan biaya produksi (HPP).",
-          href: "/production/reports",
+          description: "Daftar perintah kerja produksi, status operasional, alokasi bahan baku (BOM), dan realisasi batch.",
+          href: "/manufacturing/orders",
           badge: "Khusus",
         },
         {
