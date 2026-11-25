@@ -24,10 +24,41 @@ export class FinanceService {
   ) {}
 
   async getCategories(companyId: string) {
-    return this.prisma.financeCategory.findMany({
+    let categories = await this.prisma.financeCategory.findMany({
       where: { company_id: companyId },
       orderBy: { name: 'asc' },
     });
+
+    if (categories.length === 0) {
+      const defaultCats = [
+        { name: 'Beban Operasional & Kantor', type: 'EXPENSE' },
+        { name: 'Beban Gaji & Upah Karyawan', type: 'EXPENSE' },
+        { name: 'Beban Listrik, Air & Utilitas', type: 'EXPENSE' },
+        { name: 'Beban Sewa & Pemeliharaan Gedung', type: 'EXPENSE' },
+        { name: 'Beban Transportasi, Logistik & Pengiriman', type: 'EXPENSE' },
+        { name: 'Beban Pemasaran, Iklan & Promosi', type: 'EXPENSE' },
+        { name: 'Beban Bahan Kemasan & Es Pendingin', type: 'EXPENSE' },
+        { name: 'Beban Pokok Penjualan (HPP)', type: 'EXPENSE' },
+        { name: 'Pendapatan Penjualan Ikan & Seafood', type: 'INCOME' },
+        { name: 'Pendapatan Operasional Lainnya', type: 'INCOME' },
+      ];
+      for (const cat of defaultCats) {
+        await this.prisma.financeCategory.create({
+          data: {
+            company_id: companyId,
+            name: cat.name,
+            type: cat.type,
+            status: true,
+          },
+        }).catch(() => null);
+      }
+      categories = await this.prisma.financeCategory.findMany({
+        where: { company_id: companyId },
+        orderBy: { name: 'asc' },
+      });
+    }
+
+    return categories;
   }
 
   async createCashIn(data: FinanceTransactionDto) {

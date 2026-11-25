@@ -383,27 +383,37 @@ export default function CreateExpensePage() {
                 <span className="text-xl font-bold text-violet-600">{formatIDR(totalAmount)}</span>
               </div>
 
-              <div className="pt-6">
-                <Button 
-                  type="submit" 
-                  disabled={submitting || (paymentMode === "NOW" && cashAccounts.length === 0)} 
-                  className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg transition-all py-6 text-base font-semibold gap-2 disabled:opacity-50"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...
-                    </>
-                  ) : (paymentMode === "NOW" && cashAccounts.length === 0) ? (
-                    "Setup Kas/Bank Dahulu"
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4" /> Simpan Biaya Operasional
-                    </>
-                  )}
-                </Button>
+              <div className="pt-6 space-y-3">
+                {paymentMode === "NOW" && cashAccounts.length === 0 ? (
+                  <Button 
+                    type="button" 
+                    asChild
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white shadow-md hover:shadow-lg transition-all py-6 text-base font-semibold gap-2"
+                  >
+                    <Link href="/finance/cash">
+                      <Wallet className="w-4 h-4" /> Setup Kas & Bank Dahulu
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button 
+                    type="submit" 
+                    disabled={submitting} 
+                    className="w-full bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg transition-all py-6 text-base font-semibold gap-2 disabled:opacity-50"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" /> Simpan Biaya Operasional
+                      </>
+                    )}
+                  </Button>
+                )}
                 {(paymentMode === "NOW" && cashAccounts.length === 0) && (
-                  <p className="text-xs text-center text-muted-foreground mt-2">
-                    Tombol simpan dinonaktifkan karena belum ada rekening Kas/Bank sumber. Silakan pilih opsi 'Biaya Terutang (Bayar Nanti)' atau setup Kas & Bank.
+                  <p className="text-xs text-center text-muted-foreground">
+                    Belum ada rekening Kas/Bank sumber. Klik tombol di atas untuk membuka setup Kas & Bank, atau pilih opsi <b>'Biaya Terutang (Bayar Nanti)'</b>.
                   </p>
                 )}
               </div>
