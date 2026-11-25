@@ -31,7 +31,7 @@ export default function CreatePurchaseRequestPage() {
 
   // Form State
   const [requestNumber, setRequestNumber] = useState(`PR-${Date.now().toString().slice(-6)}`)
-  const [requiredDate, setRequiredDate] = useState(new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0])
+  const [requiredDate, setRequiredDate] = useState(new Date(Date.now() + 7 * 86400000).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
   const [warehouseId, setWarehouseId] = useState("")
   const [reason, setReason] = useState("")
 

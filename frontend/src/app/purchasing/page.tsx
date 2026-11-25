@@ -394,7 +394,7 @@ export default function PurchasesMainPage() {
             <ShoppingCart className="w-3.5 h-3.5" /> Pesanan (PO)
           </Button>
         </Link>
-        <Link href="/inventory/receipts">
+        <Link href="/purchasing/receipts">
           <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 hover:border-cyan-500 hover:text-cyan-600">
             <Truck className="w-3.5 h-3.5" /> Penerimaan (GRN)
           </Button>

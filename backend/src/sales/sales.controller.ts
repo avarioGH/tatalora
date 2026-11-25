@@ -77,7 +77,7 @@ export class SalesController {
         customer: true,
         items: { include: { product: true } },
         sales_orders: {
-          select: { id: true, order_number: true, status: true },
+          select: { id: true, order_number: true, status: true, order_date: true, total_amount: true, deliveries: { select: { id: true, delivery_number: true, status: true } }, invoices: { select: { id: true, invoice_number: true, status: true } } },
         },
       },
     });
@@ -114,7 +114,7 @@ export class SalesController {
         currency: data.currency || 'IDR',
         message: data.message || null,
         memo: data.memo || null,
-        subtotal: subtotal,
+        subtotal: Number(data.subtotal) > 0 ? Number(data.subtotal) : subtotal,
         discount_percent: Number(data.discount_percent || data.discountPercent || 0),
         discount_amount: Number(data.discount_amount || data.discountAmount || 0),
         tax: Number(data.tax || 0),
@@ -170,7 +170,7 @@ export class SalesController {
         quotation_date: (data.quotation_date || data.quotationDate) ? new Date(data.quotation_date || data.quotationDate) : undefined,
         expiration_date: (data.expiration_date || data.expirationDate) ? new Date(data.expiration_date || data.expirationDate) : undefined,
         total_amount: totalAmount,
-        subtotal: subtotal || undefined,
+        subtotal: Number(data.subtotal) > 0 ? Number(data.subtotal) : (subtotal || undefined),
         discount_percent: data.discount_percent !== undefined ? Number(data.discount_percent) : (data.discountPercent !== undefined ? Number(data.discountPercent) : undefined),
         discount_amount: data.discount_amount !== undefined ? Number(data.discount_amount) : (data.discountAmount !== undefined ? Number(data.discountAmount) : undefined),
         tax: data.tax !== undefined ? Number(data.tax) : undefined,

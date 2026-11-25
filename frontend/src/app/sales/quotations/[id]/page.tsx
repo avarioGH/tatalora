@@ -241,13 +241,13 @@ export default function QuotationDetailPage() {
                 <TableBody>
                   {data.items?.map((item: any) => (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium text-indigo-600">{item.product?.sku || '-'} - {item.product?.name || '-'}</TableCell>
-                      <TableCell>{item.product?.name || '-'}</TableCell>
+                      <TableCell className="font-medium text-indigo-600">{item.product?.code || item.product?.sku || '-'} - {item.product?.name || '-'}</TableCell>
+                      <TableCell>{item.description || item.product?.name || '-'}</TableCell>
                       <TableCell className="text-right">{item.qty}</TableCell>
-                      <TableCell>{item.product?.unit || 'Pcs'}</TableCell>
-                      <TableCell className="text-right">{item.discount || '0'}%</TableCell>
+                      <TableCell>{item.unit || (typeof item.product?.unit === "string" ? item.product.unit : "Pcs")}</TableCell>
+                      <TableCell className="text-right">{(() => { const g = (Number(item.qty) || 0) * (Number(item.unit_price) || 0); const p = g > 0 ? (Number(item.discount) || 0) / g * 100 : 0; return `${Number.isInteger(p) ? p : p.toFixed(2)}%` })()}</TableCell>
                       <TableCell className="text-right">{new Intl.NumberFormat('id-ID').format(item.unit_price)}</TableCell>
-                      <TableCell>-</TableCell>
+                      <TableCell>{Number(item.tax) > 0 ? "Rp " + new Intl.NumberFormat('id-ID').format(item.tax) : "-"}</TableCell>
                       <TableCell className="text-right">{new Intl.NumberFormat('id-ID').format(item.subtotal)}</TableCell>
                     </TableRow>
                   ))}
@@ -265,13 +265,27 @@ export default function QuotationDetailPage() {
             {/* Calculation summary */}
             <div className="mt-8 flex justify-end">
               <div className="w-64 space-y-4">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-semibold">Sub Total</span>
-                  <span>{new Intl.NumberFormat('id-ID', { minimumFractionDigits: 3 }).format(data.total_amount)}</span>
-                </div>
+                {(() => {
+                  const fmt = (n: number) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n || 0)
+                  const items = data.items || []
+                  const bruto = items.reduce((s: number, i: any) => s + (Number(i.qty) || 0) * (Number(i.unit_price) || 0), 0)
+                  const lineDisc = items.reduce((s: number, i: any) => s + (Number(i.discount) || 0), 0)
+                  const globalDisc = Number(data.discount_amount) || 0
+                  const dpp = Math.max(0, bruto - lineDisc - globalDisc)
+                  const tax = Number(data.tax) || 0
+                  return (
+                    <>
+                      <div className="flex justify-between text-sm"><span>Subtotal (Bruto)</span><span>Rp {fmt(bruto)}</span></div>
+                      {lineDisc > 0 && <div className="flex justify-between text-sm text-muted-foreground"><span>Diskon Baris</span><span>- Rp {fmt(lineDisc)}</span></div>}
+                      {globalDisc > 0 && <div className="flex justify-between text-sm text-muted-foreground"><span>Diskon Tambahan{Number(data.discount_percent) > 0 ? ` (${data.discount_percent}%)` : ''}</span><span>- Rp {fmt(globalDisc)}</span></div>}
+                      <div className="flex justify-between text-sm"><span>Dasar Pengenaan Pajak</span><span>Rp {fmt(dpp)}</span></div>
+                      <div className="flex justify-between text-sm"><span>PPN / Pajak</span><span>Rp {fmt(tax)}</span></div>
+                    </>
+                  )
+                })()}
                 <div className="flex justify-between items-center pt-4 border-t border-border">
                   <span className="font-bold text-lg">Total</span>
-                  <span className="font-bold text-lg">{new Intl.NumberFormat('id-ID', { minimumFractionDigits: 3 }).format(data.total_amount)}</span>
+                  <span className="font-bold text-lg">Rp {new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(data.total_amount)}</span>
                 </div>
               </div>
             </div>

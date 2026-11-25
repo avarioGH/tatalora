@@ -37,10 +37,10 @@ export default function CreateSalesOrderPage() {
   const [email, setEmail] = useState("")
   const [billingAddress, setBillingAddress] = useState("")
   const [transactionDate, setTransactionDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
   )
   const [dueDate, setDueDate] = useState(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
   )
   const [paymentTerms, setPaymentTerms] = useState("net30")
   const [transactionNo, setTransactionNo] = useState("")
@@ -329,7 +329,7 @@ export default function CreateSalesOrderPage() {
 
       await B2BApi.createOrder(payload)
       alert("Pesanan Penjualan (SO) berhasil dibuat!")
-      router.push("/sales")
+      router.push("/sales?tab=Pesanan")
     } catch (err: any) {
       console.error(err)
       alert("Gagal membuat pesanan penjualan: " + (err.response?.data?.message || err.message))
@@ -346,7 +346,7 @@ export default function CreateSalesOrderPage() {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => router.push("/sales")}
+            onClick={() => router.push("/sales?tab=Pesanan")}
             className="hover:bg-muted"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -390,7 +390,7 @@ export default function CreateSalesOrderPage() {
               </div>
               <Select value={customerId} onValueChange={handleCustomerChange}>
                 <SelectTrigger className="bg-background border-border h-10">
-                  <SelectValue placeholder="Pilih pelanggan" />
+                  <SelectValue placeholder="Pilih pelanggan">{(v: any) => { const f = customers.find((c: any) => c.id === v); return f ? f.name : (v ? "Memuat..." : "Pilih pelanggan") }}</SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
                   {customers.map((c: any) => (
@@ -469,7 +469,7 @@ export default function CreateSalesOrderPage() {
                   <Label className="text-sm font-semibold">Syarat pembayaran</Label>
                   <Select value={paymentTerms} onValueChange={handlePaymentTermsChange}>
                     <SelectTrigger className="bg-background border-border h-10">
-                      <SelectValue placeholder="Pilih syarat pembayaran" />
+                      <SelectValue placeholder="Pilih syarat pembayaran">{(v: any) => ({ cod: "Cash on Delivery (COD)", net15: "Net 15 Hari", net30: "Net 30 Hari", net60: "Net 60 Hari" } as any)[v] || "Pilih syarat pembayaran"}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="cod">COD (Bayar Langsung)</SelectItem>
@@ -592,7 +592,7 @@ export default function CreateSalesOrderPage() {
                           onValueChange={(v) => handleItemChange(index, "product_id", v)}
                         >
                           <SelectTrigger className="h-9 bg-background border-border text-xs">
-                            <SelectValue placeholder="Pilih produk..." />
+                            <SelectValue placeholder="Pilih produk...">{(v: any) => { const f = products.find((p: any) => p.id === v); return f ? `${f.name} (${f.code})` : (v ? "Memuat..." : "Pilih produk...") }}</SelectValue>
                           </SelectTrigger>
                           <SelectContent className="max-h-60">
                             {products.map((p: any) => (
@@ -821,7 +821,7 @@ export default function CreateSalesOrderPage() {
             <Button 
               type="button" 
               variant="outline" 
-              onClick={() => router.push("/sales")}
+              onClick={() => router.push("/sales?tab=Pesanan")}
               disabled={submitting}
               className="w-full sm:w-auto"
             >

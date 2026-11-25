@@ -31,7 +31,7 @@ export default function VouchersPage() {
  max_discount:"",
  quota:"100",
  valid_from: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
- valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+ valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
  })
 
  useEffect(() => {

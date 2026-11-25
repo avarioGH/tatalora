@@ -762,7 +762,7 @@ export default function ProductInventory() {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Tanggal</Label>
-                    <Input type="date" className="bg-background" defaultValue={new Date().toISOString().split('T')[0]} />
+                    <Input type="date" className="bg-background" defaultValue={new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Akun</Label>

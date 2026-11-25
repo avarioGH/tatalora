@@ -11,7 +11,7 @@ import { api } from "@/lib/api"
 export default function AccountsPayableAgingPage() {
   const [bills, setBills] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split('T')[0])
+  const [asOfDate, setAsOfDate] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
 
   useEffect(() => {
     fetchBills()

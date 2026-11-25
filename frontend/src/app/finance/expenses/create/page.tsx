@@ -37,7 +37,7 @@ export default function CreateExpensePage() {
   const [fromAccountId, setFromAccountId] = useState("")
   const [payee, setPayee] = useState("")
   const [transactionDate, setTransactionDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
   )
   const [reference, setReference] = useState("")
   const [memo, setMemo] = useState("")
@@ -193,7 +193,7 @@ export default function CreateExpensePage() {
                       </div>
                     </div>
                     {cashAccounts.length === 0 && !loading && (
-                      <Link href="/finance/cash-reconciliation" className="text-xs text-blue-600 hover:underline">
+                      <Link href="/finance/cash" className="text-xs text-blue-600 hover:underline">
                         + Tambah Kas/Bank
                       </Link>
                     )}
@@ -201,7 +201,7 @@ export default function CreateExpensePage() {
                   {paymentMode === "NOW" ? (
                     cashAccounts.length === 0 && !loading ? (
                       <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-700 dark:text-amber-300">
-                        Belum ada akun Kas/Bank yang dikonfigurasi. Silakan setup akun kas di <Link href="/finance/cash-reconciliation" className="font-semibold underline">Kas & Bank</Link> terlebih dahulu, atau pilih opsi <b>Biaya Terutang (Bayar Nanti)</b> di atas.
+                        Belum ada akun Kas/Bank yang dikonfigurasi. Silakan setup akun kas di <Link href="/finance/cash" className="font-semibold underline">Kas & Bank</Link> terlebih dahulu, atau pilih opsi <b>Biaya Terutang (Bayar Nanti)</b> di atas.
                       </div>
                     ) : (
                       <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val || "")}>

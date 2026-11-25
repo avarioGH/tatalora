@@ -178,7 +178,7 @@ export default function AdminPortalPage() {
       id: `td-${Date.now()}`,
       task: newTodoTask.trim(),
       priority: newTodoPriority,
-      dueDate: newTodoDueDate || new Date().toISOString().split("T")[0],
+      dueDate: newTodoDueDate || new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }),
       completed: false
     }
     setTodos([newT, ...todos])

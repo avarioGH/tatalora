@@ -24,7 +24,7 @@ export function PayVendorBillModal({
   const [cashAccounts, setCashAccounts] = useState<any[]>([])
   const [selectedAccountId, setSelectedAccountId] = useState("")
   const [amount, setAmount] = useState<number>(0)
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0])
+  const [paymentDate, setPaymentDate] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
   const [paymentMethod, setPaymentMethod] = useState("Transfer")
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(false)

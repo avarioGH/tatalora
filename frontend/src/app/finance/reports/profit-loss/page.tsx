@@ -12,10 +12,10 @@ export default function ProfitLossPage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [startDate, setStartDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString("en-CA")
   )
   const [endDate, setEndDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]
+    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString("en-CA")
   )
   const [quickPeriod, setQuickPeriod] = useState("this_month")
 
@@ -23,10 +23,10 @@ export default function ProfitLossPage() {
     fetchData()
   }, [])
 
-  const fetchData = async () => {
+  const fetchData = async (s: string = startDate, e: string = endDate) => {
     try {
       setLoading(true)
-      const res = await FinanceAPI.getProfitLossReport()
+      const res = await FinanceAPI.getProfitLossReport({ start_date: s, end_date: e })
       setData(res)
     } catch (err) {
       console.error(err)
@@ -38,17 +38,19 @@ export default function ProfitLossPage() {
   const handlePeriodChange = (val: string) => {
     setQuickPeriod(val)
     const now = new Date()
+    let s = startDate
+    let e = endDate
     if (val === "this_month") {
-      setStartDate(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0])
-      setEndDate(new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0])
+      s = new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString("en-CA"); setStartDate(s)
+      e = new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString("en-CA"); setEndDate(e)
     } else if (val === "last_month") {
-      setStartDate(new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0])
-      setEndDate(new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0])
+      s = new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString("en-CA"); setStartDate(s)
+      e = new Date(now.getFullYear(), now.getMonth(), 0).toLocaleDateString("en-CA"); setEndDate(e)
     } else if (val === "this_year") {
-      setStartDate(new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0])
-      setEndDate(new Date(now.getFullYear(), 11, 31).toISOString().split('T')[0])
+      s = new Date(now.getFullYear(), 0, 1).toLocaleDateString("en-CA"); setStartDate(s)
+      e = new Date(now.getFullYear(), 11, 31).toLocaleDateString("en-CA"); setEndDate(e)
     }
-    fetchData()
+    fetchData(s, e)
   }
 
   const formatIDR = (val: number) => {
@@ -98,7 +100,7 @@ export default function ProfitLossPage() {
               onChange={e => setEndDate(e.target.value)}
               className="w-36 h-9 text-xs" 
             />
-            <Button size="sm" onClick={fetchData} className="h-9 px-3 text-xs bg-primary text-primary-foreground">
+            <Button size="sm" onClick={() => fetchData()} className="h-9 px-3 text-xs bg-primary text-primary-foreground">
               Terapkan Filter
             </Button>
           </div>

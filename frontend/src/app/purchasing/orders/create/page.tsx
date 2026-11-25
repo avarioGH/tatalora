@@ -71,8 +71,11 @@ export default function CreateOrderPage() {
       const rawProducts = prodRes?.data || (Array.isArray(prodRes) ? prodRes : [])
       const rawWarehouses = whRes?.data || (Array.isArray(whRes) ? whRes : [])
 
-      const validSuppliers = rawSuppliers // Remove filter for debugging
-      setSuppliers(validSuppliers.length > 0 ? validSuppliers : rawSuppliers)
+      const validSuppliers = rawSuppliers.filter((s: any) => {
+        const roles = Array.isArray(s.roles) ? s.roles.map((r: string) => String(r).toUpperCase()) : []
+        return roles.length === 0 ? true : (roles.includes('VENDOR') || roles.includes('SUPPLIER'))
+      })
+      setSuppliers(validSuppliers)
       setProducts(rawProducts)
       setWarehouses(rawWarehouses)
 

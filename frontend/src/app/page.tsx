@@ -250,7 +250,7 @@ export default function HomeLauncher() {
           </Link>
 
           {/* Menunggu Persetujuan */}
-          <Link href="/approval">
+          <Link href="/approvals">
             <Card className="hover:border-indigo-400 transition-all cursor-pointer border shadow-xs bg-card hover:shadow-sm">
               <CardContent className="p-3.5 flex items-center justify-between">
                 <div>

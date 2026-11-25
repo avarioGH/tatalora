@@ -263,8 +263,14 @@ export class FinanceController {
   }
   @Permissions('finance.view')
   @Get('reports/profit-loss')
-  async getProfitLossReport(@Request() req) {
-    return this.financeService.getProfitLossReport(req.user.company_id);
+  async getProfitLossReport(
+    @Request() req,
+    @Query('start_date') startDate?: string,
+    @Query('end_date') endDate?: string,
+  ) {
+    const s = startDate ? new Date(startDate + 'T00:00:00+07:00') : undefined;
+    const e = endDate ? new Date(endDate + 'T23:59:59.999+07:00') : undefined;
+    return this.financeService.getProfitLossReport(req.user.company_id, s, e);
   }
 
   @Permissions('finance.view')

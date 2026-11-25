@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useEffect } from"react"
 import { api } from"@/lib/api"
 import { Card, CardContent, CardHeader, CardTitle } from"@/components/ui/card"
@@ -8,7 +8,7 @@ import { Input } from"@/components/ui/input"
 export default function DailyMonitoringPage() {
  const [data, setData] = useState<any>(null)
  const [loading, setLoading] = useState(true)
- const [dateStr, setDateStr] = useState(new Date().toISOString().split("T")[0])
+ const [dateStr, setDateStr] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
 
  useEffect(() => {
  setLoading(true)

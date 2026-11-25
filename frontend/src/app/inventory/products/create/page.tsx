@@ -63,7 +63,7 @@ export default function CreateProductPage() {
   // Initial Stock (Stok Awal)
   const [hasInitStock, setHasInitStock] = useState(false)
   const [initWarehouseId, setInitWarehouseId] = useState("")
-  const [initStockDate, setInitStockDate] = useState(new Date().toISOString().split("T")[0])
+  const [initStockDate, setInitStockDate] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
   const [initQty, setInitQty] = useState("0")
   const [initCost, setInitCost] = useState("0")
 

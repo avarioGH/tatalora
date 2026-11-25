@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -73,7 +73,7 @@ export default function DailyPage() {
           <Button variant="outline" size="sm" onClick={fetchData} className="gap-1.5">
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Muat Ulang
           </Button>
-          <Link href="/production/work-orders">
+          <Link href="/manufacturing/orders/create">
             <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground">
               + Catat Produksi Baru
             </Button>

@@ -162,7 +162,7 @@ export default function BudgetManagementPage() {
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <label className="block font-semibold">Kategori / Pos Akun <span className="text-rose-500">*</span></label>
-                      <Link href="/finance/coa" className="text-xs text-blue-600 hover:underline">
+                      <Link href="/finance/accounting" className="text-xs text-blue-600 hover:underline">
                         + Kelola Akun (COA)
                       </Link>
                     </div>
@@ -170,7 +170,7 @@ export default function BudgetManagementPage() {
                     {categories.length === 0 && accounts.length === 0 ? (
                       <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-xs text-amber-700 dark:text-amber-300 space-y-1">
                         <p className="font-semibold">Master Kategori & Akun Belum Tersedia</p>
-                        <p>Silakan buat akun beban di <Link href="/finance/coa" className="underline font-bold">Daftar Akun (COA)</Link> terlebih dahulu untuk menetapkan target anggaran.</p>
+                        <p>Silakan buat akun beban di <Link href="/finance/accounting" className="underline font-bold">Daftar Akun (COA)</Link> terlebih dahulu untuk menetapkan target anggaran.</p>
                       </div>
                     ) : (
                       <select

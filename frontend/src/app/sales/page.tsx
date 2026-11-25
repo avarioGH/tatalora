@@ -35,6 +35,10 @@ import { downloadCSV, parseCSV } from "@/lib/csv-helper"
 export default function UnifiedSalesPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("Penagihan")
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get('tab')
+    if (t && ['Penagihan', 'Pesanan', 'Penawaran', 'Pengiriman'].includes(t)) setActiveTab(t)
+  }, [])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("Semua")
 
@@ -489,14 +493,14 @@ export default function UnifiedSalesPage() {
                 <TableCell>{new Date(q.quotation_date).toLocaleDateString('id-ID')}</TableCell>
                 <TableCell>
                   <span 
-                    onClick={() => router.push(`/sales/quotations?id=${q.id}`)}
+                    onClick={() => router.push(`/sales/quotations/${q.id}`)}
                     className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer hover:underline"
                   >
                     {q.quotation_number}
                   </span>
                 </TableCell>
                 <TableCell className="font-medium text-foreground">{q.customer?.name || '-'}</TableCell>
-                <TableCell><Badge variant="outline">{q.status}</Badge></TableCell>
+                <TableCell><Badge variant="outline">{({ DRAFT: "Draf", SENT: "Terkirim", CONFIRMED: "Dikonversi ke SO", CONVERTED: "Dikonversi ke SO", REJECTED: "Ditolak", CANCELLED: "Dibatalkan", EXPIRED: "Kedaluwarsa" } as any)[q.status] || q.status}</Badge></TableCell>
                 <TableCell className="text-right font-medium">{formatIDR(q.total_amount)}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -506,7 +510,7 @@ export default function UnifiedSalesPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-card">
-                      <DropdownMenuItem onClick={() => router.push(`/sales/quotations?id=${q.id}`)} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => router.push(`/sales/quotations/${q.id}`)} className="cursor-pointer">
                         <Eye className="w-3.5 h-3.5 mr-2" /> Detail Penawaran
                       </DropdownMenuItem>
                       {(q.status === 'DRAFT' || q.status === 'SENT' || q.status === 'ACCEPTED') && (

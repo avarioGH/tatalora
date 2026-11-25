@@ -13,10 +13,10 @@ export default function CashFlowPage() {
   const [loading, setLoading] = useState(true)
   const [reportView, setReportView] = useState<"classified" | "mutasi">("classified")
   const [startDate, setStartDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString("en-CA")
   )
   const [endDate, setEndDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]
+    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString("en-CA")
   )
 
   useEffect(() => {

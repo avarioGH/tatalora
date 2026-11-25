@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -24,7 +24,7 @@ export default function PosReports() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null)
   const [payAmount, setPayAmount] = useState<number | ''>('')
   const [payMethod, setPayMethod] = useState('Transfer')
-  const [payDate, setPayDate] = useState(new Date().toISOString().split('T')[0])
+  const [payDate, setPayDate] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
   const [payRef, setPayRef] = useState('')
   const [isPaying, setIsPaying] = useState(false)
 
@@ -34,7 +34,7 @@ export default function PosReports() {
     
     setSelectedOrder(order)
     setPayAmount(outst > 0 ? outst : 0)
-    setPayDate(new Date().toISOString().split('T')[0])
+    setPayDate(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
     setPayMethod('Transfer')
     setPayRef('')
     setPayModalOpen(true)

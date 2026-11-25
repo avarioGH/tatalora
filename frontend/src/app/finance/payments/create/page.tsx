@@ -18,7 +18,7 @@ export default function CreatePaymentPage() {
   const [cashAccounts, setCashAccounts] = useState<any[]>([]);
   const [selectedCashAccountId, setSelectedCashAccountId] = useState('');
   
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [paymentDate, setPaymentDate] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }));
   const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER');
   const [reference, setReference] = useState('');
   const [notes, setNotes] = useState('');

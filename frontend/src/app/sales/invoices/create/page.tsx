@@ -37,10 +37,10 @@ export default function CreateSalesInvoicePage() {
   const [email, setEmail] = useState("")
   const [billingAddress, setBillingAddress] = useState("")
   const [transactionDate, setTransactionDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
   )
   const [dueDate, setDueDate] = useState(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
   )
   const [paymentTerms, setPaymentTerms] = useState("net30")
   const [transactionNo, setTransactionNo] = useState("")

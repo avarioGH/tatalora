@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { InventoryAPI, MasterDataAPI } from "@/lib/api"
@@ -18,7 +18,7 @@ export default function CreateAdjustmentPage() {
   const [variants, setVariants] = useState<any[]>([])
 
   const [form, setForm] = useState({
-    adjustmentDate: new Date().toISOString().split("T")[0],
+    adjustmentDate: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }),
     locationId: "",
     reason: "",
     notes: "",

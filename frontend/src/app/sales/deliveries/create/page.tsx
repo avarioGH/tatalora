@@ -18,7 +18,7 @@ export default function CreateDeliveryPage() {
   
   const [itemsToDeliver, setItemsToDeliver] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [deliveryDate, setDeliveryDate] = useState(new Date().toISOString().split('T')[0])
+  const [deliveryDate, setDeliveryDate] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
   const [destinationAddress, setDestinationAddress] = useState('')
   const [sourceWarehouseId, setSourceWarehouseId] = useState('')
   const [driverName, setDriverName] = useState('')

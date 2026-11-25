@@ -22,8 +22,8 @@ import { api, B2BApi, InventoryAPI } from "@/lib/api"
 
 export default function CreateRFQPage() {
   const router = useRouter()
-  const todayStr = new Date().toISOString().split("T")[0]
-  const expDateStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
+  const expDateStr = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
 
   const [suppliers, setSuppliers] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
@@ -55,10 +55,10 @@ export default function CreateRFQPage() {
           const type = (s.type || s.category || '').toLowerCase()
           const roles = Array.isArray(s.roles) ? s.roles.map((r: string) => r.toUpperCase()) : []
           const isVendorRole = roles.includes('VENDOR') || roles.includes('SUPPLIER')
-          return isVendorRole || type.includes('supplier') || type.includes('vendor') || type.includes('both') || !type
+          return roles.length === 0 ? (type.includes('supplier') || type.includes('vendor') || type.includes('both') || !type) : isVendorRole
         })
         const rawProducts = prodRes?.data || (Array.isArray(prodRes) ? prodRes : [])
-        setSuppliers(rawSuppliers.length > 0 ? rawSuppliers : list)
+        setSuppliers(rawSuppliers)
         setProducts(rawProducts)
       } catch (err) {
         console.error("Failed to load RFQ master data:", err)

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -55,7 +55,7 @@ export default function CustomerDetailPage() {
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [payAmount, setPayAmount] = useState<number | ''>('');
   const [payMethod, setPayMethod] = useState('Transfer');
-  const [payDate, setPayDate] = useState(new Date().toISOString().split('T')[0]);
+  const [payDate, setPayDate] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }));
   const [payRef, setPayRef] = useState('');
   const [isPaying, setIsPaying] = useState(false);
 

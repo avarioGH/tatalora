@@ -79,7 +79,7 @@ export default function PurchaseOrderDetailPage() {
       qtys[item.id] = Math.max(0, (item.received_qty || item.qty) - (item.billed_qty || 0));
     });
     setBillQtys(qtys);
-    setBillDueDate(new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]);
+    setBillDueDate(new Date(Date.now() + 30 * 86400000).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }));
     setBillModalOpen(true);
   };
 

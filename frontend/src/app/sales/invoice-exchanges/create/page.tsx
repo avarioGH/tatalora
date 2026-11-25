@@ -32,7 +32,7 @@ export default function CreateInvoiceExchangePage() {
   const [email, setEmail] = useState("")
   const [billingAddress, setBillingAddress] = useState("")
   const [transactionDate, setTransactionDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
   )
   const [dueDate, setDueDate] = useState("")
   const [transactionNo, setTransactionNo] = useState("")

@@ -176,7 +176,7 @@ export default function MutasiKasPage() {
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement("a")
     link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `Buku_Kas_Tatalora_${new Date().toISOString().split('T')[0]}.csv`)
+    link.setAttribute("download", `Buku_Kas_Tatalora_${new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

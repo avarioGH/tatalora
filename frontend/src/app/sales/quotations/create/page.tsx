@@ -44,10 +44,10 @@ function QuotationForm() {
   const [email, setEmail] = useState("")
   const [billingAddress, setBillingAddress] = useState("")
   const [transactionDate, setTransactionDate] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
   )
   const [expirationDate, setExpirationDate] = useState(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
   )
   const [paymentTerms, setPaymentTerms] = useState("net30")
   const [transactionNo, setTransactionNo] = useState("")
@@ -121,19 +121,44 @@ function QuotationForm() {
               setTransactionNo(qRes.quotation_number)
             }
             if (qRes.notes) setMessage(qRes.notes)
+            if (qRes.message) setMessage(qRes.message)
+            if (qRes.memo) setMemo(qRes.memo)
+            if (qRes.tag) setTag(qRes.tag)
+            if (qRes.client_ref) setClientRef(qRes.client_ref)
+            if (qRes.currency) setCurrency(qRes.currency)
+            if (qRes.payment_terms) setPaymentTerms(qRes.payment_terms)
+            if (qRes.email) setEmail(qRes.email)
+            if (qRes.billing_address) setBillingAddress(qRes.billing_address)
+            if (Number(qRes.discount_percent) > 0) {
+              setDiscountType("percent")
+              setGlobalDiscountVal(Number(qRes.discount_percent))
+            } else if (Number(qRes.discount_amount) > 0) {
+              setDiscountType("amount")
+              setGlobalDiscountVal(Number(qRes.discount_amount))
+            }
 
             if (Array.isArray(qRes.items) && qRes.items.length > 0) {
-              setItems(qRes.items.map((it: any, idx: number) => ({
-                id: idx + 1,
-                product_id: it.product_id,
-                description: it.description || it.product?.name || "",
-                qty: Number(it.qty) || 1,
-                unit: it.unit || it.product?.unit?.name || it.product?.unit || "Pcs",
-                price: Number(it.unit_price) || 0,
-                discount_percent: it.discount_percent ?? (it.discount && Number(it.qty) > 0 && Number(it.unit_price) > 0 ? Math.round((Number(it.discount) / (Number(it.qty) * Number(it.unit_price))) * 100) : 0),
-                tax_percent: it.tax_percent ?? (it.taxRate !== undefined ? Number(it.taxRate) * 100 : 0),
-                total: Number(it.subtotal) || 0
-              })))
+              setItems(qRes.items.map((it: any, idx: number) => {
+                const qty = Number(it.qty) || 1
+                const price = Number(it.unit_price) || 0
+                const gross = qty * price
+                const discAmt = Number(it.discount) || 0
+                const discPct = gross > 0 ? Math.round((discAmt / gross) * 10000) / 100 : 0
+                const base = Math.max(0, gross - discAmt)
+                const taxAmt = Number(it.tax) || 0
+                const taxPct = base > 0 ? Math.round((taxAmt / base) * 10000) / 100 : 0
+                return {
+                  id: idx + 1,
+                  product_id: it.product_id,
+                  description: it.description || it.product?.name || "",
+                  qty,
+                  unit: it.unit || "Pcs",
+                  price,
+                  discount_percent: discPct,
+                  tax_percent: taxPct,
+                  total: Number(it.subtotal) || (base + taxAmt)
+                }
+              }))
             }
           }
         }
@@ -383,7 +408,7 @@ function QuotationForm() {
         await B2BApi.createQuotation(payload)
         alert(status === "DRAFT" ? "Draf Penawaran Penjualan berhasil disimpan!" : "Penawaran Penjualan berhasil dibuat & dikirim!")
       }
-      router.push("/sales")
+      router.push("/sales?tab=Penawaran")
     } catch (err: any) {
       console.error(err)
       alert("Gagal menyimpan penawaran penjualan: " + (err.response?.data?.message || err.message))
@@ -400,7 +425,7 @@ function QuotationForm() {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => router.push("/sales")}
+            onClick={() => router.push("/sales?tab=Penawaran")}
             className="hover:bg-muted"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -444,7 +469,7 @@ function QuotationForm() {
               </div>
               <Select value={customerId} onValueChange={handleCustomerChange}>
                 <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="Pilih atau cari kontak..." />
+                  <SelectValue placeholder="Pilih atau cari kontak...">{(v: any) => { const f = customers.find((c: any) => c.id === v); return f ? f.name : (v ? "Memuat..." : "Pilih atau cari kontak...") }}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {customers.map((c: any) => (
@@ -507,7 +532,7 @@ function QuotationForm() {
               <Label className="text-sm font-semibold">Syarat Pembayaran</Label>
               <Select value={paymentTerms} onValueChange={handlePaymentTermsChange}>
                 <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="Pilih syarat pembayaran" />
+                  <SelectValue placeholder="Pilih syarat pembayaran">{(v: any) => ({ cod: "Cash on Delivery (COD)", net15: "Net 15 Hari", net30: "Net 30 Hari", net60: "Net 60 Hari" } as any)[v] || "Pilih syarat pembayaran"}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cod">Cash on Delivery (COD)</SelectItem>
@@ -620,7 +645,7 @@ function QuotationForm() {
                         onValueChange={(v) => handleItemChange(index, "product_id", v)}
                       >
                         <SelectTrigger className="h-9 bg-background border-border text-xs">
-                          <SelectValue placeholder="Pilih produk..." />
+                          <SelectValue placeholder="Pilih produk...">{(v: any) => { const f = products.find((p: any) => p.id === v); return f ? `${f.name} (${f.code})` : (v ? "Memuat..." : "Pilih produk...") }}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {products.map((p: any) => (
@@ -883,7 +908,7 @@ function QuotationForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/sales")}
+              onClick={() => router.push("/sales?tab=Penawaran")}
               disabled={submitting}
               className="w-full sm:w-auto"
             >

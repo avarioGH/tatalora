@@ -11,7 +11,7 @@ import { Button } from"@/components/ui/button"
 export default function BalanceSheetPage() {
  const [data, setData] = useState<any>(null)
  const [loading, setLoading] = useState(true)
-  const [asOfDate, setAsOfDate] = useState(new Date().toISOString().split('T')[0])
+  const [asOfDate, setAsOfDate] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }))
 
  useEffect(() => {
  fetchData()
