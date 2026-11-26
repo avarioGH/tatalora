@@ -805,12 +805,25 @@ export default function CreateSalesInvoicePage() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center py-1">
-                <span className="text-sm text-muted-foreground font-medium">Pajak (PPN)</span>
-                <span className="text-sm text-foreground font-semibold">
-                  {formatIDR(lineTaxTotal)}
-                </span>
+              {/* Dasar Pengenaan Pajak (DPP) */}
+              <div className="flex justify-between items-center text-xs text-muted-foreground pt-1 border-t border-border/40">
+                <span>Dasar Pengenaan Pajak (DPP)</span>
+                <span className="font-medium text-foreground">{formatIDR(taxableBaseTotal)}</span>
               </div>
+
+              {/* Pajak (PPN) */}
+              {(() => {
+                const activeTaxRates = Array.from(new Set(items.map(it => Number(it.tax_percent) || 0).filter(r => r > 0)));
+                const taxLabel = activeTaxRates.length === 1 ? `Pajak (PPN ${activeTaxRates[0]}%)` : activeTaxRates.length > 1 ? `Pajak (PPN ${activeTaxRates.join('%, ')}%)` : 'Pajak (PPN)';
+                return (
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-muted-foreground font-medium">{taxLabel}</span>
+                    <span className="text-sm text-foreground font-semibold">
+                      {formatIDR(lineTaxTotal)}
+                    </span>
+                  </div>
+                );
+              })()}
 
               <div className="border-t border-border my-2 pt-3 flex justify-between items-center">
                 <span className="text-base font-bold text-foreground">Total</span>

@@ -166,9 +166,21 @@ export default function SOPrintPage() {
             <table className="w-full text-sm">
               <tbody>
                 <tr>
-                  <td className="py-1 font-bold">Subtotal</td>
-                  <td className="py-1 text-right font-medium">Rp {totalAmount.toLocaleString('id-ID')}</td>
+                  <td className="py-1 font-bold">Subtotal (Bruto)</td>
+                  <td className="py-1 text-right font-medium">Rp {(Number(data.subtotal) || totalAmount).toLocaleString('id-ID')}</td>
                 </tr>
+                {Number(data.discount_amount || 0) > 0 && (
+                  <tr>
+                    <td className="py-1 text-gray-600">Diskon</td>
+                    <td className="py-1 text-right font-medium text-red-600">- Rp {Number(data.discount_amount).toLocaleString('id-ID')}</td>
+                  </tr>
+                )}
+                {Number(data.tax || 0) > 0 && (
+                  <tr>
+                    <td className="py-1 text-gray-600">PPN / Pajak</td>
+                    <td className="py-1 text-right font-medium">Rp {Number(data.tax).toLocaleString('id-ID')}</td>
+                  </tr>
+                )}
                 <tr className="border-b-2 border-black">
                   <td className="py-1 pb-2 font-bold text-base">TOTAL TRANSAKSI</td>
                   <td className="py-1 pb-2 text-right font-bold text-base">Rp {totalAmount.toLocaleString('id-ID')}</td>

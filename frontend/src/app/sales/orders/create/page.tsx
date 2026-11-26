@@ -802,11 +802,17 @@ export default function CreateSalesOrderPage() {
                 <span className="font-medium text-foreground">{formatIDR(taxableBaseTotal)}</span>
               </div>
 
-              {/* PPN */}
-              <div className="flex justify-between items-center text-sm text-foreground py-0.5">
-                <span className="text-muted-foreground font-medium">PPN (11%)</span>
-                <span className="text-base font-semibold text-foreground">{formatIDR(lineTaxTotal)}</span>
-              </div>
+              {/* PPN / Pajak */}
+              {(() => {
+                const activeTaxRates = Array.from(new Set(items.map(it => Number(it.tax_percent) || 0).filter(r => r > 0)));
+                const taxLabel = activeTaxRates.length === 1 ? `PPN (${activeTaxRates[0]}%)` : activeTaxRates.length > 1 ? `PPN (${activeTaxRates.join('%, ')}%)` : 'PPN / Pajak';
+                return (
+                  <div className="flex justify-between items-center text-sm text-foreground py-0.5">
+                    <span className="text-muted-foreground font-medium">{taxLabel}</span>
+                    <span className="text-base font-semibold text-foreground">{formatIDR(lineTaxTotal)}</span>
+                  </div>
+                );
+              })()}
 
               <div className="border-t border-border my-2 pt-3 flex justify-between items-center">
                 <span className="text-base font-bold text-foreground">Total Pesanan</span>

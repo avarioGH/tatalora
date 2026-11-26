@@ -165,24 +165,47 @@ export default function SalesOrderDetailPage() {
             <CardTitle className="text-xs font-semibold uppercase text-muted-foreground">Ringkasan Nilai</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1.5 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal:</span>
-              <span className="font-medium">{formatIDR(order.subtotal || order.total_amount)}</span>
-            </div>
-            {Number(order.discount_amount || 0) > 0 && (
-              <div className="flex justify-between text-rose-600">
-                <span>Diskon:</span>
-                <span>-{formatIDR(order.discount_amount)}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Pajak (PPN):</span>
-              <span className="font-medium">{formatIDR(order.tax || 0)}</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between font-bold text-base text-foreground">
-              <span>Total Pesanan:</span>
-              <span className="text-emerald-600">{formatIDR(order.total_amount)}</span>
-            </div>
+            {(() => {
+              const items = order.items || [];
+              const bruto = items.reduce((s: number, i: any) => s + (Number(i.qty) || 0) * (Number(i.unit_price) || 0), 0);
+              const lineDisc = items.reduce((s: number, i: any) => s + (Number(i.discount) || 0), 0);
+              const globalDisc = Number(order.discount_amount) || 0;
+              const subtotalVal = Number(order.subtotal) > 0 ? Number(order.subtotal) : (bruto > 0 ? bruto : Number(order.total_amount));
+              const dpp = Math.max(0, subtotalVal - lineDisc - globalDisc);
+              const tax = Number(order.tax) || 0;
+              return (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal Bruto:</span>
+                    <span className="font-medium">{formatIDR(subtotalVal)}</span>
+                  </div>
+                  {lineDisc > 0 && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span>Diskon Per Baris:</span>
+                      <span>-{formatIDR(lineDisc)}</span>
+                    </div>
+                  )}
+                  {globalDisc > 0 && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span>Diskon Tambahan{Number(order.discount_percent) > 0 ? ` (${order.discount_percent}%)` : ''}:</span>
+                      <span>-{formatIDR(globalDisc)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-xs text-muted-foreground pt-1 border-t border-border/40">
+                    <span>Dasar Pengenaan Pajak (DPP):</span>
+                    <span className="font-medium">{formatIDR(dpp)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Pajak (PPN):</span>
+                    <span className="font-medium">{formatIDR(tax)}</span>
+                  </div>
+                  <div className="border-t pt-2 flex justify-between font-bold text-base text-foreground">
+                    <span>Total Pesanan:</span>
+                    <span className="text-emerald-600">{formatIDR(order.total_amount)}</span>
+                  </div>
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
