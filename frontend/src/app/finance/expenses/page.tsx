@@ -53,17 +53,34 @@ export default function ExpensesPage() {
       const res = await api.get('/finance/transactions?limit=100').catch(() => ({ data: [] }))
       const list = res.data?.data || res.data || []
       const filtered = list.filter((tx: any) => {
-        // Exclude AP bill / vendor bill payments from expenses list so they don't show up as unpaid Rp0 operating expenses
-        const isBillPayment = tx.reference_type === 'PAYMENT' || 
-                              tx.reference_type === 'VENDOR_BILL' || 
-                              tx.reference_type === 'BILL_PAYMENT' ||
-                              (tx.description && tx.description.toLowerCase().includes('pembayaran pay-'))
-        if (isBillPayment) return false
+        // Exclude AP bill / vendor bill / debt payments from expenses list so they don't show up as unpaid Rp0 operating expenses (EXP-01)
+        const desc = (tx.description || '').toLowerCase()
+        const refType = (tx.reference_type || '').toUpperCase()
+        const isBillOrDebtPayment = 
+          refType === 'PAYMENT' || 
+          refType === 'VENDOR_BILL' || 
+          refType === 'BILL_PAYMENT' ||
+          refType === 'INVOICE' ||
+          desc.includes('pembayaran hutang') ||
+          desc.includes('pembayaran utang') ||
+          desc.includes('pelunasan faktur') ||
+          desc.includes('pembayaran pay-') ||
+          desc.includes('pembayaran inv-') ||
+          desc.includes('pembayaran vb-')
+
+        if (isBillOrDebtPayment) return false
+
+        const val = Number(tx.amount || tx.total_amount || 0)
+        // Also exclude any zero-value transactions that don't represent real operating expenses
+        if (val <= 0) return false
 
         return tx.transaction_type === 'Expense' || 
                tx.transaction_type === 'Cash Out' || 
                tx.transaction_type === 'Transfer Out'
-      })
+      }).map((tx: any) => ({
+        ...tx,
+        amount: Number(tx.amount || tx.total_amount || 0)
+      }))
       setExpenses(filtered)
     } catch (err) {
       console.error("Error loading expenses:", err)

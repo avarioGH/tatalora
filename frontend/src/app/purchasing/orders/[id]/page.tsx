@@ -260,13 +260,31 @@ export default function PurchaseOrderDetailPage() {
         {/* Status Badges */}
         <div className="flex flex-wrap gap-2 items-center">
           <Badge variant={isFullyReceived ? 'default' : po.receipt_status === 'PARTIAL' ? 'outline' : 'secondary'}>
-            Penerimaan: {po.receipt_status}
+            Penerimaan: {po.receipt_status === 'RECEIVED' ? 'Diterima Lengkap' : po.receipt_status === 'PARTIAL' ? 'Diterima Sebagian' : 'Belum Diterima'}
           </Badge>
-          <Badge variant={isFullyBilled ? 'default' : po.bill_status === 'PARTIAL' ? 'outline' : 'secondary'}>
-            Tagihan: {po.bill_status}
+          <Badge 
+            variant="outline" 
+            className={
+              isFullyBilled 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                : po.bill_status === 'PARTIAL' 
+                  ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                  : 'bg-muted text-muted-foreground'
+            }
+          >
+            Tagihan: {isFullyBilled ? 'Ditagih Penuh (Billed)' : po.bill_status === 'PARTIAL' ? 'Ditagih Sebagian' : 'Belum Ditagih'}
           </Badge>
-          <Badge variant={po.payment_status === 'PAID' ? 'default' : 'outline'}>
-            Pembayaran: {po.payment_status}
+          <Badge 
+            variant="outline" 
+            className={
+              po.payment_status === 'PAID' 
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                : po.payment_status === 'PARTIAL' 
+                  ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                  : 'bg-muted text-muted-foreground'
+            }
+          >
+            Pembayaran: {po.payment_status === 'PAID' ? 'Lunas (Paid)' : po.payment_status === 'PARTIAL' ? 'Dibayar Sebagian' : 'Belum Dibayar'}
           </Badge>
         </div>
       </div>
@@ -368,15 +386,31 @@ export default function PurchaseOrderDetailPage() {
               <CardContent className="pt-3 text-xs space-y-2">
                 {po.invoices && po.invoices.length > 0 ? (
                   po.invoices.map((inv: any) => (
-                    <div key={inv.id} className="p-2.5 rounded border border-border bg-card flex justify-between items-center">
-                      <div>
-                        <div className="font-semibold text-foreground">{inv.invoice_number}</div>
-                        <div className="text-muted-foreground text-[11px]">{formatCurrency(inv.total)}</div>
+                    <Link key={inv.id} href="/purchasing/invoices" className="block hover:opacity-90 transition-opacity">
+                      <div className="p-2.5 rounded border border-border bg-card flex justify-between items-center hover:bg-muted/30">
+                        <div>
+                          <div className="font-semibold text-indigo-600 flex items-center gap-1.5">
+                            {inv.invoice_number}
+                            <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                          </div>
+                          <div className="text-muted-foreground text-[11px]">
+                            {formatCurrency(inv.total)} • Sisa: {formatCurrency(inv.remaining_amount ?? (inv.status === 'PAID' ? 0 : inv.total))}
+                          </div>
+                        </div>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            inv.status === 'PAID' 
+                              ? 'text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200' 
+                              : inv.status === 'PARTIALLY PAID' || inv.paid_amount > 0
+                                ? 'text-[10px] bg-blue-50 text-blue-700 border-blue-200'
+                                : 'text-[10px] bg-amber-50 text-amber-700 border-amber-200'
+                          }
+                        >
+                          {inv.status === 'PAID' ? 'Lunas' : inv.status === 'PARTIALLY PAID' ? 'Sebagian' : 'Belum Dibayar'}
+                        </Badge>
                       </div>
-                      <Badge variant={inv.status === 'PAID' ? 'default' : 'outline'} className="text-[10px]">
-                        {inv.status}
-                      </Badge>
-                    </div>
+                    </Link>
                   ))
                 ) : (
                   <p className="text-muted-foreground text-center py-4">Belum ada faktur tagihan dibuat.</p>

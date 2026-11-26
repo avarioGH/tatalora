@@ -58,7 +58,9 @@ export default function VendorBillsPage() {
  <table className="min-w-[600px] md:min-w-full w-full text-sm">
  <thead className="bg-muted/30 border-b">
  <tr>
+ <th className="p-4 text-left font-medium">Tanggal</th>
  <th className="p-4 text-left font-medium">Nomor Tagihan</th>
+ <th className="p-4 text-left font-medium">Supplier / Vendor</th>
  <th className="p-4 text-left font-medium">Referensi PO</th>
  <th className="p-4 text-left font-medium">Total</th>
  <th className="p-4 text-left font-medium">Sisa Hutang / Kredit</th>
@@ -68,12 +70,14 @@ export default function VendorBillsPage() {
  </thead>
  <tbody>
  {loading ? (
- <tr><td colSpan={6} className="p-4 text-center">Memuat...</td></tr>
+ <tr><td colSpan={8} className="p-4 text-center">Memuat...</td></tr>
  ) : bills.length === 0 ? (
- <tr><td colSpan={6} className="p-4 text-center">Belum ada tagihan vendor.</td></tr>
+ <tr><td colSpan={8} className="p-4 text-center">Belum ada tagihan vendor.</td></tr>
  ) : bills.map((bill) => (
  <tr key={bill.id} className="border-b hover:bg-muted/30 dark:hover:bg-slate-900">
- <td className="p-4 font-medium">{bill.invoice_number}</td>
+ <td className="p-4 text-muted-foreground text-xs">{bill.invoice_date ? new Date(bill.invoice_date).toLocaleDateString("id-ID") : "-"}</td>
+ <td className="p-4 font-semibold text-indigo-600">{bill.invoice_number}</td>
+ <td className="p-4 font-medium text-foreground">{bill.supplier?.name || bill.customer?.name || "-"}</td>
  <td className="p-4">
  {bill.purchase_order?.order_number ? (
  <Link href={`/purchasing/orders?search=${bill.purchase_order.order_number}`} className="text-blue-600 hover:underline">

@@ -599,16 +599,19 @@ export default function ProductInventory() {
               </div>
             </CardContent>
           </Card>
-          <Card className="w-[230px] shadow-sm border-l-4 border-l-pink-500">
+          <Card className="w-[240px] shadow-sm border-l-4 border-l-pink-500">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs font-semibold text-foreground">Valuasi Persediaan (HPP)</span>
-                <span className="text-[10px] bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300 px-1.5 py-0.5 rounded font-mono">Σ Qty × Beli</span>
+                <span className="text-xs font-semibold text-foreground" title="Total Nilai Pokok Persediaan berdasarkan Biaya Pembelian">Total HPP (Nilai Pokok)</span>
+                <span className="text-[10px] bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300 px-1.5 py-0.5 rounded font-mono">Σ (Qty × Beli)</span>
               </div>
-              <p className="text-[11px] text-muted-foreground mb-2 leading-tight">Biaya modal fisik stok untuk neraca & akuntansi.</p>
+              <p className="text-[11px] text-muted-foreground mb-2 leading-tight">Valuasi aset persediaan (FIFO / Biaya Beli) untuk Neraca.</p>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-pink-600"><FileText className="w-4 h-4" /></div>
-                <span className="text-lg font-bold text-foreground">{formatIDR(totalHPP)}</span>
+                <div>
+                  <span className="text-lg font-bold text-foreground">{formatIDR(totalHPP)}</span>
+                  <div className="text-[10px] text-muted-foreground">Dasar: Qty Fisik × Harga Beli</div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -856,8 +859,8 @@ export default function ProductInventory() {
                 <TableHead className="font-semibold">Satuan</TableHead>
                 <TableHead className="text-right font-semibold">Harga Beli</TableHead>
                 <TableHead className="text-right font-semibold">Harga Jual</TableHead>
-                <TableHead className="text-center font-semibold">Qty</TableHead>
-                <TableHead className="text-right font-semibold">HPP</TableHead>
+                <TableHead className="text-center font-semibold">Qty Total</TableHead>
+                <TableHead className="text-right font-semibold" title="Total Nilai HPP = Qty × Harga Beli">Valuasi HPP (Qty × Beli)</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -912,7 +915,9 @@ export default function ProductInventory() {
                           totalStock
                         )}
                       </TableCell>
-                      <TableCell className="text-right">{formatIDR(Number(p.purchase_price || 0))}</TableCell>
+                      <TableCell className="text-right font-semibold text-foreground">
+                        {formatIDR(Math.max(0, totalStock) * Number(p.purchase_price || 0))}
+                      </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger className="h-8 w-8 p-0 inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground outline-none">
@@ -929,10 +934,10 @@ export default function ProductInventory() {
                   )
                 })
               )}
-              <TableRow className="bg-muted/10">
-                <TableCell colSpan={7} className="font-bold text-foreground">Total</TableCell>
+              <TableRow className="bg-muted/10 border-t-2 border-border">
+                <TableCell colSpan={7} className="font-bold text-foreground">Total Keseluruhan Persediaan</TableCell>
                 <TableCell className="text-center font-bold text-foreground">{totalStok}</TableCell>
-                <TableCell className="text-right font-bold text-foreground">{formatIDR(totalHPP)}</TableCell>
+                <TableCell className="text-right font-bold text-foreground text-indigo-600 dark:text-indigo-400">{formatIDR(totalHPP)}</TableCell>
                 <TableCell></TableCell>
               </TableRow>
             </TableBody>

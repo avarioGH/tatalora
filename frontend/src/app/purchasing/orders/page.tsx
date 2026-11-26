@@ -66,15 +66,33 @@ export default function PurchaseOrdersPage() {
   }
 
 
-  const getBillStatusBadge = (billStatus: string) => {
+  const getBillStatusBadge = (billStatus: string, paymentStatus?: string) => {
     const raw = (billStatus || '').toUpperCase();
-    if (raw === 'LUNAS' || raw === 'BILLED') {
+    const pay = (paymentStatus || '').toUpperCase();
+    if (pay === 'PAID') {
+      return <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Lunas (Paid)</Badge>;
+    }
+    if (raw === 'BILLED' || raw === 'LUNAS') {
+      if (pay === 'PARTIAL') {
+        return <Badge variant="outline" className="text-[10px] bg-purple-50 text-purple-700 border-purple-200">Faktur Dibayar Sebagian</Badge>;
+      }
+      return <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">Ditagih Penuh (Billed)</Badge>;
+    }
+    if (raw === 'PARTIAL' || raw === 'DITAGIH') {
+      return <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200">Ditagih Sebagian</Badge>;
+    }
+    return <Badge variant="secondary" className="text-[10px] text-muted-foreground">Belum Ditagih</Badge>;
+  };
+
+  const getPaymentStatusBadge = (paymentStatus: string) => {
+    const pay = (paymentStatus || '').toUpperCase();
+    if (pay === 'PAID') {
       return <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">Lunas</Badge>;
     }
-    if (raw === 'DITAGIH' || raw === 'PARTIAL') {
-      return <Badge variant="outline" className="text-[10px] bg-blue-50 text-blue-700 border-blue-200">Ditagih</Badge>;
+    if (pay === 'PARTIAL') {
+      return <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-700 border-amber-200">Sebagian</Badge>;
     }
-    return <Badge variant="secondary" className="text-[10px]">Belum Ditagih</Badge>;
+    return <Badge variant="outline" className="text-[10px] bg-slate-50 text-slate-600 border-slate-200">Belum Dibayar</Badge>;
   };
 
   const formatIDR = (val: number) => {
@@ -202,7 +220,14 @@ export default function PurchaseOrdersPage() {
                         <Badge variant="secondary" className="text-[10px]">{item.receipt_status || 'PENDING'}</Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        {getBillStatusBadge(item.bill_status)}
+                        <div className="flex flex-col items-center gap-1">
+                          {getBillStatusBadge(item.bill_status, item.payment_status)}
+                          {item.payment_status && item.payment_status !== 'UNPAID' && (
+                            <span className="text-[10px] text-muted-foreground">
+                              Bayar: {item.payment_status === 'PAID' ? 'Lunas' : 'Sebagian'}
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="font-bold text-right text-foreground">{formatIDR(Number(item.total_amount) || 0)}</TableCell>
                       <TableCell className="text-center">{getStatusBadge(item.status)}</TableCell>

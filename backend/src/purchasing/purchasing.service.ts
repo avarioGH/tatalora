@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SequenceService } from '../reports/sequence.service';
+import { PaymentProcessedEvent } from '../events/accounting.events';
 
 @Injectable()
 export class PurchasingService {
@@ -614,18 +615,22 @@ export class PurchasingService {
           },
         });
 
-        await this.eventEmitter.emitAsync('payment.processed', {
-          companyId,
-          sourceEntityId: payment.id,
-          eventId: 'EVT-' + Date.now(),
-          occurredAt: payment.payment_date,
-          payload: {
-            type: 'PAYABLE',
-            amount: payment.amount,
-            accountId: accountId,
-          },
-          tx: tx as any,
-        });
+        await this.eventEmitter.emitAsync(
+          'payment.processed',
+          new PaymentProcessedEvent(
+            companyId,
+            payment.id,
+            'EVT-' + Date.now(),
+            payment.payment_date,
+            {
+              type: 'PAYABLE',
+              amount: payment.amount,
+              accountId: accountId,
+              referenceType: 'PAYMENT_AP',
+            },
+            tx as any,
+          ),
+        );
       }
       return payment;
     });

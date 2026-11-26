@@ -98,7 +98,7 @@ export class InvoicesController {
     const supplierId = invoiceType === 'AP' ? (data.supplier_id || data.partner_id || data.customer_id) : (data.supplier_id || null);
     const customerId = invoiceType === 'AR' ? (data.customer_id || data.partner_id) : (data.customer_id || null);
 
-    return this.prisma.invoice.create({
+    const createdInvoice = await this.prisma.invoice.create({
       data: {
         company_id: companyId,
         type: invoiceType,
@@ -110,7 +110,7 @@ export class InvoicesController {
         invoice_number: data.invoice_number || `INV-${Date.now()}`,
         invoice_date: data.invoice_date || data.issue_date ? new Date(data.invoice_date || data.issue_date) : new Date(),
         due_date: data.due_date ? new Date(data.due_date) : null,
-        status: data.status || 'UNPAID',
+        status: data.status || (invoiceType === 'AP' ? 'POSTED' : 'UNPAID'),
         email: data.email || null,
         billing_address: data.billing_address || null,
         payment_terms: data.payment_terms || 'net30',
@@ -139,6 +139,32 @@ export class InvoicesController {
         items: { include: { product: true } },
       },
     });
+
+    if (createdInvoice.purchase_order_id) {
+      const allInvs = await this.prisma.invoice.findMany({
+        where: { purchase_order_id: createdInvoice.purchase_order_id, type: 'AP' },
+      });
+      const po = await this.prisma.purchaseOrder.findUnique({
+        where: { id: createdInvoice.purchase_order_id },
+        include: { items: true },
+      });
+      if (po) {
+        const totalBilled = allInvs.reduce((acc, inv) => acc + (inv.subtotal || inv.total || 0), 0);
+        const isFullyBilled = totalBilled >= (po.total_amount || 0) * 0.99;
+        const allPaid = allInvs.length > 0 && allInvs.every(i => i.status === 'PAID');
+        const anyPaid = allInvs.some(i => i.paid_amount > 0);
+
+        await this.prisma.purchaseOrder.update({
+          where: { id: po.id },
+          data: {
+            bill_status: isFullyBilled ? 'BILLED' : 'PARTIAL',
+            payment_status: allPaid ? 'PAID' : anyPaid ? 'PARTIAL' : po.payment_status,
+          },
+        });
+      }
+    }
+
+    return createdInvoice;
   }
 
   @Permissions('finance.invoice.create')

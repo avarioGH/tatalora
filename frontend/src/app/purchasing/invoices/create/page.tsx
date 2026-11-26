@@ -258,6 +258,7 @@ export default function CreatePurchaseInvoicePage() {
       const payload = {
         type: "AP",
         partner_id: supplierId,
+        purchase_order_id: po_id || undefined,
         invoice_number: invoiceNumber || undefined,
         reference: supplierRef || undefined,
         issue_date: new Date(transactionDate).toISOString(),
