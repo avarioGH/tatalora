@@ -52,10 +52,8 @@ export default function CreateRFQPage() {
         ])
         const list = supRes?.data?.data || supRes?.data || (Array.isArray(supRes) ? supRes : [])
         const rawSuppliers = list.filter((s: any) => {
-          const type = (s.type || s.category || '').toLowerCase()
-          const roles = Array.isArray(s.roles) ? s.roles.map((r: string) => r.toUpperCase()) : []
-          const isVendorRole = roles.includes('VENDOR') || roles.includes('SUPPLIER')
-          return roles.length === 0 ? (type.includes('supplier') || type.includes('vendor') || type.includes('both') || !type) : isVendorRole
+          const roles = Array.isArray(s.roles) ? s.roles.map((r: string) => String(r).toUpperCase()) : []
+          return roles.some((r: string) => r === 'VENDOR' || r === 'SUPPLIER')
         })
         const rawProducts = prodRes?.data || (Array.isArray(prodRes) ? prodRes : [])
         setSuppliers(rawSuppliers)
@@ -226,9 +224,7 @@ export default function CreateRFQPage() {
                   <Label className="text-foreground">Supplier / Vendor <span className="text-rose-500">*</span></Label>
                   <Select value={form.supplierId} onValueChange={(val) => setForm({...form, supplierId: val || ""})}>
                     <SelectTrigger className="bg-background border-border font-medium">
-                      <SelectValue placeholder="Pilih supplier...">
-                      {suppliers.find(s => s.id === form.supplierId)?.name}
-                    </SelectValue>
+                      <SelectValue placeholder="Pilih supplier...">{(v: any) => { const f = suppliers.find((s: any) => s.id === v); return f ? f.name : (v ? "Memuat..." : "Pilih supplier..."); }}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {suppliers.map(s => (
@@ -338,9 +334,7 @@ export default function CreateRFQPage() {
                             onValueChange={(val) => handleItemChange(index, "productId", val || "")}
                           >
                             <SelectTrigger className="bg-background border-border">
-                              <SelectValue placeholder="Pilih Produk">
-                              {products.find(p => p.id === item.productId)?.name}
-                            </SelectValue>
+                              <SelectValue placeholder="Pilih Produk">{(v: any) => { const f = products.find((p: any) => p.id === v); return f ? (f.code ? `[${f.code}] ${f.name}` : f.name) : (v ? "Memuat..." : "Pilih Produk"); }}</SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {products.map(p => (

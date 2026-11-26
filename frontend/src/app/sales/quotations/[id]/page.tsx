@@ -308,8 +308,8 @@ export default function QuotationDetailPage() {
                     <span className="text-sm bg-muted px-2 py-1 rounded-md">{so.status}</span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>{new Date(so.order_date).toLocaleDateString('id-ID')}</span>
-                    <span>Rp {new Intl.NumberFormat('id-ID').format(so.total_amount || 0)}</span>
+                    <span>{so.order_date && !isNaN(new Date(so.order_date).getTime()) ? new Date(so.order_date).toLocaleDateString('id-ID') : '-'}</span>
+                    <span>Rp {new Intl.NumberFormat('id-ID').format(Number(so.total_amount) || 0)}</span>
                   </div>
                   
                   {/* Nested Deliveries */}

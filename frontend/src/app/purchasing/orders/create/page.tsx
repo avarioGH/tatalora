@@ -73,7 +73,7 @@ export default function CreateOrderPage() {
 
       const validSuppliers = rawSuppliers.filter((s: any) => {
         const roles = Array.isArray(s.roles) ? s.roles.map((r: string) => String(r).toUpperCase()) : []
-        return roles.length === 0 ? true : (roles.includes('VENDOR') || roles.includes('SUPPLIER'))
+        return roles.some((r: string) => r === 'VENDOR' || r === 'SUPPLIER')
       })
       setSuppliers(validSuppliers)
       setProducts(rawProducts)
@@ -256,9 +256,7 @@ export default function CreateOrderPage() {
               </div>
               <Select value={form.partnerId} onValueChange={(v) => setForm({ ...form, partnerId: v || '' })}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="-- Pilih Supplier --">
-                    {suppliers.find(s => s.id === form.partnerId)?.name}
-                  </SelectValue>
+                  <SelectValue placeholder="-- Pilih Supplier --">{(v: any) => { const f = suppliers.find((s: any) => s.id === v); return f ? f.name : (v ? "Memuat..." : "-- Pilih Supplier --"); }}</SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
                   {suppliers.map(s => (
@@ -281,9 +279,7 @@ export default function CreateOrderPage() {
               <Label className="text-xs font-semibold">Gudang Tujuan Penerimaan</Label>
               <Select value={form.warehouseId} onValueChange={(v) => setForm({ ...form, warehouseId: v || '' })}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih Gudang">
-                    {warehouses.find(w => w.id === form.warehouseId)?.name}
-                  </SelectValue>
+                  <SelectValue placeholder="Pilih Gudang">{(v: any) => { const f = warehouses.find((w: any) => w.id === v); return f ? (f.code ? `${f.name} (${f.code})` : f.name) : (v ? "Memuat..." : "Pilih Gudang"); }}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {warehouses.map(w => (
@@ -413,9 +409,7 @@ export default function CreateOrderPage() {
                               onValueChange={(val) => handleItemChange(index, "productId", val)}
                             >
                               <SelectTrigger className="h-9 text-xs">
-                                <SelectValue placeholder="-- Pilih Produk --">
-                                  {products.find(p => p.id === item.productId)?.name}
-                                </SelectValue>
+                                <SelectValue placeholder="-- Pilih Produk --">{(v: any) => { const f = products.find((p: any) => p.id === v); return f ? (f.code ? `${f.name} [${f.code}]` : f.name) : (v ? "Memuat..." : "-- Pilih Produk --"); }}</SelectValue>
                               </SelectTrigger>
                               <SelectContent className="max-h-72">
                                 {products.map(p => (
