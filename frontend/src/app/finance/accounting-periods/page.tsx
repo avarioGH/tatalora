@@ -120,6 +120,21 @@ export default function AccountingPeriodsPage() {
     }
   };
 
+  const reopenPeriod = async (id: string, name: string) => {
+    if (
+      !confirm(
+        `Buka Kembali Periode: ${name}?\n\nStatus periode akan kembali OPEN dan staf diizinkan untuk mencatat atau menyesuaikan transaksi pada tanggal periode ini.`
+      )
+    )
+      return;
+    try {
+      await api.post(`/finance/accounting-periods/${id}/reopen`);
+      loadPeriods();
+    } catch (e: any) {
+      alert(e.response?.data?.message || 'Gagal membuka kembali periode');
+    }
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -272,14 +287,24 @@ export default function AccountingPeriodsPage() {
                       </Button>
                     )}
                     {p.status === 'CLOSED' && (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => lockPeriod(p.id, p.name)}
-                        className="gap-1.5 h-8 text-xs"
-                      >
-                        <Lock className="w-3.5 h-3.5" /> Kunci Permanen
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => reopenPeriod(p.id, p.name)}
+                          className="text-emerald-600 border-emerald-300 hover:bg-emerald-50 gap-1.5 h-8 text-xs"
+                        >
+                          <Unlock className="w-3.5 h-3.5" /> Buka Kembali
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => lockPeriod(p.id, p.name)}
+                          className="gap-1.5 h-8 text-xs"
+                        >
+                          <Lock className="w-3.5 h-3.5" /> Kunci Permanen
+                        </Button>
+                      </>
                     )}
                     {p.status !== 'OPEN' && p.closed_at && (
                       <span className="text-xs text-muted-foreground block mt-1">

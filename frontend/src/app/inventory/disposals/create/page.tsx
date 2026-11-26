@@ -114,7 +114,12 @@ export default function CreateDisposalPage() {
                 <Label className="text-sm font-semibold">Gudang Lokasi Barang</Label>
                 <Select value={warehouseId} onValueChange={setWarehouseId}>
                   <SelectTrigger className="bg-background border-border">
-                    <SelectValue placeholder="Pilih Gudang..." />
+                    <SelectValue placeholder="Pilih Gudang...">
+                      {(val: any) => {
+                        const found = warehouses.find(w => w.id === val);
+                        return found ? found.name : (val ? "Memuat..." : "Pilih Gudang...");
+                      }}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {warehouses.map(w => (
@@ -177,7 +182,12 @@ export default function CreateDisposalPage() {
                             onValueChange={(val) => handleProductChange(index, val)}
                           >
                             <SelectTrigger className="h-9 bg-background border-border text-xs w-full">
-                              <SelectValue placeholder="-- Pilih Produk --" />
+                              <SelectValue placeholder="-- Pilih Produk --">
+                                {(val: any) => {
+                                  const found = products.find(p => p.id === val);
+                                  return found ? `${found.name} ${found.sku ? `(${found.sku})` : ''}` : (val ? "Memuat..." : "-- Pilih Produk --");
+                                }}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {products.map(p => (

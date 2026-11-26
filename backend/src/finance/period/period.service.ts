@@ -93,4 +93,30 @@ export class PeriodService {
       },
     });
   }
+  async reopenPeriod(companyId: string, periodId: string, userId: string) {
+    const period = await this.prisma.accountingPeriod.findUnique({
+      where: { id: periodId },
+    });
+
+    if (!period || period.company_id !== companyId) {
+      throw new NotFoundException('Period not found');
+    }
+
+    if (period.status === 'LOCKED') {
+      throw new BadRequestException('Periode yang sudah dikunci permanen (LOCKED) tidak dapat dibuka kembali.');
+    }
+
+    if (period.status !== 'CLOSED') {
+      throw new BadRequestException('Hanya periode berstatus CLOSED yang dapat dibuka kembali.');
+    }
+
+    return (this.prisma.accountingPeriod as any).updateMany({
+      where: { id: periodId, status: 'CLOSED' },
+      data: {
+        status: 'OPEN',
+        closed_at: null,
+        closed_by: null,
+      },
+    });
+  }
 }

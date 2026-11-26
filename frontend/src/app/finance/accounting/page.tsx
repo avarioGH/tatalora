@@ -291,7 +291,8 @@ export default function ChartOfAccountsPage() {
                 <TableRow>
                   <TableHead className="w-[50px] pl-4">Kunci</TableHead>
                   <TableHead className="w-[140px]">Kode Akun</TableHead>
-                  <TableHead>Nama Akun</TableHead>
+                  <TableHead>Nama Akun (Hierarki)</TableHead>
+                  <TableHead>Akun Induk</TableHead>
                   <TableHead>Kategori Akun</TableHead>
                   <TableHead>Saldo Normal</TableHead>
                   <TableHead>Mata Uang</TableHead>
@@ -301,7 +302,7 @@ export default function ChartOfAccountsPage() {
               <TableBody>
                 {filteredAccounts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-16 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-16 text-muted-foreground">
                       <p className="text-base font-medium">Belum ada akun yang sesuai kriteria.</p>
                       <p className="text-xs mt-1 text-muted-foreground">Klik &quot;Buat Akun Baru&quot; atau &quot;Impor&quot; untuk menambahkan akun.</p>
                     </TableCell>
@@ -315,8 +316,25 @@ export default function ChartOfAccountsPage() {
                       <TableCell className="font-mono text-xs font-bold text-indigo-600">
                         {acc.account_code}
                       </TableCell>
-                      <TableCell className={`font-medium ${acc.is_header ? 'font-bold text-foreground' : 'text-foreground/90 pl-6'}`}>
-                        {acc.account_name}
+                      <TableCell className={`font-medium ${acc.is_header ? 'font-bold text-foreground' : acc.parent ? 'text-foreground/90 pl-8' : 'text-foreground pl-4'}`}>
+                        <div className="flex items-center gap-1.5">
+                          {acc.parent && <span className="text-muted-foreground text-xs font-mono">↳</span>}
+                          <span>{acc.account_name}</span>
+                          {acc.is_header && (
+                            <Badge variant="secondary" className="text-[10px] ml-1.5 py-0 px-1.5 font-normal">
+                              Header
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {acc.parent ? (
+                          <span className="font-mono bg-muted/60 px-1.5 py-0.5 rounded text-[11px] text-foreground">
+                            {acc.parent.account_code} - {acc.parent.account_name}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground/60 italic">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-xs font-normal">
@@ -373,7 +391,12 @@ export default function ChartOfAccountsPage() {
                   onValueChange={val => setForm({ ...form, account_type_id: val || "" })}
                 >
                   <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Pilih Kategori" />
+                    <SelectValue placeholder="Pilih Kategori">
+                      {(val: any) => {
+                        const found = accountTypes.find(t => t.id === val);
+                        return found ? `${found.name} (${found.normal_balance})` : (val ? "Memuat..." : "Pilih Kategori");
+                      }}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-card">
                     {accountTypes.map(t => (
@@ -401,7 +424,13 @@ export default function ChartOfAccountsPage() {
                 onValueChange={val => setForm({ ...form, parent_id: val || "" })}
               >
                 <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Pilih Akun Induk (Opsional)" />
+                  <SelectValue placeholder="Pilih Akun Induk (Opsional)">
+                    {(val: any) => {
+                      if (!val || val === 'none') return "-- Tanpa Akun Induk (Tingkat Utama) --";
+                      const found = accounts.find(a => a.id === val);
+                      return found ? `(${found.account_code}) - ${found.account_name}` : (val ? "Memuat..." : "Pilih Akun Induk (Opsional)");
+                    }}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-card max-h-56">
                   <SelectItem value="none">-- Tanpa Akun Induk (Tingkat Utama) --</SelectItem>

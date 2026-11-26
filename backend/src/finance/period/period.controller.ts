@@ -43,4 +43,9 @@ export class PeriodController {
     // Ideally requires elevated admin permission
     return this.periodService.lockPeriod(req.user.company_id, id, req.user.id);
   }
+  @Permissions('period.create')
+  @Post(':id/reopen')
+  async reopenPeriod(@Request() req: any, @Param('id') id: string) {
+    return this.periodService.reopenPeriod(req.user.company_id, id, req.user.id);
+  }
 }
