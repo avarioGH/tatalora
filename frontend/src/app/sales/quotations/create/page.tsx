@@ -106,11 +106,11 @@ function QuotationForm() {
         if (editId) {
           const qRes = await B2BApi.getQuotation(editId).catch(() => null)
           if (qRes) {
-            setCustomerId(qRes.customer_id || "")
-            if (qRes.customer) {
-              setEmail(qRes.customer.email || "")
-              setBillingAddress(qRes.customer.address || "")
-            }
+            const custId = qRes.customer_id || ""
+            setCustomerId(custId)
+            const matchedCust = custList.find((c: any) => c.id === custId)
+            setEmail(qRes.email || qRes.customer?.email || matchedCust?.email || "")
+            setBillingAddress(qRes.billing_address || qRes.customer?.address || matchedCust?.address || "")
             if (qRes.quotation_date) {
               setTransactionDate(new Date(qRes.quotation_date).toISOString().split("T")[0])
             }
@@ -143,20 +143,32 @@ function QuotationForm() {
                 const price = Number(it.unit_price) || 0
                 const gross = qty * price
                 const discAmt = Number(it.discount) || 0
-                const discPct = gross > 0 ? Math.round((discAmt / gross) * 10000) / 100 : 0
-                const base = Math.max(0, gross - discAmt)
+                let discPct = 0
+                if (it.discount_percent !== undefined && it.discount_percent !== null) {
+                  discPct = Number(it.discount_percent)
+                } else if (gross > 0) {
+                  discPct = Math.round((discAmt / gross) * 10000) / 100
+                }
+                const base = Math.max(0, gross - (gross * discPct / 100))
                 const taxAmt = Number(it.tax) || 0
-                const taxPct = base > 0 ? Math.round((taxAmt / base) * 10000) / 100 : 0
+                let taxPct = 0
+                if (it.tax_percent !== undefined && it.tax_percent !== null) {
+                  taxPct = Number(it.tax_percent)
+                } else if (it.taxRate !== undefined && it.taxRate !== null) {
+                  taxPct = Number(it.taxRate) * 100
+                } else if (base > 0 && taxAmt > 0) {
+                  taxPct = Math.round((taxAmt / base) * 10000) / 100
+                }
                 return {
                   id: idx + 1,
                   product_id: it.product_id,
                   description: it.description || it.product?.name || "",
                   qty,
-                  unit: it.unit || "Pcs",
+                  unit: it.unit || (typeof it.product?.unit === "string" ? it.product.unit : "Pcs"),
                   price,
                   discount_percent: discPct,
                   tax_percent: taxPct,
-                  total: Number(it.subtotal) || (base + taxAmt)
+                  total: Number(it.subtotal) || (base + (base * taxPct / 100))
                 }
               }))
             }

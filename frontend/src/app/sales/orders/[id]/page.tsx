@@ -151,11 +151,11 @@ export default function SalesOrderDetailPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Status Pengiriman:</span>
-              <Badge variant="outline" className="text-xs">{order.delivery_status || 'PENDING'}</Badge>
+              <Badge variant="outline" className="text-xs">{({ DELIVERED: 'Terkirim Penuh', COMPLETED: 'Terkirim Penuh', PARTIAL: 'Sebagian', PENDING: 'Belum Dikirim' } as any)[order.delivery_status] || order.delivery_status || 'Belum Dikirim'}</Badge>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Status Penagihan:</span>
-              <Badge variant="outline" className="text-xs">{order.invoice_status || 'PENDING'}</Badge>
+              <Badge variant="outline" className="text-xs">{({ PAID: 'Lunas', INVOICED: 'Tertagih', PARTIAL: 'Sebagian', PENDING: 'Belum Ditagih' } as any)[order.invoice_status] || order.invoice_status || 'Belum Ditagih'}</Badge>
             </div>
           </CardContent>
         </Card>

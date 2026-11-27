@@ -34,10 +34,24 @@ import { downloadCSV, parseCSV } from "@/lib/csv-helper"
 
 export default function UnifiedSalesPage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState("Penagihan")
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== "undefined") {
+      const t = new URLSearchParams(window.location.search).get("tab")
+      if (t && ["Penagihan", "Pesanan", "Penawaran", "Pengiriman"].includes(t)) return t
+    }
+    return "Penagihan"
+  })
+
   useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get('tab')
-    if (t && ['Penagihan', 'Pesanan', 'Penawaran', 'Pengiriman'].includes(t)) setActiveTab(t)
+    const handleUrlTab = () => {
+      const t = new URLSearchParams(window.location.search).get("tab")
+      if (t && ["Penagihan", "Pesanan", "Penawaran", "Pengiriman"].includes(t)) {
+        setActiveTab(t)
+      }
+    }
+    handleUrlTab()
+    window.addEventListener("popstate", handleUrlTab)
+    return () => window.removeEventListener("popstate", handleUrlTab)
   }, [])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("Semua")
@@ -342,7 +356,7 @@ export default function UnifiedSalesPage() {
                 <TableCell>{inv.due_date ? new Date(inv.due_date).toLocaleDateString('id-ID') : '-'}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={inv.status === 'PAID' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200'}>
-                    {inv.status === 'PAID' ? 'Lunas' : inv.status}
+                    {({ PAID: 'Lunas', UNPAID: 'Belum Dibayar', PARTIAL: 'Dibayar Sebagian', OVERDUE: 'Jatuh Tempo' } as any)[inv.status] || inv.status}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right font-medium">{formatIDR(inv.remaining_amount)}</TableCell>
@@ -405,7 +419,7 @@ export default function UnifiedSalesPage() {
               <TableRow key={o.id}>
                 <TableCell><input type="checkbox" className="rounded border-gray-300" /></TableCell>
                 <TableCell>{new Date(o.order_date).toLocaleDateString('id-ID')}</TableCell>
-                <TableCell className="text-indigo-600 font-medium">{o.order_number}</TableCell>
+                <TableCell><span onClick={() => router.push(`/sales/orders/${o.id}`)} className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer hover:underline">{o.order_number}</span></TableCell>
                 <TableCell className="text-indigo-600 font-medium">{o.customer?.name || '-'}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={
@@ -450,8 +464,8 @@ export default function UnifiedSalesPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48 bg-card">
-                      <DropdownMenuItem onClick={() => router.push(`/sales/orders`)} className="cursor-pointer">
-                        <Eye className="w-3.5 h-3.5 mr-2" /> Detail
+                      <DropdownMenuItem onClick={() => router.push(`/sales/orders/${o.id}`)} className="cursor-pointer">
+                        <Eye className="w-3.5 h-3.5 mr-2" /> Detail Pesanan
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => router.push(`/sales/deliveries/create?so_id=${o.id}`)} className="cursor-pointer text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50 font-medium">
                         <Truck className="w-3.5 h-3.5 mr-2" /> Buat Surat Jalan
@@ -558,7 +572,7 @@ export default function UnifiedSalesPage() {
                 <TableCell className="text-muted-foreground">{d.sales_order?.order_number || '-'}</TableCell>
                 <TableCell>{d.driver_name || '-'}</TableCell>
                 <TableCell>{d.vehicle_plate || '-'}</TableCell>
-                <TableCell><Badge variant="outline">{d.status}</Badge></TableCell>
+                <TableCell><Badge variant="outline">{({ DELIVERED: 'Terkirim Penuh', COMPLETED: 'Terkirim Penuh', IN_TRANSIT: 'Dalam Perjalanan', PENDING: 'Menunggu Pengiriman', DRAFT: 'Draf' } as any)[d.status] || d.status}</Badge></TableCell>
                 <TableCell className="text-right">
                   <Button variant="outline" size="sm" className="h-8">Tindakan <ChevronDown className="w-3 h-3 ml-1" /></Button>
                 </TableCell>
@@ -781,6 +795,11 @@ export default function UnifiedSalesPage() {
               onClick={() => {
                 setActiveTab(t)
                 setSelectedStatus("Semua")
+                if (typeof window !== "undefined") {
+                  const url = new URL(window.location.href)
+                  url.searchParams.set("tab", t)
+                  window.history.replaceState({}, "", url.toString())
+                }
               }}
               className={`py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === t ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'}`}
             >

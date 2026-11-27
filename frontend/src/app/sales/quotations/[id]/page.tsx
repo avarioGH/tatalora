@@ -245,9 +245,33 @@ export default function QuotationDetailPage() {
                       <TableCell>{item.description || item.product?.name || '-'}</TableCell>
                       <TableCell className="text-right">{item.qty}</TableCell>
                       <TableCell>{item.unit || (typeof item.product?.unit === "string" ? item.product.unit : "Pcs")}</TableCell>
-                      <TableCell className="text-right">{(() => { const g = (Number(item.qty) || 0) * (Number(item.unit_price) || 0); const p = g > 0 ? (Number(item.discount) || 0) / g * 100 : 0; return `${Number.isInteger(p) ? p : p.toFixed(2)}%` })()}</TableCell>
+                      <TableCell className="text-right">{(() => {
+                        const g = (Number(item.qty) || 0) * (Number(item.unit_price) || 0);
+                        const rawDisc = Number(item.discount) || 0;
+                        if (rawDisc === 0) return "0%";
+                        if (g > 0 && rawDisc > 0) {
+                          const pct = (rawDisc / g) * 100;
+                          if (pct <= 100) {
+                            return `${Number.isInteger(pct) ? pct : pct.toFixed(2)}%`;
+                          }
+                          if (rawDisc <= 100) {
+                            return `${rawDisc}%`;
+                          }
+                        }
+                        return new Intl.NumberFormat('id-ID').format(rawDisc);
+                      })()}</TableCell>
                       <TableCell className="text-right">{new Intl.NumberFormat('id-ID').format(item.unit_price)}</TableCell>
-                      <TableCell>{Number(item.tax) > 0 ? "Rp " + new Intl.NumberFormat('id-ID').format(item.tax) : "-"}</TableCell>
+                      <TableCell>{Number(item.tax) > 0 ? (
+                        <div className="flex flex-col text-xs">
+                          <span className="font-medium">Rp {new Intl.NumberFormat('id-ID').format(item.tax)}</span>
+                          <span className="text-[10px] text-muted-foreground">{(() => {
+                            const g = (Number(item.qty) || 0) * (Number(item.unit_price) || 0);
+                            const d = Number(item.discount) || 0;
+                            const dpp = Math.max(0, g - (d <= 100 && d > 0 ? (g * d / 100) : d));
+                            return dpp > 0 ? `(${Math.round((Number(item.tax) / dpp) * 100)}%)` : '';
+                          })()}</span>
+                        </div>
+                      ) : "-"}</TableCell>
                       <TableCell className="text-right">{new Intl.NumberFormat('id-ID').format(item.subtotal)}</TableCell>
                     </TableRow>
                   ))}
@@ -305,7 +329,7 @@ export default function QuotationDetailPage() {
                     <div className="font-medium text-indigo-600 cursor-pointer hover:underline" onClick={() => router.push('/sales/orders/' + so.id)}>
                       Pemesanan: {so.order_number}
                     </div>
-                    <span className="text-sm bg-muted px-2 py-1 rounded-md">{so.status}</span>
+                    <span className="text-sm bg-muted px-2 py-1 rounded-md">{({ CONFIRMED: 'Dikonfirmasi', COMPLETED: 'Selesai', PENDING: 'Menunggu', CANCELLED: 'Dibatalkan' } as any)[so.status] || so.status}</span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
                     <span>{so.order_date && !isNaN(new Date(so.order_date).getTime()) ? new Date(so.order_date).toLocaleDateString('id-ID') : '-'}</span>
@@ -319,7 +343,7 @@ export default function QuotationDetailPage() {
                         <div className="text-sm font-medium text-indigo-500 cursor-pointer hover:underline" onClick={() => router.push('/sales/deliveries/' + del.id)}>
                           Pengiriman: {del.delivery_number}
                         </div>
-                        <span className="text-xs bg-muted px-2 py-1 rounded-md">{del.status}</span>
+                        <span className="text-xs bg-muted px-2 py-1 rounded-md">{({ DELIVERED: 'Terkirim', COMPLETED: 'Terkirim', PENDING: 'Menunggu', IN_TRANSIT: 'Dalam Perjalanan' } as any)[del.status] || del.status}</span>
                       </div>
                     </div>
                   ))}
@@ -331,7 +355,7 @@ export default function QuotationDetailPage() {
                         <div className="text-sm font-medium text-emerald-600 cursor-pointer hover:underline" onClick={() => router.push('/sales/invoices/' + inv.id)}>
                           Tagihan: {inv.invoice_number}
                         </div>
-                        <span className="text-xs bg-muted px-2 py-1 rounded-md">{inv.status}</span>
+                        <span className="text-xs bg-muted px-2 py-1 rounded-md">{({ PAID: 'Lunas', UNPAID: 'Belum Dibayar', PARTIAL: 'Sebagian', OVERDUE: 'Jatuh Tempo' } as any)[inv.status] || inv.status}</span>
                       </div>
                     </div>
                   ))}

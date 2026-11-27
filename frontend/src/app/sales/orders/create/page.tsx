@@ -772,12 +772,12 @@ export default function CreateSalesOrderPage() {
                     value={discountType} 
                     onValueChange={(v: any) => setDiscountType(v)}
                   >
-                    <SelectTrigger className="w-18 h-8 bg-background border-border text-xs">
-                      <SelectValue />
+                    <SelectTrigger className="w-24 h-8 bg-background border-border text-xs">
+                      <SelectValue>{discountType === "percent" ? "Persen (%)" : "Nominal (Rp)"}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="percent">%</SelectItem>
-                      <SelectItem value="amount">Rp</SelectItem>
+                      <SelectItem value="percent">Persen (%)</SelectItem>
+                      <SelectItem value="amount">Nominal (Rp)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
