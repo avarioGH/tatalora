@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import React, { useState, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { 
   Card, CardContent, CardDescription, CardHeader, CardTitle 
 } from "@/components/ui/card"
@@ -12,13 +12,15 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { 
-  ShoppingCart, FileText, CheckCircle2, Clock, AlertCircle, ArrowLeft, 
-  Download, Search, RefreshCw, Printer, Calendar, Building2, Truck
+  ShoppingCart, CheckCircle2, Clock, ArrowLeft, 
+  Search, RefreshCw, Printer
 } from "lucide-react"
 import { api } from "@/lib/api"
 
-export default function PurchasingReportPage() {
+function PurchasingReportContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isOrdersView = searchParams?.get("view") === "orders"
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
@@ -44,7 +46,7 @@ export default function PurchasingReportPage() {
       setInvoices(invRes?.data?.data || invRes?.data || [])
       setReceipts(recRes?.data?.data || recRes?.data || [])
     } catch (err) {
-      console.error("Failed to load purchasing report", err)
+      console.error("Gagal memuat laporan pembelian", err)
     } finally {
       setLoading(false)
     }
@@ -54,10 +56,74 @@ export default function PurchasingReportPage() {
     return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0)
   }
 
-  // Summary figures
+  const formatPoStatus = (st?: string) => {
+    switch (st) {
+      case 'CONFIRMED': return 'Dikonfirmasi'
+      case 'DRAFT': return 'Draf'
+      case 'COMPLETED': return 'Selesai'
+      case 'CANCELLED': return 'Dibatalkan'
+      default: return st || 'Draf'
+    }
+  }
+
+  const formatReceiptStatus = (st?: string, receivedQty?: number, orderedQty?: number) => {
+    if (st === 'RECEIVED' || st === 'FULLY_RECEIVED' || (orderedQty && receivedQty && receivedQty >= orderedQty)) {
+      return { label: 'Diterima Penuh', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+    }
+    if (st === 'PARTIAL' || st === 'PARTIALLY_RECEIVED' || (receivedQty && receivedQty > 0)) {
+      return { label: 'Diterima Sebagian', className: 'bg-blue-50 text-blue-700 border-blue-200' }
+    }
+    return { label: 'Menunggu GRN', className: 'bg-amber-50 text-amber-700 border-amber-200' }
+  }
+
+  const formatBillStatus = (st?: string) => {
+    switch (st) {
+      case 'BILLED':
+      case 'FULLY_BILLED':
+      case 'INVOICED':
+      case 'PAID':
+        return { label: 'Sudah Ditagih', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+      case 'PARTIAL':
+      case 'PARTIALLY_BILLED':
+        return { label: 'Ditagih Sebagian', className: 'bg-blue-50 text-blue-700 border-blue-200' }
+      default:
+        return { label: 'Belum Ditagih', className: 'bg-slate-100 text-slate-700 border-slate-200' }
+    }
+  }
+
+  const computePoFulfillment = (o: any) => {
+    const items = Array.isArray(o.items) ? o.items : []
+    let orderedQty = items.reduce((sum: number, it: any) => sum + Number(it.quantity ?? it.qty ?? 0), 0)
+    let receivedQty = items.reduce((sum: number, it: any) => sum + Number(it.received_qty ?? it.qty_received ?? 0), 0)
+
+    const linkedGrns = receipts.filter((r: any) => r.purchase_order_id === o.id || r.purchase_order?.id === o.id)
+    if (receivedQty === 0 && linkedGrns.length > 0) {
+      receivedQty = linkedGrns.reduce((sum: number, r: any) => {
+        const rItems = Array.isArray(r.items) ? r.items : []
+        return sum + rItems.reduce((s: number, ri: any) => s + Number(ri.quantity_received ?? ri.qty_received ?? ri.quantity ?? 0), 0)
+      }, 0)
+    }
+
+    if (orderedQty === 0) orderedQty = Math.max(receivedQty, 1)
+    if (receivedQty === 0 && (o.receipt_status === 'RECEIVED' || o.receipt_status === 'FULLY_RECEIVED' || o.status === 'COMPLETED')) {
+      receivedQty = orderedQty
+    }
+
+    const remainingQty = Math.max(0, orderedQty - receivedQty)
+    const grnNumbers = linkedGrns.map((r: any) => r.receipt_number).filter(Boolean)
+    return { orderedQty, receivedQty, remainingQty, grnNumbers }
+  }
+
   const totalPurchaseValue = orders.reduce((sum, o) => sum + (Number(o.total_amount) || Number(o.total) || 0), 0)
   const totalPaid = invoices.reduce((sum, i) => sum + (Number(i.paid_amount) || 0), 0)
   const totalOutstanding = invoices.reduce((sum, i) => sum + (Number(i.remaining_amount) || Number(i.outstanding_balance) || 0), 0)
+
+  const statusFilterLabels: Record<string, string> = {
+    ALL: 'Semua',
+    CONFIRMED: 'Dikonfirmasi',
+    DRAFT: 'Draf',
+    COMPLETED: 'Selesai',
+  }
 
   const filteredOrders = orders.filter(o => {
     const matchSearch = 
@@ -81,10 +147,12 @@ export default function PurchasingReportPage() {
           </button>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <ShoppingCart className="h-7 w-7 text-teal-600" />
-            Laporan Analitik Pembelian & Pengadaan
+            {isOrdersView ? "Laporan Pemenuhan Pesanan Pembelian (PO)" : "Laporan Analitik Pembelian & Pengadaan"}
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Audit rincian pesanan pembelian (PO), pelunasan tagihan supplier, dan riwayat penerimaan barang.
+            {isOrdersView
+              ? "Pantau kuantitas pesanan pembelian (PO), penerimaan barang (GRN), dan sisa pesanan yang belum diterima."
+              : "Audit rincian pesanan pembelian (PO), pelunasan tagihan pemasok, dan riwayat penerimaan barang."}
           </p>
         </div>
 
@@ -116,7 +184,7 @@ export default function PurchasingReportPage() {
         <Card className="border shadow-sm bg-card">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-2">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Terbayar ke Supplier</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Terbayar ke Pemasok</span>
               <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-600">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
@@ -146,14 +214,14 @@ export default function PurchasingReportPage() {
           <div className="relative w-full md:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input 
-              placeholder="Cari No. PO atau nama supplier..." 
+              placeholder="Cari No. PO atau nama pemasok..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 bg-card text-sm"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="flex items-center gap-2 w-full md:w-auto flex-wrap">
             <span className="text-xs text-muted-foreground font-medium">Status PO:</span>
             {['ALL', 'CONFIRMED', 'DRAFT', 'COMPLETED'].map((st) => (
               <button
@@ -165,7 +233,7 @@ export default function PurchasingReportPage() {
                     : 'bg-muted text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {st === 'ALL' ? 'Semua' : st}
+                {statusFilterLabels[st] || st}
               </button>
             ))}
           </div>
@@ -176,8 +244,8 @@ export default function PurchasingReportPage() {
       <Card className="border shadow-sm overflow-hidden">
         <CardHeader className="border-b bg-muted/40 py-4 px-6 flex justify-between items-center flex-row">
           <div>
-            <CardTitle className="text-base font-bold">Rincian Transaksi Pesanan Pembelian (Purchase Orders)</CardTitle>
-            <CardDescription className="text-xs">Menampilkan data riil pesanan dan status pemenuhan logistik</CardDescription>
+            <CardTitle className="text-base font-bold">Rincian Pemenuhan Pesanan Pembelian (Purchase Orders)</CardTitle>
+            <CardDescription className="text-xs">Menampilkan kuantitas dipesan, diterima via GRN, sisa kirim, dan status tagihan</CardDescription>
           </div>
           <Badge variant="outline" className="text-xs bg-card">
             {filteredOrders.length} Dokumen
@@ -189,66 +257,101 @@ export default function PurchasingReportPage() {
               <TableRow>
                 <TableHead>No. Dokumen PO</TableHead>
                 <TableHead>Tanggal</TableHead>
-                <TableHead>Vendor / Supplier</TableHead>
+                <TableHead>Pemasok</TableHead>
+                <TableHead className="text-center">Qty Dipesan</TableHead>
+                <TableHead className="text-center">Diterima (GRN)</TableHead>
+                <TableHead className="text-center">Sisa PO</TableHead>
                 <TableHead>Status PO</TableHead>
                 <TableHead>Penerimaan (GRN)</TableHead>
-                <TableHead>Tagihan (Bill)</TableHead>
+                <TableHead>Tagihan (Faktur)</TableHead>
                 <TableHead className="text-right">Total Nilai</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center py-10 text-muted-foreground">
                     Memuat data laporan pembelian...
                   </TableCell>
                 </TableRow>
               ) : filteredOrders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
                     <ShoppingCart className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                     Belum ada transaksi pembelian yang tercatat.
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredOrders.map((o) => (
-                  <TableRow key={o.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => router.push(`/purchasing/orders/${o.id}`)}>
-                    <TableCell className="font-semibold text-teal-600">{o.order_number}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {o.order_date ? new Date(o.order_date).toLocaleDateString('id-ID') : '-'}
-                    </TableCell>
-                    <TableCell className="font-medium text-foreground">
-                      {o.supplier?.name || o.supplier_name || 'Vendor Umum'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={`text-[11px] ${
-                        o.status === 'CONFIRMED' ? 'border-teal-500 text-teal-600 bg-teal-50/50' :
-                        o.status === 'DRAFT' ? 'border-amber-500 text-amber-600 bg-amber-50/50' :
-                        'border-slate-300 text-slate-600'
-                      }`}>
-                        {o.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="text-[10px]">
-                        {o.receipt_status || 'PENDING'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="text-[10px]">
-                        {o.bill_status || 'PENDING'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-foreground">
-                      {formatIDR(Number(o.total_amount) || 0)}
-                    </TableCell>
-                  </TableRow>
-                ))
+                filteredOrders.map((o) => {
+                  const { orderedQty, receivedQty, remainingQty, grnNumbers } = computePoFulfillment(o)
+                  const recBadge = formatReceiptStatus(o.receipt_status, receivedQty, orderedQty)
+                  const billBadge = formatBillStatus(o.bill_status)
+
+                  return (
+                    <TableRow key={o.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => router.push(`/purchasing/orders/${o.id}`)}>
+                      <TableCell className="font-semibold text-teal-600">
+                        <div>{o.order_number}</div>
+                        {grnNumbers.length > 0 && (
+                          <div className="text-[10px] text-muted-foreground font-mono mt-0.5">
+                            GRN: {grnNumbers.join(', ')}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {o.order_date ? new Date(o.order_date).toLocaleDateString('id-ID') : '-'}
+                      </TableCell>
+                      <TableCell className="font-medium text-foreground">
+                        {o.supplier?.name || o.supplier_name || 'Pemasok Umum'}
+                      </TableCell>
+                      <TableCell className="text-center font-mono text-xs font-semibold">
+                        {orderedQty}
+                      </TableCell>
+                      <TableCell className="text-center font-mono text-xs font-semibold text-emerald-600">
+                        {receivedQty}
+                      </TableCell>
+                      <TableCell className="text-center font-mono text-xs font-bold">
+                        <span className={remainingQty > 0 ? "text-amber-600" : "text-slate-400"}>
+                          {remainingQty}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`text-[11px] ${
+                          o.status === 'CONFIRMED' ? 'border-teal-500 text-teal-600 bg-teal-50/50' :
+                          o.status === 'DRAFT' ? 'border-amber-500 text-amber-600 bg-amber-50/50' :
+                          'border-slate-300 text-slate-600'
+                        }`}>
+                          {formatPoStatus(o.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`text-[10px] ${recBadge.className}`}>
+                          {recBadge.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`text-[10px] ${billBadge.className}`}>
+                          {billBadge.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-foreground">
+                        {formatIDR(Number(o.total_amount) || 0)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function PurchasingReportPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground">Memuat laporan pembelian...</div>}>
+      <PurchasingReportContent />
+    </Suspense>
   )
 }

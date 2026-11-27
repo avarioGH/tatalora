@@ -541,13 +541,16 @@ export class FinanceService {
     const cashAccounts = await this.prisma.cashAccount.findMany({
       where: { company_id: companyId },
       include: { chart_of_account: { include: { account_type: true } } },
+      orderBy: { created_at: 'asc' },
     });
 
     const results: any[] = [];
+    const claimedCoaIds = new Set<string>();
 
-    for (const ca of cashAccounts) {
+    for (let idx = 0; idx < cashAccounts.length; idx++) {
+      const ca = cashAccounts[idx];
       const operationalBalance = Math.round(Number(ca.current_balance || 0) * 100) / 100;
-      const openingBalance = Math.round(Number(ca.opening_balance || 0) * 100) / 100;
+      let openingBalance = Math.round(Number(ca.opening_balance || 0) * 100) / 100;
 
       // Aggregate operational FinanceTransactions for this cash account
       const txs = await this.prisma.financeTransaction.findMany({
@@ -567,9 +570,9 @@ export class FinanceService {
         if (t.reference_type === 'PAYMENT_REVERSAL') {
           reversalMovements += amt;
         }
-        if (t.transaction_type === 'Cash In') {
+        if (t.transaction_type === 'Cash In' || t.transaction_type === 'Income' || t.transaction_type === 'Transfer In') {
           cashInflows += amt;
-        } else if (t.transaction_type === 'Cash Out') {
+        } else if (t.transaction_type === 'Cash Out' || t.transaction_type === 'Expense' || t.transaction_type === 'Transfer Out') {
           cashOutflows += amt;
         }
       }
@@ -577,6 +580,16 @@ export class FinanceService {
       cashInflows = Math.round(cashInflows * 100) / 100;
       cashOutflows = Math.round(cashOutflows * 100) / 100;
       reversalMovements = Math.round(reversalMovements * 100) / 100;
+
+      // Self-heal legacy seeded cash accounts where current_balance > 0 but opening_balance was 0 with no transactions
+      if (openingBalance === 0 && cashInflows === 0 && cashOutflows === 0 && operationalBalance > 0) {
+        openingBalance = operationalBalance;
+        await this.prisma.cashAccount.update({
+          where: { id: ca.id },
+          data: { opening_balance: openingBalance },
+        }).catch(() => {});
+      }
+
       const calculatedOperationalClosing = Math.round((openingBalance + cashInflows - cashOutflows) * 100) / 100;
 
       if (!ca.chart_of_account_id) {
@@ -601,8 +614,49 @@ export class FinanceService {
         continue;
       }
 
+      // If multiple CashAccounts share the exact same COA (e.g. Kas Kecil & Bank BCA both mapped to 1-1001),
+      // separate the duplicate onto its own dedicated COA so GL balances do not collide.
+      if (claimedCoaIds.has(ca.chart_of_account_id) && ca.chart_of_account) {
+        const candidateCode = `1-100${idx + 1}`;
+        let dedicatedCoa = await this.prisma.chartOfAccount.findFirst({
+          where: {
+            company_id: companyId,
+            OR: [
+              { account_code: candidateCode },
+              { account_name: ca.name },
+            ],
+            id: { notIn: Array.from(claimedCoaIds) },
+          },
+          include: { account_type: true },
+        });
+
+        if (!dedicatedCoa) {
+          dedicatedCoa = await this.prisma.chartOfAccount.create({
+            data: {
+              company_id: companyId,
+              account_code: candidateCode,
+              account_name: ca.name,
+              account_type_id: ca.chart_of_account.account_type_id,
+              currency: ca.currency || 'IDR',
+              allow_manual_entry: true,
+              status: true,
+            },
+            include: { account_type: true },
+          }).catch(() => null as any);
+        }
+
+        if (dedicatedCoa) {
+          await this.prisma.cashAccount.update({
+            where: { id: ca.id },
+            data: { chart_of_account_id: dedicatedCoa.id },
+          }).catch(() => {});
+          ca.chart_of_account_id = dedicatedCoa.id;
+          ca.chart_of_account = dedicatedCoa;
+        }
+      }
+      claimedCoaIds.add(ca.chart_of_account_id);
+
       // Calculate GL Balance: Posted active journals plus original Reversed journals
-      // (When a journal is reversed, its status becomes 'Reversed' and a compensating journal is created with status 'Posted' and swapped debit/credit. Both must be included so they cancel out).
       const glItems = await this.prisma.journalEntryItem.aggregate({
         where: {
           account_id: ca.chart_of_account_id,
@@ -614,13 +668,113 @@ export class FinanceService {
         _sum: { debit: true, credit: true },
       });
 
-      const debit = Math.round(Number(glItems._sum.debit || 0) * 100) / 100;
-      const credit = Math.round(Number(glItems._sum.credit || 0) * 100) / 100;
+      let debit = Math.round(Number(glItems._sum.debit || 0) * 100) / 100;
+      let credit = Math.round(Number(glItems._sum.credit || 0) * 100) / 100;
       let glNet = debit - credit;
       if (ca.chart_of_account?.account_type?.normal_balance === 'Credit') {
         glNet = credit - debit;
       }
-      const glBalance = Math.round((openingBalance + glNet) * 100) / 100;
+
+      // Check if an OPENING_BALANCE journal entry exists for this cash account
+      let openingJournal = await this.prisma.journalEntry.findFirst({
+        where: {
+          company_id: companyId,
+          reference_type: 'OPENING_BALANCE',
+          reference_id: ca.id,
+          status: 'Posted',
+        },
+      });
+
+      // If openingBalance > 0 and no journals exist yet for this cash account's COA, post the Opening Balance Journal Entry
+      // so Buku Besar (/finance/gl) and Rekonsiliasi Kas & GL are 100% synchronized (BARU-04)
+      if (openingBalance > 0 && !openingJournal && glNet === 0) {
+        let equityType = await this.prisma.accountType.findFirst({
+          where: {
+            company_id: companyId,
+            OR: [{ code: 'EQUITY' }, { name: { contains: 'Modal', mode: 'insensitive' } }],
+          },
+        });
+        if (!equityType) {
+          equityType = await this.prisma.accountType.create({
+            data: {
+              company_id: companyId,
+              code: 'EQUITY',
+              name: 'Modal / Ekuitas',
+              normal_balance: 'Credit',
+            },
+          }).catch(() => null as any);
+        }
+
+        if (equityType) {
+          let equityCoa = await this.prisma.chartOfAccount.findFirst({
+            where: {
+              company_id: companyId,
+              OR: [
+                { account_code: '3-30001' },
+                { account_code: '3-1000' },
+                { account_type_id: equityType.id },
+              ],
+            },
+          });
+          if (!equityCoa) {
+            equityCoa = await this.prisma.chartOfAccount.create({
+              data: {
+                company_id: companyId,
+                account_code: '3-30001',
+                account_name: 'Modal Disetor / Saldo Awal',
+                account_type_id: equityType.id,
+                currency: 'IDR',
+                allow_manual_entry: true,
+                status: true,
+              },
+            }).catch(() => null as any);
+          }
+
+          if (equityCoa) {
+            openingJournal = await this.prisma.journalEntry.create({
+              data: {
+                company_id: companyId,
+                journal_no: `JNL-OB-${ca.code || idx + 1}`,
+                journal_date: ca.created_at || new Date(),
+                reference_type: 'OPENING_BALANCE',
+                reference_id: ca.id,
+                idempotency_key: `${companyId}-OPENING_BALANCE-${ca.id}`,
+                description: `Saldo Awal Kas & Bank - ${ca.name} (${ca.code})`,
+                status: 'Posted',
+                created_by: '000000000000000000000999',
+                items: {
+                  create: [
+                    {
+                      account_id: ca.chart_of_account_id,
+                      debit: openingBalance,
+                      credit: 0,
+                      description: `Saldo Awal ${ca.name}`,
+                    },
+                    {
+                      account_id: equityCoa.id,
+                      debit: 0,
+                      credit: openingBalance,
+                      description: `Penyeimbang Saldo Awal ${ca.name}`,
+                    },
+                  ],
+                },
+              },
+            }).catch(() => null as any);
+
+            if (openingJournal) {
+              debit += openingBalance;
+              glNet = debit - credit;
+              if (ca.chart_of_account?.account_type?.normal_balance === 'Credit') {
+                glNet = credit - debit;
+              }
+            }
+          }
+        }
+      }
+
+      const glBalance = openingJournal
+        ? Math.round(glNet * 100) / 100
+        : Math.round((openingBalance + glNet) * 100) / 100;
       const difference = Math.round(Math.abs(operationalBalance - glBalance) * 100) / 100;
       const isMatched = difference <= 0.01;
 
@@ -686,16 +840,23 @@ export class FinanceService {
         throw new BadRequestException('Rekening tujuan tidak ditemukan');
       }
 
-      // 1. Update balances
-      await tx.cashAccount.update({
-        where: { id: fromAccountId },
-        data: { current_balance: { decrement: amount } },
-      });
+      // 1. Update balances manually only if GL journal won't auto-update them
+      const willAutoUpdateViaGl =
+        fromAccount.chart_of_account_id &&
+        toAccount.chart_of_account_id &&
+        fromAccount.chart_of_account_id !== toAccount.chart_of_account_id;
 
-      await tx.cashAccount.update({
-        where: { id: toAccountId },
-        data: { current_balance: { increment: amount } },
-      });
+      if (!willAutoUpdateViaGl) {
+        await tx.cashAccount.update({
+          where: { id: fromAccountId },
+          data: { current_balance: { decrement: amount } },
+        });
+
+        await tx.cashAccount.update({
+          where: { id: toAccountId },
+          data: { current_balance: { increment: amount } },
+        });
+      }
 
       // 2. Create outgoing & incoming FinanceTransaction
       const transferOutNo = `TRF-OUT-${Date.now()}`;

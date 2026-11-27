@@ -13,7 +13,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table"
 import { 
-  Search, Plus, Flame, Filter, ChevronDown, FolderOpen, Loader2
+  Search, Plus, Flame, Filter, FolderOpen, Loader2, SlidersHorizontal, Boxes
 } from "lucide-react"
 import { DisposalAPI, api } from "@/lib/api"
 
@@ -49,7 +49,7 @@ export default function DisposalsPage() {
       case "Menunggu Persetujuan": 
         return <Badge className="bg-amber-500/10 text-amber-600 hover:bg-amber-500/10 border-0 font-medium px-2.5 py-0.5">Menunggu Persetujuan</Badge>
       default: 
-        return <Badge variant="outline">{status || 'Draft'}</Badge>
+        return <Badge variant="outline">{status || 'Draf'}</Badge>
     }
   }
 
@@ -70,12 +70,24 @@ export default function DisposalsPage() {
             <div className="p-2 bg-rose-500/10 rounded-lg">
               <Flame className="h-6 w-6 text-rose-600" />
             </div>
-            Pemusnahan Stok
+            Penyesuaian & Pemusnahan Stok
           </h1>
-          <p className="text-muted-foreground mt-1">Catat dan pantau barang yang dimusnahkan karena rusak atau kedaluwarsa.</p>
+          <p className="text-muted-foreground mt-1">
+            Catat dan pantau barang yang dimusnahkan (rusak/kedaluwarsa) maupun penyesuaian selisih opname gudang.
+          </p>
         </div>
         
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <Link href="/inventory/stock">
+            <Button variant="outline" className="gap-2 border-border bg-card w-full sm:w-auto">
+              <Boxes className="h-4 w-4 text-slate-600" /> Kartu & Mutasi Stok
+            </Button>
+          </Link>
+          <Link href="/inventory/adjustments/create">
+            <Button variant="outline" className="gap-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 bg-card w-full sm:w-auto">
+              <SlidersHorizontal className="h-4 w-4" /> Penyesuaian Stok (Opname)
+            </Button>
+          </Link>
           <Link href="/inventory/disposals/create">
             <Button className="gap-2 bg-rose-600 hover:bg-rose-700 text-white shadow-sm w-full sm:w-auto">
               <Plus className="h-4 w-4" /> Catat Pemusnahan
@@ -110,7 +122,7 @@ export default function DisposalsPage() {
           <div className="overflow-x-auto">
             {loading ? (
               <div className="p-12 text-center text-muted-foreground flex items-center justify-center gap-2">
-                <Loader2 className="w-5 h-5 animate-spin" /> Memuat data pemusnahan stok dari database...
+                <Loader2 className="w-5 h-5 animate-spin" /> Memuat data pemusnahan stok...
               </div>
             ) : (
               <Table>

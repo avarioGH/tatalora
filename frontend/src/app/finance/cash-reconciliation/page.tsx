@@ -1,12 +1,11 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, ArrowLeft, CheckCircle2, AlertTriangle, HelpCircle } from 'lucide-react';
+import { RefreshCw, ArrowLeft, CheckCircle2, AlertTriangle, BookOpen } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function CashReconciliationPage() {
@@ -45,25 +44,31 @@ export default function CashReconciliationPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">
-              Rekonsiliasi Kas & Buku Besar (Cash & GL Reconciliation)
+              Rekonsiliasi Kas & Buku Besar
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Bandingkan saldo operasional kas fisik dengan saldo akun kas yang tercatat pada General Ledger.
+              Bandingkan saldo operasional kas/bank dengan saldo akun yang tercatat pada Buku Besar (General Ledger).
             </p>
           </div>
         </div>
 
-        <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="gap-2">
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Perbarui Rekonsiliasi
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => router.push('/finance/gl')} className="gap-2">
+            <BookOpen className="w-4 h-4" />
+            Lihat Buku Besar
+          </Button>
+          <Button variant="outline" size="sm" onClick={loadData} disabled={loading} className="gap-2">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Perbarui Rekonsiliasi
+          </Button>
+        </div>
       </div>
 
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold">Daftar Akun Kas & Status Keseimbangan</CardTitle>
           <CardDescription>
-            Selisih bernilai Rp0 menandakan transaksi kas operasional dan pencatatan akuntansi double-entry seimbang.
+            Selisih bernilai Rp0 menandakan transaksi kas operasional dan pencatatan akuntansi berpasangan (double-entry) telah seimbang.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -119,7 +124,7 @@ export default function CashReconciliationPage() {
                             <span className="text-xs font-medium text-foreground">{row.mappedAccount}</span>
                           ) : (
                             <span className="text-xs text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                              Belum Dipetakan (Unmapped)
+                              Belum Dipetakan
                             </span>
                           )}
                         </td>
@@ -139,15 +144,15 @@ export default function CashReconciliationPage() {
                         <td className="py-3 px-4 text-center">
                           {isUnmapped ? (
                             <Badge variant="outline" className="bg-slate-100 text-slate-700 border-slate-300">
-                              UNMAPPED
+                              Belum Dipetakan
                             </Badge>
                           ) : isReconciled ? (
                             <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1">
-                              <CheckCircle2 className="w-3 h-3" /> MATCHED
+                              <CheckCircle2 className="w-3 h-3" /> Sesuai
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 gap-1">
-                              <AlertTriangle className="w-3 h-3" /> MISMATCH
+                              <AlertTriangle className="w-3 h-3" /> Selisih
                             </Badge>
                           )}
                         </td>

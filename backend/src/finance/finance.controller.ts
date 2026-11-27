@@ -35,6 +35,7 @@ export class FinanceController {
   @Get('accounts')
   async getCashAccounts(@Request() req) {
     const companyId = req.user.company_id || req.user.companyId;
+    await this.financeService.getCashReconciliation(companyId).catch(() => {});
     return this.prisma.cashAccount.findMany({
       where: { company_id: companyId },
       include: { chart_of_account: true },
@@ -207,11 +208,47 @@ export class FinanceController {
   @Permissions('finance.create')
   @Post('accounts')
   async createCashAccount(@Request() req, @Body() data: any) {
-    const companyId = req.user.company_id;
+    const companyId = req.user.company_id || req.user.companyId;
     if (!data.name || !data.code) {
       throw new BadRequestException('Nama dan kode akun kas/bank wajib diisi');
     }
-    return this.prisma.cashAccount.create({
+
+    let assetType = await this.prisma.accountType.findFirst({
+      where: {
+        company_id: companyId,
+        OR: [{ code: 'ASSET' }, { name: { contains: 'Kas', mode: 'insensitive' } }],
+      },
+    });
+    if (!assetType) {
+      assetType = await this.prisma.accountType.create({
+        data: {
+          company_id: companyId,
+          code: 'ASSET',
+          name: 'Kas & Bank',
+          normal_balance: 'Debit',
+        },
+      }).catch(() => null as any);
+    }
+
+    let coaId: string | undefined = data.chart_of_account_id;
+    if (!coaId && assetType) {
+      const existingCount = await this.prisma.cashAccount.count({ where: { company_id: companyId } });
+      const coaCode = `1-100${existingCount + 1}`;
+      const dedicatedCoa = await this.prisma.chartOfAccount.create({
+        data: {
+          company_id: companyId,
+          account_code: coaCode,
+          account_name: data.name,
+          account_type_id: assetType.id,
+          currency: data.currency || 'IDR',
+          allow_manual_entry: true,
+          status: true,
+        },
+      }).catch(() => null as any);
+      if (dedicatedCoa) coaId = dedicatedCoa.id;
+    }
+
+    const created = await this.prisma.cashAccount.create({
       data: {
         company_id: companyId,
         code: data.code,
@@ -219,10 +256,18 @@ export class FinanceController {
         account_type: data.account_type || 'Cash',
         opening_balance: Number(data.opening_balance || 0),
         current_balance: Number(data.opening_balance || 0),
+        chart_of_account_id: coaId,
         currency: data.currency || 'IDR',
         status: true,
       },
+      include: { chart_of_account: true },
     });
+
+    if (Number(data.opening_balance || 0) > 0) {
+      await this.financeService.getCashReconciliation(companyId).catch(() => {});
+    }
+
+    return created;
   }
 
   @Permissions('finance.create')
