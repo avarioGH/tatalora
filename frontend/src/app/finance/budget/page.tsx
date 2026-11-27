@@ -56,7 +56,7 @@ export default function BudgetManagementPage() {
       setAccounts(rawAccounts)
     } catch (err) {
       console.error("Error loading budget data:", err)
-      toast.error("Gagal memuat data anggaran riil")
+      toast.error("Gagal memuat data anggaran")
     } finally {
       setLoading(false)
     }
@@ -152,7 +152,7 @@ export default function BudgetManagementPage() {
             <DialogContent className="sm:max-w-md bg-card border-border text-foreground">
               <form onSubmit={handleCreateBudget}>
                 <DialogHeader>
-                  <DialogTitle>Tambah Pos Anggaran Riil</DialogTitle>
+                  <DialogTitle>Tambah Pos Anggaran Baru</DialogTitle>
                   <DialogDescription>
                     Pilih kategori dari master Chart of Accounts/Kategori Keuangan dan tentukan plafon anggarannya.
                   </DialogDescription>
@@ -353,14 +353,14 @@ export default function BudgetManagementPage() {
                     <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                        <span>Memuat data anggaran riil dari database...</span>
+                        <span>Memuat data anggaran...</span>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : filtered.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
-                      Belum ada data anggaran yang tersimpan. Klik tombol <strong>"Buat Anggaran Baru"</strong> di atas untuk membuat pos anggaran riil.
+                      Belum ada data anggaran yang tersimpan. Klik tombol <strong>"Buat Anggaran Baru"</strong> di atas untuk membuat pos anggaran.
                     </TableCell>
                   </TableRow>
                 ) : (

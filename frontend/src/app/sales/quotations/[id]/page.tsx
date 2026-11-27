@@ -64,9 +64,13 @@ export default function QuotationDetailPage() {
   const handleConfirm = async () => {
     if (!data) return
     try {
-      await B2BApi.confirmQuotation(data.id)
+      const res = await B2BApi.confirmQuotation(data.id)
       alert("Penawaran berhasil dikonversi menjadi Pemesanan (Sales Order)!")
-      router.push('/sales')
+      if (res?.salesOrder?.id) {
+        router.push('/sales/orders/' + res.salesOrder.id)
+      } else {
+        router.push('/sales?tab=Pesanan')
+      }
     } catch (e: any) {
       alert("Gagal konversi: " + (e.response?.data?.message || e.message))
     }
@@ -89,7 +93,7 @@ export default function QuotationDetailPage() {
       try {
         await B2BApi.deleteQuotation(data.id)
         alert('Penawaran berhasil dihapus')
-        router.push('/sales')
+        router.push('/sales?tab=Penawaran')
       } catch (err: any) {
         alert('Gagal menghapus penawaran: ' + (err.response?.data?.message || err.message))
       }
@@ -119,7 +123,7 @@ export default function QuotationDetailPage() {
                 data.status === 'CONVERTED' || data.status === 'CONFIRMED' ? 'bg-indigo-100 text-indigo-700' :
                 'bg-rose-100 text-rose-700'
               }`}>
-                {data.status === 'DRAFT' ? 'Draft' :
+                {data.status === 'DRAFT' ? 'Draf' :
                  data.status === 'SENT' ? 'Terkirim' :
                  data.status === 'ACCEPTED' ? 'Disetujui Pelanggan' :
                  data.status === 'CONVERTED' || data.status === 'CONFIRMED' ? 'Dikonversi ke SO' :
@@ -160,7 +164,12 @@ export default function QuotationDetailPage() {
                   <Button onClick={() => router.push('/sales/invoices/create?quotation_id=' + data.id)} className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2">
                     <Plus className="w-4 h-4" /> Buat Tagihan
                   </Button>
-                  <Button onClick={() => router.push('/sales/deliveries/create')} className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
+                  {data.sales_orders && data.sales_orders.length > 0 && (
+                    <Button onClick={() => router.push('/sales/orders/' + data.sales_orders[0].id)} variant="outline" className="border-indigo-300 text-indigo-600 hover:bg-indigo-50 gap-2">
+                      Lihat Pesanan ({data.sales_orders[0].order_number})
+                    </Button>
+                  )}
+                  <Button onClick={() => router.push(data.sales_orders?.[0]?.id ? '/sales/deliveries/create?so_id=' + data.sales_orders[0].id : '/sales/deliveries/create')} className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
                     <Plus className="w-4 h-4" /> Buat Surat Jalan
                   </Button>
                 </>
@@ -171,8 +180,8 @@ export default function QuotationDetailPage() {
                   <Button variant="outline" size="icon" className="bg-background"><MoreVertical className="w-4 h-4" /></Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem className="py-2 cursor-pointer" onClick={() => alert('Lihat Audit UI')}>
-                    <Search className="w-4 h-4 mr-2 text-muted-foreground" /> Lihat Audit
+                  <DropdownMenuItem className="py-2 cursor-pointer" onClick={() => router.push('/settings/audit-logs')}>
+                    <Search className="w-4 h-4 mr-2 text-muted-foreground" /> Lihat Riwayat Audit
                   </DropdownMenuItem>
                   <DropdownMenuItem className="py-2 cursor-pointer" onClick={() => router.push('/sales/quotations/create?edit_id=' + data.id)}>
                     <Edit2 className="w-4 h-4 mr-2 text-muted-foreground" /> Ubah
@@ -232,7 +241,7 @@ export default function QuotationDetailPage() {
                     <TableHead>Deskripsi</TableHead>
                     <TableHead className="text-right">Kuantitas</TableHead>
                     <TableHead>Satuan</TableHead>
-                    <TableHead className="text-right">Discount</TableHead>
+                    <TableHead className="text-right">Diskon</TableHead>
                     <TableHead className="text-right">Harga</TableHead>
                     <TableHead>Pajak</TableHead>
                     <TableHead className="text-right">Total</TableHead>

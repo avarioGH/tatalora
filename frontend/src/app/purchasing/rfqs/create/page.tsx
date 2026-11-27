@@ -274,7 +274,7 @@ export default function CreateRFQPage() {
                   <Label className="text-foreground">Syarat Pembayaran (Termin)</Label>
                   <Select value={form.paymentTerms} onValueChange={(val) => setForm({...form, paymentTerms: val || "net30"})}>
                     <SelectTrigger className="bg-background border-border">
-                      <SelectValue placeholder="Pilih termin" />
+                      <SelectValue placeholder="Pilih termin">{(v: any) => ({ cod: "COD (Bayar Tunai)", net15: "Net 15 Hari", net30: "Net 30 Hari", net60: "Net 60 Hari" } as any)[v] || "Pilih termin"}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="cod">COD (Bayar Tunai)</SelectItem>

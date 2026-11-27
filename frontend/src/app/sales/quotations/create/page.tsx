@@ -665,10 +665,13 @@ function QuotationForm() {
                         <SelectTrigger className="h-9 bg-background border-border text-xs">
                           <SelectValue placeholder="Pilih produk...">{(v: any) => { const f = products.find((p: any) => p.id === v); return f ? `${f.name} (${f.code})` : (v ? "Memuat..." : "Pilih produk...") }}</SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-72">
                           {products.map((p: any) => (
-                            <SelectItem key={p.id} value={p.id} className="text-xs">
-                              {p.name} ({p.code})
+                            <SelectItem key={p.id} value={p.id} className="text-xs py-1.5">
+                              <div className="flex flex-col text-left">
+                                <span className="font-semibold text-foreground">{p.name}</span>
+                                <span className="text-[10px] text-muted-foreground">SKU: {p.code || p.sku || '-'}</span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>

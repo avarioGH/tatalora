@@ -407,7 +407,7 @@ export default function CustomerCreditNotesPage() {
             <div className="space-y-1.5">
               <label className="text-sm font-medium">ID Faktur Penjualan Terbuka *</label>
               <Input
-                placeholder="Masukkan ID Faktur Penjualan (UUID)"
+                placeholder="Masukkan Nomor / ID Faktur Penjualan..."
                 value={targetInvoiceId}
                 onChange={(e) => setTargetInvoiceId(e.target.value)}
                 required
@@ -470,7 +470,7 @@ export default function CustomerCreditNotesPage() {
             <div className="space-y-1.5">
               <label className="text-sm font-medium">ID Akun Kas / Bank Pengeluaran *</label>
               <Input
-                placeholder="Masukkan ID Akun Kas/Bank (UUID)"
+                placeholder="Masukkan Kode / ID Akun Kas/Bank..."
                 value={refundCashAccountId}
                 onChange={(e) => setRefundCashAccountId(e.target.value)}
                 required

@@ -1,5 +1,4 @@
 import { TimberSalesModule } from './sales/timber-sales.module';
-import { FixController } from './fix.controller';
 import { MasterDataModule } from './inventory/master-data/master-data.module';
 import { ApprovalModule } from './approval/approval.module';
 import { EcommerceModule } from './ecommerce/ecommerce.module';
@@ -106,7 +105,7 @@ import { AdminModule } from './admin/admin.module';
     ShipmentModule,
     OpnameModule,
   ],
-  controllers: [AppController, FixController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

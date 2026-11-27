@@ -18,6 +18,7 @@ import { Permissions } from '../auth/permissions.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { DeliveryService } from '../crm/delivery/delivery.service';
 import { SequenceService } from '../reports/sequence.service';
+import { AuditService } from '../core/audit.service';
 
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('sales')
@@ -26,6 +27,7 @@ export class SalesController {
     private readonly prisma: PrismaService,
     private readonly deliveryService: DeliveryService,
     private readonly sequenceService: SequenceService,
+    private readonly auditService: AuditService,
   ) {}
 
   // ----------------------------------------------------
@@ -95,7 +97,7 @@ export class SalesController {
     );
     const totalAmount = Number(data.total_amount ?? data.total) || subtotal;
 
-    return this.prisma.quotation.create({
+    const created = await this.prisma.quotation.create({
       data: {
         company_id: companyId,
         customer_id: customerId,
@@ -136,6 +138,16 @@ export class SalesController {
         items: { include: { product: true } },
       },
     });
+    await this.auditService.log({
+      company_id: companyId,
+      user_id: req.user.userId || req.user.id,
+      ip_address: req.ip,
+      action: 'CREATE_QUOTATION',
+      entity: 'Quotation',
+      entity_id: created.id,
+      after_data: { quotation_number: created.quotation_number, total_amount: created.total_amount, status: created.status },
+    }).catch(() => null);
+    return created;
   }
 
   @Permissions('sales.quotation.edit')
@@ -155,7 +167,7 @@ export class SalesController {
     );
     const totalAmount = data.total_amount !== undefined ? Number(data.total_amount) : (data.total !== undefined ? Number(data.total) : (items.length > 0 ? subtotal : undefined));
 
-    return this.prisma.quotation.update({
+    const updated = await this.prisma.quotation.update({
       where: { id },
       data: {
         customer_id: customerId || undefined,
@@ -192,6 +204,16 @@ export class SalesController {
         items: { include: { product: true } },
       },
     });
+    await this.auditService.log({
+      company_id: companyId,
+      user_id: req.user.userId || req.user.id,
+      ip_address: req.ip,
+      action: 'UPDATE_QUOTATION',
+      entity: 'Quotation',
+      entity_id: updated.id,
+      after_data: { quotation_number: updated.quotation_number, total_amount: updated.total_amount, status: updated.status },
+    }).catch(() => null);
+    return updated;
   }
 
   @Permissions('sales.quotation.delete')
@@ -354,7 +376,7 @@ export class SalesController {
         0,
       );
 
-    return this.prisma.salesOrder.create({
+    const createdOrder = await this.prisma.salesOrder.create({
       data: {
         company_id: companyId,
         customer_id: data.customer_id,
@@ -394,6 +416,16 @@ export class SalesController {
         items: { include: { product: true } },
       },
     });
+    await this.auditService.log({
+      company_id: companyId,
+      user_id: req.user.userId || req.user.id,
+      ip_address: req.ip,
+      action: 'CREATE_SALES_ORDER',
+      entity: 'SalesOrder',
+      entity_id: createdOrder.id,
+      after_data: { order_number: createdOrder.order_number, total_amount: createdOrder.total_amount, status: createdOrder.status },
+    }).catch(() => null);
+    return createdOrder;
   }
 
   @Permissions('sales.order.delete')

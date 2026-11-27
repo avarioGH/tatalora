@@ -184,7 +184,7 @@ export class PurchasingService {
         };
       });
 
-      return tx.purchaseOrder.create({
+      const createdPo = await tx.purchaseOrder.create({
         data: {
           company_id: companyId,
           supplier_id: supplierId,
@@ -205,6 +205,16 @@ export class PurchasingService {
         },
         include: { items: { include: { product: true } }, supplier: true },
       });
+      await tx.auditLog.create({
+        data: {
+          company_id: companyId,
+          action: 'CREATE_PURCHASE_ORDER',
+          entity: 'PurchaseOrder',
+          entity_id: createdPo.id,
+          after_data: { order_number: createdPo.order_number, total_amount: createdPo.total_amount, status: createdPo.status } as any,
+        },
+      }).catch(() => null);
+      return createdPo;
     });
   }
 
@@ -266,6 +276,15 @@ export class PurchasingService {
       include: { items: true, supplier: true },
     });
 
+    await this.prisma.auditLog.create({
+      data: {
+        company_id: companyId,
+        action: 'CREATE_RFQ',
+        entity: 'PurchaseOrder',
+        entity_id: po.id,
+        after_data: { order_number: po.order_number, total_amount: po.total_amount, status: po.status } as any,
+      },
+    }).catch(() => null);
     return po;
   }
 

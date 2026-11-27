@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
   HttpCode,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -58,15 +59,24 @@ export class PublicConsultationController {
 export class AdminConsultationController {
   constructor(private readonly prisma: PrismaService) {}
 
+  private assertAdminRole(req: any) {
+    const role = (req?.user?.role || '').toUpperCase();
+    if (!['SUPERADMIN', 'OWNER', 'ADMIN', 'FULL_ADMIN'].includes(role)) {
+      throw new ForbiddenException('Akses ditolak: Hanya Superadmin / Owner yang diizinkan.');
+    }
+  }
+
   @Get()
-  async getAll() {
+  async getAll(@Req() req: any) {
+    this.assertAdminRole(req);
     return this.prisma.consultationLead.findMany({
       orderBy: { created_at: 'desc' },
     });
   }
 
   @Get('stats')
-  async getStats() {
+  async getStats(@Req() req: any) {
+    this.assertAdminRole(req);
     const total = await this.prisma.consultationLead.count();
     const byStatus = await this.prisma.consultationLead.groupBy({
       by: ['status'],
@@ -84,14 +94,16 @@ export class AdminConsultationController {
   }
 
   @Patch(':id/status')
-  async updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
+  async updateStatus(@Req() req: any, @Param('id') id: string, @Body() body: { status: string }) {
+    this.assertAdminRole(req);
     return this.prisma.consultationLead.update({
       where: { id },
       data: { status: body.status },
     });
   }
   @Get('users')
-  async getUsers() {
+  async getUsers(@Req() req: any) {
+    this.assertAdminRole(req);
     const users = await this.prisma.user.findMany({
       include: {
         company: {
@@ -126,7 +138,8 @@ export class AdminConsultationController {
   }
 
   @Get('leads')
-  async getCrmLeads() {
+  async getCrmLeads(@Req() req: any) {
+    this.assertAdminRole(req);
     return this.prisma.lead.findMany({
       include: {
         company: true,

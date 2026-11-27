@@ -148,7 +148,7 @@ export default function CreateDisposalPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base font-semibold">Daftar Produk yang Dimusnahkan</CardTitle>
-                <CardDescription>Pilih produk berdasarkan nama / SKU bisnis, bukan UUID teknis.</CardDescription>
+                <CardDescription>Pilih produk berdasarkan nama barang atau kode SKU katalog.</CardDescription>
               </div>
               <Button type="button" variant="outline" size="sm" onClick={handleAddItem} className="gap-1.5 border-rose-200 text-rose-600 hover:bg-rose-50">
                 <Plus className="w-4 h-4" /> Tambah Produk

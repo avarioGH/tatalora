@@ -47,7 +47,7 @@ export default function CreateOrderPage() {
     warehouseId: "",
     orderNumber: "[Auto]",
     vendorRefNo: "",
-    orderDate: new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0],
+    orderDate: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" }),
     expectedReceipt: "",
     notes: "",
     paymentTerms: "Net 30",

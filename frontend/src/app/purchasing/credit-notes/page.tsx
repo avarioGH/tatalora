@@ -351,7 +351,7 @@ export default function SupplierCreditNotesPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">ID Faktur Vendor Bill Target *</label>
                 <Input
-                  placeholder="Masukkan UUID / ID Faktur Vendor Bill..."
+                  placeholder="Masukkan Nomor / ID Faktur Pembelian..."
                   value={targetBillId}
                   onChange={(e) => setTargetBillId(e.target.value)}
                   className="bg-background text-sm"

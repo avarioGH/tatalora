@@ -37,7 +37,20 @@ export default function FixedAssetsPage() {
   const [accounts, setAccounts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
-  const [activeTab, setActiveTab] = useState("Daftar Aset")
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== "undefined") {
+      const t = new URLSearchParams(window.location.search).get("tab")
+      if (t && ["Daftar Aset", "Penyusutan", "Aset Dijual/Dilepas"].includes(t)) return t
+    }
+    return "Daftar Aset"
+  })
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const t = new URLSearchParams(window.location.search).get("tab")
+      if (t && ["Daftar Aset", "Penyusutan", "Aset Dijual/Dilepas"].includes(t)) setActiveTab(t)
+    }
+  }, [])
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 

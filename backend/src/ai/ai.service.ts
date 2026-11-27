@@ -31,9 +31,7 @@ export class AiService {
   ) {
     // API key ditaruh di .env dengan nama JUAN_API_KEY
     // Jika tidak ada di .env, kita pakai default fallback key
-    const apiKey =
-      process.env.JUAN_API_KEY ||
-      'sk-p8GXAXmljYonz0t5fvS0r09aN9K6iPvkCpR9UWyhXuU9ykf8';
+    const apiKey = process.env.JUAN_API_KEY || process.env.OPENAI_API_KEY || 'missing_api_key_configure_in_env';
     this.openai = new OpenAI({
       apiKey: apiKey,
       baseURL: 'https://router.juan.web.id/v1',

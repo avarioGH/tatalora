@@ -37,8 +37,10 @@ export class ReportingController {
 
   // SSE Endpoint. Note: Standard EventSource does not send auth headers easily.
   // In a real app we would validate a token passed in query.
+  @UseGuards(JwtAuthGuard)
   @Sse('notifications')
-  sse(@Query('companyId') companyId: string): Observable<MessageEvent> {
+  sse(@Request() req: any, @Query('companyId') queryCompanyId?: string): Observable<MessageEvent> {
+    const companyId = req?.user?.company_id || req?.user?.companyId || queryCompanyId;
     return fromEvent(this.eventEmitter, 'export.ready').pipe(
       filter((data: any) => data.companyId === companyId),
       map(

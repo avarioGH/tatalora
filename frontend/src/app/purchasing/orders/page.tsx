@@ -60,7 +60,8 @@ export default function PurchaseOrdersPage() {
     switch(status) {
       case "CONFIRMED": return <Badge className="bg-blue-500/10 text-blue-600 border-0 shadow-none font-medium px-2.5 py-0.5">Disetujui</Badge>
       case "COMPLETED": return <Badge className="bg-emerald-500/10 text-emerald-600 border-0 shadow-none font-medium px-2.5 py-0.5">Selesai</Badge>
-      case "DRAFT": return <Badge className="bg-amber-500/10 text-amber-600 border-0 shadow-none font-medium px-2.5 py-0.5">Draft</Badge>
+      case "DRAFT": return <Badge className="bg-amber-500/10 text-amber-600 border-0 shadow-none font-medium px-2.5 py-0.5">Draf</Badge>
+      case "CANCELLED": return <Badge className="bg-rose-500/10 text-rose-600 border-0 shadow-none font-medium px-2.5 py-0.5">Dibatalkan</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }
   }
@@ -120,7 +121,7 @@ export default function PurchaseOrdersPage() {
             </div>
             Pesanan Pembelian (PO)
           </h1>
-          <p className="text-muted-foreground mt-1">Kelola pesanan ke supplier langsung terhubung ke database riil.</p>
+          <p className="text-muted-foreground mt-1">Kelola pesanan pembelian (Purchase Order) ke pemasok, pantau status penerimaan barang dan penagihan.</p>
         </div>
         
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -171,7 +172,7 @@ export default function PurchaseOrdersPage() {
                 }
               `}
             >
-              {tab === "Semua" ? "Semua Status" : tab}
+              {({ Semua: "Semua Status", DRAFT: "Draf", CONFIRMED: "Disetujui", COMPLETED: "Selesai", CANCELLED: "Dibatalkan" } as any)[tab] || tab}
             </button>
           ))}
         </div>
@@ -217,7 +218,7 @@ export default function PurchaseOrdersPage() {
                       <TableCell className="font-medium text-foreground">{item.supplier?.name || '-'}</TableCell>
                       <TableCell className="text-muted-foreground text-xs">{item.order_date ? new Date(item.order_date).toLocaleDateString('id-ID') : '-'}</TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="secondary" className="text-[10px]">{item.receipt_status || 'PENDING'}</Badge>
+                        <Badge variant="secondary" className="text-[10px]">{({ RECEIVED: 'Diterima Penuh', COMPLETED: 'Diterima Penuh', PARTIAL: 'Diterima Sebagian', PENDING: 'Menunggu Penerimaan' } as any)[item.receipt_status] || item.receipt_status || 'Menunggu Penerimaan'}</Badge>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex flex-col items-center gap-1">

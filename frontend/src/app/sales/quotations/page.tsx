@@ -32,7 +32,11 @@ export default function QuotationsPage() {
     switch (status) {
       case 'DRAFT': return <Badge variant="secondary" className="bg-muted/50 text-foreground">Draf</Badge>
       case 'SENT': return <Badge variant="outline" className="text-primary border-indigo-200 bg-indigo-50 dark:border-indigo-900 dark:bg-indigo-900/30 dark:text-primary">Terkirim</Badge>
-      case 'CONFIRMED': return <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white">Dikonfirmasi (Pesanan Penjualan)</Badge>
+      case 'ACCEPTED': return <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200">Disetujui Pelanggan</Badge>
+      case 'CONFIRMED':
+      case 'CONVERTED': return <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white">Dikonversi ke SO</Badge>
+      case 'EXPIRED': return <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-50">Kedaluwarsa</Badge>
+      case 'REJECTED': return <Badge variant="destructive">Ditolak</Badge>
       case 'CANCELLED': return <Badge variant="destructive">Dibatalkan</Badge>
       default: return <Badge variant="outline">{status}</Badge>
     }

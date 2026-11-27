@@ -129,7 +129,14 @@ export default function SalesOrderDetailPage() {
             <CardTitle className="text-xs font-semibold uppercase text-muted-foreground">Informasi Pelanggan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1.5 text-sm">
-            <div className="font-semibold text-foreground text-base">{order.customer?.name || 'Pelanggan Umum'}</div>
+            <div className="flex items-center justify-between">
+              <div className="font-semibold text-foreground text-base">{order.customer?.name || 'Pelanggan Umum'}</div>
+              {order.customer?.name && (
+                <Link href={`/customers?q=${encodeURIComponent(order.customer.name)}`} className="text-xs text-indigo-600 hover:underline flex items-center gap-1 font-medium">
+                  Profil Pelanggan <ExternalLink className="w-3 h-3" />
+                </Link>
+              )}
+            </div>
             {order.customer?.phone && <div className="text-muted-foreground">{order.customer.phone}</div>}
             {order.customer?.email && <div className="text-muted-foreground">{order.customer.email}</div>}
             {order.billing_address && <div className="text-xs text-muted-foreground pt-1 border-t">{order.billing_address}</div>}
@@ -143,7 +150,7 @@ export default function SalesOrderDetailPage() {
           <CardContent className="space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Syarat Pembayaran:</span>
-              <span className="font-medium">{order.payment_terms || 'Net 30'}</span>
+              <span className="font-medium">{({ cod: 'Cash on Delivery (COD)', net15: 'Net 15 Hari', net30: 'Net 30 Hari', net60: 'Net 60 Hari' } as any)[order.payment_terms] || order.payment_terms || 'Net 30 Hari'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Mata Uang:</span>
