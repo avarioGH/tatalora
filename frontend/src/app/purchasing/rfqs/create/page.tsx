@@ -396,11 +396,17 @@ export default function CreateRFQPage() {
                             value={item.tax_percent === 0 ? "0" : String(item.tax_percent)}
                             onValueChange={(val) => handleItemChange(index, "tax_percent", parseFloat(val || "0") || 0)}
                           >
-                            <SelectTrigger className="bg-background border-border text-muted-foreground text-xs">
-                              <SelectValue placeholder="-" />
+                            <SelectTrigger className="bg-background border-border text-foreground text-xs">
+                              <SelectValue placeholder="Pajak">
+                                {(val: any) => {
+                                  if (val === "11") return "PPN 11%";
+                                  if (val === "12") return "PPN 12%";
+                                  return "Bebas Pajak (0%)";
+                                }}
+                              </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="0">0%</SelectItem>
+                              <SelectItem value="0">Bebas Pajak (0%)</SelectItem>
                               <SelectItem value="11">PPN 11%</SelectItem>
                               <SelectItem value="12">PPN 12%</SelectItem>
                             </SelectContent>
@@ -466,10 +472,16 @@ export default function CreateRFQPage() {
                 <span className="font-semibold text-foreground">{formatIDR(subtotal)}</span>
               </div>
               
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground font-medium">Pajak (PPN)</span>
-                <span className="font-semibold text-foreground">{formatIDR(taxTotal)}</span>
-              </div>
+              {(() => {
+                const uniqueRates = Array.from(new Set(items.map(it => Number(it.tax_percent) || 0))).filter(r => r > 0);
+                const taxLabel = uniqueRates.length === 1 ? `Pajak (PPN ${uniqueRates[0]}%)` : uniqueRates.length > 1 ? 'Pajak (PPN Campuran)' : 'Pajak (PPN 0%)';
+                return (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground font-medium">{taxLabel}</span>
+                    <span className="font-semibold text-foreground">{formatIDR(taxTotal)}</span>
+                  </div>
+                );
+              })()}
               
               <div className="pt-4 mt-2 border-t border-border">
                 <div className="flex justify-between items-center">

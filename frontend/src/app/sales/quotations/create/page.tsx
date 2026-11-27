@@ -727,7 +727,14 @@ function QuotationForm() {
                         }}
                       >
                         <SelectTrigger className="h-9 bg-background border-border text-xs w-full">
-                          <SelectValue placeholder="Pilih pajak" />
+                          <SelectValue placeholder="Pilih pajak">
+                            {(val: any) => {
+                              const f = availableTaxes.find(t => String(t.rate) === String(val));
+                              if (f) return `${f.name} (${f.rate}%)`;
+                              if (val && val !== "0") return `${val}%`;
+                              return "Bebas Pajak (0%)";
+                            }}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="bg-card border-border">
                           {availableTaxes.map((t) => (

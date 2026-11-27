@@ -108,9 +108,11 @@ export default function PosNewTransactionPage() {
   )
 
   const addToCart = (product: any) => {
-    if (product.stock <= 0) {
+    const existing = cart.find(item => item.id === product.id)
+    const currentQtyInCart = existing ? existing.qty : 0
+    if (product.stock <= 0 || (currentQtyInCart + 1) > product.stock) {
       const confirmAdd = window.confirm(
-        'PERINGATAN STOK: Produk "' + product.name + '" saat ini memiliki stok ' + product.stock + ' (stok habis/negatif).\n\nApakah Anda tetap ingin memasukkan produk ini ke keranjang penjualan?'
+        `PERINGATAN STOK: Produk "${product.name}" saat ini memiliki sisa stok ${product.stock}.\nJumlah di keranjang akan menjadi ${currentQtyInCart + 1} (melebihi stok tersedia).\n\nApakah Anda yakin ingin tetap melanjutkan transaksi dengan stok negatif/kurang?`
       );
       if (!confirmAdd) return;
     }
@@ -122,6 +124,19 @@ export default function PosNewTransactionPage() {
   }
 
   const updateQty = (id: string, delta: number) => {
+    if (delta > 0) {
+      const product = products.find(p => p.id === id)
+      const existing = cart.find(item => item.id === id)
+      if (product && existing) {
+        const nextQty = existing.qty + delta
+        if (product.stock <= 0 || nextQty > product.stock) {
+          const confirmAdd = window.confirm(
+            `PERINGATAN STOK: Jumlah untuk "${product.name}" akan menjadi ${nextQty}, sedangkan sisa stok gudang adalah ${product.stock}.\n\nLanjutkan dengan stok melebihi batas?`
+          );
+          if (!confirmAdd) return;
+        }
+      }
+    }
     setCart(prev => prev.map(item => {
       if (item.id === id) return { ...item, qty: Math.max(1, item.qty + delta) }
       return item

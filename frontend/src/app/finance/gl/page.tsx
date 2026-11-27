@@ -40,7 +40,7 @@ export default function GeneralLedgerPage() {
  if (journals.length === 0) return
 
  // Define CSV headers
- let csvContent ="Date,Journal No,Reference Type,Reference ID,Account ID,Debit,Credit,Description\n"
+ let csvContent ="Date,Journal No,Reference Type,Reference ID,Account Code,Account Name,Account ID,Debit,Credit,Description\n"
 
  // Flatten journals and items into rows
  journals.forEach(journal => {
@@ -52,7 +52,9 @@ export default function GeneralLedgerPage() {
  const debit = item.debit || 0
  const credit = item.credit || 0
  
- csvContent += `${date},${journal.journal_no},${journal.reference_type},${journal.reference_id || ''},${item.account_id},${debit},${credit},${desc}\n`
+ const accCode = `"${(item.account?.account_code || "").replace(/"/g, '""')}"`;
+  const accName = `"${(item.account?.account_name || "").replace(/"/g, '""')}"`;
+  csvContent += `${date},${journal.journal_no},${journal.reference_type},${journal.reference_id || ''},${accCode},${accName},${item.account_id},${debit},${credit},${desc}\n`
  })
  } else {
  const desc = `"${(journal.description ||"").replace(/"/g, '""')}"`

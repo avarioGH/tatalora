@@ -491,7 +491,13 @@ export default function CreatePurchaseInvoicePage() {
                           onValueChange={(val) => handleFieldChange(idx, "tax_percent", parseFloat(val || "0") || 0)}
                         >
                           <SelectTrigger className="h-9 bg-muted border-border text-xs w-full">
-                            <SelectValue placeholder="Pajak" />
+                            <SelectValue placeholder="Pajak">
+                              {(val: any) => {
+                                if (val === "11") return "PPN 11%";
+                                if (val === "12") return "PPN 12%";
+                                return "Bebas Pajak (0%)";
+                              }}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="0">Bebas Pajak (0%)</SelectItem>
@@ -557,10 +563,16 @@ export default function CreatePurchaseInvoicePage() {
                   <Input type="number" min="0" value={globalDiscountVal} onChange={e => setGlobalDiscountVal(parseFloat(e.target.value) || 0)} className="h-8 text-right bg-muted text-xs" />
                 </div>
               </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Pajak (PPN)</span>
-                <span className="font-medium text-foreground">{formatIDR(totalTax)}</span>
-              </div>
+              {(() => {
+                const uniqueRates = Array.from(new Set(items.map(it => Number(it.tax_percent) || 0))).filter(r => r > 0);
+                const taxLabel = uniqueRates.length === 1 ? `Pajak (PPN ${uniqueRates[0]}%)` : uniqueRates.length > 1 ? 'Pajak (PPN Campuran)' : 'Pajak (PPN 0%)';
+                return (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">{taxLabel}</span>
+                    <span className="font-medium text-foreground">{formatIDR(totalTax)}</span>
+                  </div>
+                );
+              })()}
               <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">Biaya Pengiriman</span>
                 <div className="w-36">
