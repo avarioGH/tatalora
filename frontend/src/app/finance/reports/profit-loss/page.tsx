@@ -9,14 +9,22 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export default function ProfitLossPage() {
+  const getJakartaMonthRange = (offsetMonth: number = 0) => {
+    const jktStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
+    const [y, m] = jktStr.split("-").map(Number)
+    const targetDate = new Date(y, m - 1 + offsetMonth, 1)
+    const ty = targetDate.getFullYear()
+    const tm = targetDate.getMonth() + 1
+    const lastDay = new Date(ty, tm, 0).getDate()
+    const s = `${ty}-${String(tm).padStart(2, "0")}-01`
+    const e = `${ty}-${String(tm).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`
+    return { s, e }
+  }
+
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [startDate, setStartDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toLocaleDateString("en-CA")
-  )
-  const [endDate, setEndDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString("en-CA")
-  )
+  const [startDate, setStartDate] = useState(() => getJakartaMonthRange(0).s)
+  const [endDate, setEndDate] = useState(() => getJakartaMonthRange(0).e)
   const [quickPeriod, setQuickPeriod] = useState("this_month")
 
   useEffect(() => {
@@ -37,18 +45,27 @@ export default function ProfitLossPage() {
 
   const handlePeriodChange = (val: string) => {
     setQuickPeriod(val)
-    const now = new Date()
     let s = startDate
     let e = endDate
     if (val === "this_month") {
-      s = new Date(now.getFullYear(), now.getMonth(), 1).toLocaleDateString("en-CA"); setStartDate(s)
-      e = new Date(now.getFullYear(), now.getMonth() + 1, 0).toLocaleDateString("en-CA"); setEndDate(e)
+      const range = getJakartaMonthRange(0)
+      s = range.s
+      e = range.e
+      setStartDate(s)
+      setEndDate(e)
     } else if (val === "last_month") {
-      s = new Date(now.getFullYear(), now.getMonth() - 1, 1).toLocaleDateString("en-CA"); setStartDate(s)
-      e = new Date(now.getFullYear(), now.getMonth(), 0).toLocaleDateString("en-CA"); setEndDate(e)
+      const range = getJakartaMonthRange(-1)
+      s = range.s
+      e = range.e
+      setStartDate(s)
+      setEndDate(e)
     } else if (val === "this_year") {
-      s = new Date(now.getFullYear(), 0, 1).toLocaleDateString("en-CA"); setStartDate(s)
-      e = new Date(now.getFullYear(), 11, 31).toLocaleDateString("en-CA"); setEndDate(e)
+      const jktStr = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" })
+      const y = jktStr.split("-")[0]
+      s = `${y}-01-01`
+      e = `${y}-12-31`
+      setStartDate(s)
+      setEndDate(e)
     }
     fetchData(s, e)
   }

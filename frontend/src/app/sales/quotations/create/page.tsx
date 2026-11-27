@@ -354,12 +354,18 @@ function QuotationForm() {
 
     setSubmitting(true)
     try {
+      const toWibNoonIso = (dateStr: string) => {
+        if (!dateStr) return undefined;
+        const [y, m, d] = dateStr.split("-").map(Number);
+        return new Date(Date.UTC(y, m - 1, d, 5, 0, 0)).toISOString();
+      };
+
       const payload = {
         customerId,
-        quotationDate: transactionDate ? new Date(transactionDate).toISOString() : new Date().toISOString(),
-        expirationDate: expirationDate ? new Date(expirationDate).toISOString() : undefined,
-        quotation_date: transactionDate ? new Date(transactionDate).toISOString() : new Date().toISOString(),
-        expiration_date: expirationDate ? new Date(expirationDate).toISOString() : undefined,
+        quotationDate: toWibNoonIso(transactionDate) || new Date().toISOString(),
+        expirationDate: toWibNoonIso(expirationDate),
+        quotation_date: toWibNoonIso(transactionDate) || new Date().toISOString(),
+        expiration_date: toWibNoonIso(expirationDate),
         quotationNumber: transactionNo || undefined,
         quotation_number: transactionNo || undefined,
         email,
