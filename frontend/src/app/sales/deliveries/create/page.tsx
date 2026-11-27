@@ -187,11 +187,16 @@ export default function CreateDeliveryPage() {
                 onChange={e => handleSelectSo(e.target.value)}
               >
                 <option value="">-- Pilih Sales Order --</option>
-                {orders.filter(o => showAllOrders ? true : (o.status !== 'CANCELLED' && o.status !== 'COMPLETED' && o.delivery_status !== 'DELIVERED')).map(o => (
-                  <option key={o.id} value={o.id}>
-                    {o.order_number} - {o.customer?.name || 'Pelanggan'} | {o.status} | {new Date(o.order_date || o.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                  </option>
-                ))}
+                {orders.filter(o => showAllOrders ? true : (o.status !== 'CANCELLED' && o.status !== 'COMPLETED' && o.delivery_status !== 'DELIVERED' && o.delivery_status !== 'COMPLETED')).map(o => {
+                  const statusIndo = ({ CONFIRMED: 'Dikonfirmasi', PENDING: 'Menunggu', PARTIAL: 'Sebagian' } as any)[o.status] || o.status || 'Draf';
+                  const deliveryIndo = ({ PENDING: 'Belum Dikirim', PARTIAL: 'Dikirim Sebagian', DELIVERED: 'Terkirim Penuh' } as any)[o.delivery_status] || 'Siap Kirim';
+                  const dateStr = new Date(o.order_date || o.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                  return (
+                    <option key={o.id} value={o.id}>
+                      {o.order_number} - {o.customer?.name || 'Pelanggan'} | Status: {statusIndo} ({deliveryIndo}) | {dateStr}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 

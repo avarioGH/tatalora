@@ -27,14 +27,17 @@ export class FinanceController {
   @Permissions('finance.category.view')
   @Get('categories')
   async getCategories(@Request() req) {
-    return this.financeService.getCategories(req.user.company_id);
+    const compId = req.user.company_id || req.user.companyId;
+    return this.financeService.getCategories(compId);
   }
 
   @Permissions('finance.view')
   @Get('accounts')
   async getCashAccounts(@Request() req) {
+    const companyId = req.user.company_id || req.user.companyId;
     return this.prisma.cashAccount.findMany({
-      where: { company_id: req.user.company_id },
+      where: { company_id: companyId },
+      include: { chart_of_account: true },
       orderBy: { name: 'asc' },
     });
   }
@@ -42,7 +45,7 @@ export class FinanceController {
   @Permissions('finance.view')
   @Get('summary')
   async getSummary(@Request() req) {
-    const companyId = req.user.company_id;
+    const companyId = req.user.company_id || req.user.companyId;
     // 1. Total Cash from all Cash Accounts
     const cashAccounts = await this.prisma.cashAccount.findMany({
       where: { company_id: companyId },
@@ -167,7 +170,7 @@ export class FinanceController {
     @Query('endDate') endDate?: string,
     @Query('search') search?: string,
   ) {
-    const where: any = { company_id: req.user.company_id };
+    const where: any = { company_id: req.user.company_id || req.user.companyId };
 
     if (cashAccountId && cashAccountId !== 'all') {
       where.cash_account_id = cashAccountId;
@@ -226,7 +229,7 @@ export class FinanceController {
   @Post('cash-in')
   async createCashIn(@Request() req, @Body() data: any) {
     const dto: FinanceTransactionDto = {
-      companyId: req.user.company_id,
+      companyId: req.user.company_id || req.user.companyId,
       userId: req.user.userId,
       transactionNo: data.transactionNo || `CI-${Date.now()}`,
       transactionDate: data.transactionDate
@@ -246,7 +249,7 @@ export class FinanceController {
   @Post('cash-out')
   async createCashOut(@Request() req, @Body() data: any) {
     const dto: FinanceTransactionDto = {
-      companyId: req.user.company_id,
+      companyId: req.user.company_id || req.user.companyId,
       userId: req.user.userId,
       transactionNo: data.transactionNo || `CO-${Date.now()}`,
       transactionDate: data.transactionDate
@@ -270,19 +273,22 @@ export class FinanceController {
   ) {
     const s = startDate ? new Date(startDate + 'T00:00:00+07:00') : undefined;
     const e = endDate ? new Date(endDate + 'T23:59:59.999+07:00') : undefined;
-    return this.financeService.getProfitLossReport(req.user.company_id, s, e);
+    const compId = req.user.company_id || req.user.companyId;
+    return this.financeService.getProfitLossReport(compId, s, e);
   }
 
   @Permissions('finance.view')
   @Get('reports/cash-flow')
   async getCashFlowReport(@Request() req) {
-    return this.financeService.getCashFlowReport(req.user.company_id);
+    const compId = req.user.company_id || req.user.companyId;
+    return this.financeService.getCashFlowReport(compId);
   }
 
   @Permissions('finance.view')
   @Get('reports/balance-sheet')
   async getBalanceSheetReport(@Request() req) {
-    return this.financeService.getBalanceSheetReport(req.user.company_id);
+    const compId = req.user.company_id || req.user.companyId;
+    return this.financeService.getBalanceSheetReport(compId);
   }
 
   @Permissions('finance.create')
@@ -302,7 +308,8 @@ export class FinanceController {
   @Permissions('finance.view')
   @Get('cash-reconciliation')
   async getCashReconciliation(@Request() req: any) {
-    return this.financeService.getCashReconciliation(req.user.company_id);
+    const compId = req.user.company_id || req.user.companyId;
+    return this.financeService.getCashReconciliation(compId);
   }
 
   @Permissions('finance.view')

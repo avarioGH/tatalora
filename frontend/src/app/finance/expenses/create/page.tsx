@@ -116,6 +116,7 @@ export default function CreateExpensePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (paymentMode === "NOW" && !fromAccountId) return alert("Pilih akun kas/bank pembayar!")
+    if (paymentMode === "LATER" && !fromAccountId && liabilityAccounts.length > 0) return alert("Pilih akun utang beban!")
     if (paymentMode === "LATER" && !dueDate) return alert("Pilih tanggal jatuh tempo untuk biaya terutang!")
     if (totalAmount <= 0) return alert("Total nominal biaya harus lebih dari 0!")
 
@@ -123,15 +124,22 @@ export default function CreateExpensePage() {
     try {
       const firstDebitAccount = items[0]?.accountId || (expenseAccounts[0]?.id)
       const primaryAccount = cashAccounts.find(a => a.id === fromAccountId)
+      const selectedLiability = liabilityAccounts.find(a => a.id === fromAccountId)
+
+      const payloadCreditAccountId = paymentMode === "LATER"
+        ? (selectedLiability?.id || (fromAccountId !== "default_ap" ? fromAccountId : undefined))
+        : (primaryAccount?.chart_of_account_id || undefined)
 
       await api.post("/finance/cash-out", {
-        cashAccountId: fromAccountId,
+        cashAccountId: paymentMode === "NOW" ? fromAccountId : undefined,
         amount: totalAmount,
         transactionDate,
-        description: memo || (items[0]?.desc ? `${payee ? payee + ' - ' : ''}${items[0]?.desc}` : `Biaya Operasional ${payee || ''}`),
+        dueDate: paymentMode === "LATER" ? dueDate : undefined,
+        paymentMode,
+        description: memo || (items[0]?.desc ? `${payee ? payee + ' - ' : ''}${items[0]?.desc}` : `Biaya Operasional ${payee || ''}${paymentMode === 'LATER' ? ' (Terutang)' : ''}`),
         categoryId: categoryId || undefined,
         debitAccountId: firstDebitAccount,
-        creditAccountId: primaryAccount?.chart_of_account_id || undefined,
+        creditAccountId: payloadCreditAccountId,
         transactionNo: reference || `EXP-${Date.now()}`
       })
 
